@@ -1,0 +1,28 @@
+package repositoryimplement
+
+import (
+	"context"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
+)
+
+type UserRepository struct {
+	db *sqlx.DB
+}
+
+func NewUserRepository(db database.Db) repository.UserRepository {
+	return &UserRepository{db: db}
+}
+
+func (repo *UserRepository) CreateCommand(ctx context.Context, user *entity.User) error {
+	// Insert the new user
+	insertQuery := `INSERT INTO users(email, name, phone_number, password) VALUES (:email, :name, :phone_number, :password)`
+	_, err := repo.db.NamedExecContext(ctx, insertQuery, user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
