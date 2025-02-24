@@ -8,4 +8,5 @@ import (
 
 type UserRepository interface {
 	CreateCommand(ctx context.Context, user *entity.User) error
+	GetOneByEmailQuery(ctx context.Context, email string) (*entity.User, error)
 }

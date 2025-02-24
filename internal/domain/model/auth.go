@@ -8,9 +8,8 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Email          string `json:"email" binding:"required,email,min=10,max=255"`
-	Password       string `json:"password" binding:"required,min=8,max=255"`
-	RecaptchaToken string `json:"recaptchaToken" binding:"required"`
+	Email    string `json:"email" binding:"required,email,min=10,max=255"`
+	Password string `json:"password" binding:"required,min=8,max=255"`
 }
 
 type LoginResponse struct {

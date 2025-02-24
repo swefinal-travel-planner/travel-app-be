@@ -5,8 +5,10 @@ package internal
 
 import (
 	"github.com/google/wire"
+	beanimplement "github.com/swefinal-travel-planner/travel-app-be/internal/bean/implement"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	v1 "github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/v1"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	repositoryimplement "github.com/swefinal-travel-planner/travel-app-be/internal/repository/implement"
@@ -24,23 +26,29 @@ var serverSet = wire.NewSet(
 
 // handler === controller | with service and repository layers to form 3 layers architecture
 var handlerSet = wire.NewSet(
-	v1.NewStudentHandler,
 	v1.NewAuthHandler,
 )
 
 var serviceSet = wire.NewSet(
-	serviceimplement.NewStudentService,
 	serviceimplement.NewAuthService,
 )
 
 var repositorySet = wire.NewSet(
-	repositoryimplement.NewStudentRepository,
 	repositoryimplement.NewUserRepository,
+	repositoryimplement.NewAuthenticationRepository,
+)
+
+var middlewareSet = wire.NewSet(
+	middleware.NewAuthMiddleware,
+)
+
+var beanSet = wire.NewSet(
+	beanimplement.NewBcryptPasswordEncoder,
 )
 
 func InitializeContainer(
 	db database.Db,
 ) *controller.ApiContainer {
-	wire.Build(serverSet, handlerSet, serviceSet, repositorySet, container)
+	wire.Build(serverSet, handlerSet, serviceSet, repositorySet, middlewareSet, beanSet, container)
 	return &controller.ApiContainer{}
 }

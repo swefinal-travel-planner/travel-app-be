@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -44,4 +45,43 @@ func (handler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 	ctx.AbortWithStatus(204)
+}
+
+// @Summary Login
+// @Description Login to account
+// @Tags Auths
+// @Accept json
+// @Param request body model.LoginRequest true "Auth payload"
+// @Produce  json
+// @Router /auth/login [post]
+// @Success 200 {object} httpcommon.HttpResponse[entity.User]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *AuthHandler) Login(ctx *gin.Context) {
+	var loginRequest model.LoginRequest
+
+	if err := validation.BindJsonAndValidate(ctx, &loginRequest); err != nil {
+		return
+	}
+
+	user, err := handler.authService.Login(ctx, loginRequest)
+	if err != nil || user == nil {
+		if user == nil && err == nil {
+			err = errors.New(httpcommon.ErrorMessage.SqlxNoRow)
+		}
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
+			},
+		))
+		return
+	}
+
+	ctx.JSON(200, httpcommon.NewSuccessResponse(user))
+}
+
+func (handler *AuthHandler) Test(ctx *gin.Context) {
+	message := "hello world"
+	ctx.JSON(200, httpcommon.NewSuccessResponse(&message))
 }

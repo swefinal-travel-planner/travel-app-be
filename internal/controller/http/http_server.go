@@ -8,16 +8,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	v1 "github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/v1"
 )
 
 type Server struct {
-	studentHandler  *v1.StudentHandler
 	authAuthHandler *v1.AuthHandler
+	authMiddleware  *middleware.AuthMiddleware
 }
 
-func NewServer(studentHandler *v1.StudentHandler, authAuthHandler *v1.AuthHandler) *Server {
-	return &Server{studentHandler: studentHandler, authAuthHandler: authAuthHandler}
+func NewServer(authAuthHandler *v1.AuthHandler, authMiddleware *middleware.AuthMiddleware) *Server {
+	return &Server{
+		authAuthHandler: authAuthHandler,
+		authMiddleware:  authMiddleware,
+	}
 }
 
 func (s *Server) Run() {
@@ -28,7 +32,7 @@ func (s *Server) Run() {
 		Handler: router,
 	}
 
-	v1.MapRoutes(router, s.studentHandler, s.authAuthHandler)
+	v1.MapRoutes(router, s.authAuthHandler, s.authMiddleware)
 	err := httpServerInstance.ListenAndServe()
 	if err != nil {
 		return

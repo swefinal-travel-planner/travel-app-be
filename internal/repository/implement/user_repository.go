@@ -26,3 +26,13 @@ func (repo *UserRepository) CreateCommand(ctx context.Context, user *entity.User
 	}
 	return nil
 }
+
+func (repo *UserRepository) GetOneByEmailQuery(ctx context.Context, email string) (*entity.User, error) {
+	var customer entity.User
+	query := "SELECT * FROM users WHERE email = ? AND users.deleted_at IS NULL"
+	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&customer)
+	if err != nil {
+		return nil, err
+	}
+	return &customer, nil
+}
