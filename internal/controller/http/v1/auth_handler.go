@@ -8,6 +8,9 @@ import (
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/constants"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/jwt"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/validation"
 )
 
@@ -79,6 +82,78 @@ func (handler *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, httpcommon.NewSuccessResponse(user))
+}
+
+// @Summary Refresh
+// @Description Refresh token
+// @Tags Auths
+// @Accept json
+// @Param request body model.RefreshTokenRequest true "Auth payload"
+// @Produce  json
+// @Router /auth/refresh [post]
+// @Success 200 {object} httpcommon.HttpResponse[entity.User]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *AuthHandler) Refresh(ctx *gin.Context) {
+	var refreshTokenRequest model.RefreshTokenRequest
+
+	if err := validation.BindJsonAndValidate(ctx, &refreshTokenRequest); err != nil {
+		return
+	}
+
+	jwtSecret, err := env.GetEnv("JWT_SECRET")
+	refreshClaims, errRf := jwt.VerifyToken(refreshTokenRequest.RefreshToken, jwtSecret)
+	if errRf != nil {
+		// If the refresh token is invalid or expired, abort with unauthorized
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: httpcommon.ErrorMessage.BadCredential,
+				Code:    httpcommon.ErrorResponseCode.Unauthorized,
+			},
+		))
+		return
+	}
+
+	// Extract user Id from refresh token claims
+	payload, ok := refreshClaims.Payload.(map[string]interface{})
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: httpcommon.ErrorMessage.BadCredential,
+				Code:    httpcommon.ErrorResponseCode.Unauthorized,
+			},
+		))
+		return
+	}
+	userId := int64(payload["id"].(float64))
+
+	// Check if the refresh token exists and is still valid in the database
+	refreshTokenEntity, err := handler.authService.ValidateRefreshToken(ctx, userId)
+	if err != nil || refreshTokenEntity == nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: httpcommon.ErrorMessage.BadCredential,
+				Code:    httpcommon.ErrorResponseCode.Unauthorized,
+			},
+		))
+		return
+	}
+
+	// Generate a new access token
+	newAccessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
+		"id": userId,
+	})
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InternalServerError,
+			},
+		))
+		return
+	}
+
+	ctx.JSON(200, httpcommon.NewSuccessResponse(&newAccessToken))
 }
 
 func (handler *AuthHandler) Test(ctx *gin.Context) {

@@ -14,7 +14,8 @@ func MapRoutes(router *gin.Engine, authHandler *AuthHandler, authMiddleware *mid
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
-			auth.GET("/test", authMiddleware.VerifyToken, authHandler.Test)
+			auth.POST("/refresh", authHandler.Refresh)
+			auth.GET("/test", authMiddleware.VerifyAccessToken, authHandler.Test)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
