@@ -36,3 +36,23 @@ func (repo *UserRepository) GetOneByEmailQuery(ctx context.Context, email string
 	}
 	return &customer, nil
 }
+
+func (repo *UserRepository) GetIdByEmailQuery(ctx context.Context, email string) (int64, error) {
+	var user entity.User
+	query := "SELECT * FROM users WHERE email = ? AND users.deleted_at IS NULL"
+	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&user)
+	if err != nil {
+		return 0, err
+	}
+	return user.Id, nil
+}
+
+func (repo *UserRepository) UpdatePasswordByIdQuery(ctx context.Context, id int64, password string) error {
+	query := "UPDATE users SET password = ? WHERE id = ? AND users.deleted_at IS NULL"
+	_, err := repo.db.ExecContext(ctx, query, password, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

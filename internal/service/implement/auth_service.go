@@ -14,22 +14,30 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/constants"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/jwt"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/mail"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/redis"
 )
 
 type AuthService struct {
 	userRepository           repository.UserRepository
 	authenticationRepository repository.AuthenticationRepository
 	passwordEncoder          bean.PasswordEncoder
+	redisClient              bean.RedisClient
+	mailClient               bean.MailClient
 }
 
 func NewAuthService(userRepository repository.UserRepository,
 	authenticationRepository repository.AuthenticationRepository,
 	passwordEncoder bean.PasswordEncoder,
+	redisClient bean.RedisClient,
+	mailClient bean.MailClient,
 ) service.AuthService {
 	return &AuthService{
 		userRepository:           userRepository,
 		authenticationRepository: authenticationRepository,
 		passwordEncoder:          passwordEncoder,
+		redisClient:              redisClient,
+		mailClient:               mailClient,
 	}
 }
 
@@ -39,7 +47,7 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 		return err
 	}
 	if existsCustomer != nil {
-		return errors.New("Email have already registered")
+		return errors.New("email have already registered")
 	}
 
 	hashPW, err := service.passwordEncoder.Encrypt(registerRequest.Password)
@@ -65,12 +73,12 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 	if err != nil {
 		if err.Error() == httpcommon.ErrorMessage.SqlxNoRow {
-			return nil, errors.New("Email not found")
+			return nil, errors.New("email not found")
 		}
 		return nil, err
 	}
 	checkPw := service.passwordEncoder.Compare(existsUser.Password, loginRequest.Password)
-	if checkPw == false {
+	if !checkPw {
 		return nil, errors.New("invalid password")
 	}
 
@@ -81,6 +89,9 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 	accessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
 		"id": existsUser.Id,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	refreshToken, err := jwt.GenerateToken(constants.REFRESH_TOKEN_DURATION, jwtSecret, map[string]interface{}{
 		"id": existsUser.Id,
@@ -130,4 +141,85 @@ func (service *AuthService) ValidateRefreshToken(ctx *gin.Context, userId int64)
 		return nil, err
 	}
 	return refreshToken, nil
+}
+
+func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+	// generate otp
+	otp := mail.GenerateOTP(6)
+
+	// store otp in redis
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email)
+	if err != nil {
+		return err
+	}
+	baseKey := constants.RESET_PASSWORD_KEY
+	key := redis.Concat(baseKey, customerId)
+
+	err = service.redisClient.Set(ctx, key, otp)
+	if err != nil {
+		return err
+	}
+
+	// send otp to user email
+	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.FORGOT_PASSWORD, constants.RESET_PASSWORD_EXP_TIME)
+	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP reset password", emailBody)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *AuthService) VerifyOTP(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email)
+	if err != nil {
+		return err
+	}
+
+	baseKey := constants.RESET_PASSWORD_KEY
+	key := redis.Concat(baseKey, customerId)
+
+	val, err := service.redisClient.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+
+	if val != verifyOTPRequest.OTP {
+		return errors.New("invalid OTP")
+	}
+
+	return nil
+}
+
+func (service *AuthService) SetPassword(ctx *gin.Context, setPasswordRequest model.SetPasswordRequest) error {
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, setPasswordRequest.Email)
+	if err != nil {
+		return err
+	}
+
+	baseKey := constants.RESET_PASSWORD_KEY
+	key := redis.Concat(baseKey, customerId)
+
+	val, err := service.redisClient.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+
+	if val == setPasswordRequest.OTP {
+		service.redisClient.Delete(ctx, key)
+
+		hashedPW, err := service.passwordEncoder.Encrypt(setPasswordRequest.Password)
+		if err != nil {
+			return err
+		}
+
+		err = service.userRepository.UpdatePasswordByIdQuery(ctx, customerId, hashedPW)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("invalid OTP")
+	}
+
+	return nil
 }

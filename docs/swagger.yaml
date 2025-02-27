@@ -93,9 +93,135 @@ definitions:
     - password
     - phoneNumber
     type: object
+  model.SendOTPRequest:
+    properties:
+      email:
+        maxLength: 255
+        minLength: 10
+        type: string
+    required:
+    - email
+    type: object
+  model.SetPasswordRequest:
+    properties:
+      email:
+        maxLength: 255
+        minLength: 10
+        type: string
+      otp:
+        maxLength: 6
+        minLength: 6
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
+    required:
+    - email
+    - otp
+    - password
+    type: object
+  model.VerifyOTPRequest:
+    properties:
+      email:
+        maxLength: 255
+        minLength: 10
+        type: string
+      otp:
+        maxLength: 6
+        minLength: 6
+        type: string
+    required:
+    - email
+    - otp
+    type: object
 info:
   contact: {}
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Set a new password after OTP verification
+      parameters:
+      - description: Set Password payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Set Password
+      tags:
+      - Auths
+  /auth/forgot-password/otp:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to user email
+      parameters:
+      - description: Send OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Send OTP to Mail
+      tags:
+      - Auths
+  /auth/forgot-password/verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP with email and otp
+      parameters:
+      - description: Verify OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Verify OTP
+      tags:
+      - Auths
   /auth/login:
     post:
       consumes:

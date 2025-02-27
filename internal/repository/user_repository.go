@@ -9,4 +9,6 @@ import (
 type UserRepository interface {
 	CreateCommand(ctx context.Context, user *entity.User) error
 	GetOneByEmailQuery(ctx context.Context, email string) (*entity.User, error)
+	GetIdByEmailQuery(ctx context.Context, email string) (int64, error)
+	UpdatePasswordByIdQuery(ctx context.Context, id int64, password string) error
 }

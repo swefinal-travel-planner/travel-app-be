@@ -31,11 +31,12 @@ func (s *Server) Run() {
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: router,
 	}
+	fmt.Println("Server running at " + httpServerInstance.Addr)
 
 	v1.MapRoutes(router, s.authAuthHandler, s.authMiddleware)
 	err := httpServerInstance.ListenAndServe()
 	if err != nil {
+		fmt.Println("There is error: " + err.Error())
 		return
 	}
-	fmt.Println("Server running at " + httpServerInstance.Addr)
 }
