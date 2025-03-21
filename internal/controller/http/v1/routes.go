@@ -16,8 +16,8 @@ func MapRoutes(router *gin.Engine, authHandler *AuthHandler, authMiddleware *mid
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/google-login", authHandler.FirebaseLogin)
 			auth.POST("/refresh", authHandler.Refresh)
-			auth.POST("/forgot-password/otp", authHandler.SendOTPToMail)
-			auth.POST("/forgot-password/verify-otp", authHandler.VerifyOTP)
+			auth.POST("/send-otp", authHandler.SendOTPToMail)
+			auth.POST("/verify-otp", authHandler.VerifyOTP)
 			auth.POST("/forgot-password", authHandler.SetPassword)
 
 			auth.GET("/test", authMiddleware.VerifyAccessToken, authHandler.Test)

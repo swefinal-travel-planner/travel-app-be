@@ -19,7 +19,7 @@ func NewUserRepository(db database.Db) repository.UserRepository {
 
 func (repo *UserRepository) CreateCommand(ctx context.Context, user *entity.User) error {
 	// Insert the new user
-	insertQuery := `INSERT INTO users(email, name, phone_number, password) VALUES (:email, :name, :phone_number, :password)`
+	insertQuery := `INSERT INTO users(email, name, phone_number, id_token, photo_url, password) VALUES (:email, :name, :phone_number, :id_token, :photo_url, :password)`
 	_, err := repo.db.NamedExecContext(ctx, insertQuery, user)
 	if err != nil {
 		return err

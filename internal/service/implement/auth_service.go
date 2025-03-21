@@ -58,7 +58,7 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 	user := &entity.User{
 		Email:       registerRequest.Email,
 		Name:        registerRequest.Name,
-		PhoneNumber: registerRequest.PhoneNumber,
+		PhoneNumber: "",
 		Password:    string(hashPW),
 	}
 
@@ -152,7 +152,7 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 				Name:        loginRequest.DisplayName,
 				PhoneNumber: loginRequest.PhoneNumber,
 				Password:    "",
-				GoogleId:    loginRequest.UID,
+				IDToken:     loginRequest.IDToken,
 			}
 			err = service.userRepository.CreateCommand(ctx, newUser)
 			if err != nil {
@@ -169,7 +169,7 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 	// User exists
 	// 1. User register internally => Deny
 	// 2. User register with google => Process to login
-	if existsUser.GoogleId == "" {
+	if existsUser.IDToken == nil {
 		return nil, errors.New("this email is already registered")
 	}
 

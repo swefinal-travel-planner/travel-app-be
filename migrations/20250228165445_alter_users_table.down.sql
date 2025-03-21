@@ -1,1 +1,3 @@
-ALTER TABLE users DROP COLUMN google_id;
+ALTER TABLE users 
+DROP COLUMN id_token,
+DROP COLUMN photo_url;
