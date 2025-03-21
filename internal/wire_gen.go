@@ -28,7 +28,7 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	mailClient := beanimplement.NewMailClient()
 	authService := serviceimplement.NewAuthService(userRepository, authenticationRepository, passwordEncoder, redisClient, mailClient)
 	authHandler := v1.NewAuthHandler(authService)
-	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository)
+	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
 	server := http.NewServer(authHandler, authMiddleware)
 	apiContainer := controller.NewApiContainer(server)
 	return apiContainer

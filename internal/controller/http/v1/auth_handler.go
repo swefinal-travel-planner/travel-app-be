@@ -263,3 +263,44 @@ func (handler *AuthHandler) Test(ctx *gin.Context) {
 	message := "hello world"
 	ctx.JSON(200, httpcommon.NewSuccessResponse(&message))
 }
+
+// FirebaseLogin handles user login via Firebase (Google OAuth)
+// @Summary Login with Google
+// @Description Authenticate a user using their Google token via Firebase
+// @Tags Auths
+// @Accept json
+// @Produce json
+// @Param request body model.GoogleLoginRequest true "Google Login Request"
+// @Success 200 {object} httpcommon.HttpResponse[entity.User]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+// @Router /auth/google-login [post]
+func (handler *AuthHandler) FirebaseLogin(ctx *gin.Context) {
+	var googleLoginReq model.GoogleLoginRequest
+
+	if err := ctx.ShouldBindJSON(&googleLoginReq); err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
+			},
+		))
+		return
+	}
+
+	user, err := handler.authService.GoogleLogin(ctx, googleLoginReq)
+	if err != nil || user == nil {
+		if user == nil && err == nil {
+			err = errors.New(httpcommon.ErrorMessage.SqlxNoRow)
+		}
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
+			},
+		))
+		return
+	}
+
+	ctx.JSON(200, httpcommon.NewSuccessResponse(user))
+}

@@ -12,6 +12,15 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required,min=8,max=255"`
 }
 
+type GoogleLoginRequest struct {
+	DisplayName string `json:"displayName" binding:"required,min=5,max=255"`
+	Email       string `json:"email" binding:"required,email,min=10,max=255"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,min=10,max=255"`
+	PhotoURL    string `json:"photoURL" binding:"required,min=10,max=255"`
+	UID         string `json:"uid" binding:"required,min=10,max=255"`
+	Password    string `json:"password" binding:"required,min=8,max=255"`
+}
+
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refreshToken" binding:"required"`
 }

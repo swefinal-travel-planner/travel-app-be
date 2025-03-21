@@ -15,12 +15,18 @@ import (
 type AuthMiddleware struct {
 	authService              service.AuthService
 	authenticationRepository repository.AuthenticationRepository
+	userRepository           repository.UserRepository
 }
 
-func NewAuthMiddleware(authService service.AuthService, authenticationRepository repository.AuthenticationRepository) *AuthMiddleware {
+func NewAuthMiddleware(
+	authService service.AuthService,
+	authenticationRepository repository.AuthenticationRepository,
+	userRepository repository.UserRepository,
+) *AuthMiddleware {
 	return &AuthMiddleware{
 		authService:              authService,
 		authenticationRepository: authenticationRepository,
+		userRepository:           userRepository,
 	}
 }
 

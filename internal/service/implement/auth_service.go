@@ -69,6 +69,52 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 	return nil
 }
 
+func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int64) (string, string, error) {
+	jwtSecret, err := env.GetEnv("JWT_SECRET")
+	if err != nil {
+		return "", "", err
+	}
+
+	accessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
+		"id": userId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := jwt.GenerateToken(constants.REFRESH_TOKEN_DURATION, jwtSecret, map[string]interface{}{
+		"id": userId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	// Check if a refresh token already exists
+	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
+	if err != nil && err != sql.ErrNoRows {
+		return "", "", err
+	}
+
+	authData := entity.Authentication{
+		UserId:       userId,
+		RefreshToken: refreshToken,
+	}
+
+	if existingRefreshToken == nil {
+		// Create a new refresh token
+		err = service.authenticationRepository.CreateCommand(ctx, authData)
+	} else {
+		// Update the existing refresh token
+		err = service.authenticationRepository.UpdateCommand(ctx, authData)
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
 func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequest) (*model.LoginResponse, error) {
 	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 	if err != nil {
@@ -82,50 +128,56 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 		return nil, errors.New("invalid password")
 	}
 
-	jwtSecret, err := env.GetEnv("JWT_SECRET")
-	if err != nil {
-		return nil, err
-	}
-	accessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
-		"id": existsUser.Id,
-	})
+	// Generate and store tokens
+	accessToken, refreshToken, err := service.generateAndStoreTokens(ctx, existsUser.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := jwt.GenerateToken(constants.REFRESH_TOKEN_DURATION, jwtSecret, map[string]interface{}{
-		"id": existsUser.Id,
-	})
+	return &model.LoginResponse{
+		Name:         existsUser.Name,
+		Email:        existsUser.Email,
+		UserId:       existsUser.Id,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.GoogleLoginRequest) (*model.LoginResponse, error) {
+	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 	if err != nil {
-		return nil, err
-	}
-
-	// Check if a refresh token already exists
-	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, existsUser.Id)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	if existingRefreshToken == nil {
-		// Create a new refresh token
-		err = service.authenticationRepository.CreateCommand(ctx, entity.Authentication{
-			UserId:       existsUser.Id,
-			RefreshToken: refreshToken,
-		})
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// Update the existing refresh token
-		err = service.authenticationRepository.UpdateCommand(ctx, entity.Authentication{
-			UserId:       existsUser.Id,
-			RefreshToken: refreshToken,
-		})
-		if err != nil {
+		if err.Error() == httpcommon.ErrorMessage.SqlxNoRow { // email not founded => create new user with googleID
+			newUser := &entity.User{
+				Email:       loginRequest.Email,
+				Name:        loginRequest.DisplayName,
+				PhoneNumber: loginRequest.PhoneNumber,
+				Password:    "",
+				GoogleId:    loginRequest.UID,
+			}
+			err = service.userRepository.CreateCommand(ctx, newUser)
+			if err != nil {
+				return nil, err
+			}
+			existsUser, err = service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
+			if err != nil {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}
+	// User exists
+	// 1. User register internally => Deny
+	// 2. User register with google => Process to login
+	if existsUser.GoogleId == "" {
+		return nil, errors.New("this email is already registered")
+	}
 
+	// Generate and store tokens
+	accessToken, refreshToken, err := service.generateAndStoreTokens(ctx, existsUser.Id)
+	if err != nil {
+		return nil, err
+	}
 	return &model.LoginResponse{
 		Name:         existsUser.Name,
 		Email:        existsUser.Email,

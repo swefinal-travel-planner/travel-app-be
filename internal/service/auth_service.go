@@ -9,6 +9,7 @@ import (
 type AuthService interface {
 	Register(ctx *gin.Context, userRequest model.RegisterRequest) error
 	Login(ctx *gin.Context, userRequest model.LoginRequest) (*model.LoginResponse, error)
+	GoogleLogin(ctx *gin.Context, userRequest model.GoogleLoginRequest) (*model.LoginResponse, error)
 	ValidateRefreshToken(ctx *gin.Context, userId int64) (*entity.Authentication, error)
 
 	SendOTPToEmail(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error
