@@ -7,7 +7,11 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 )
 
-func MapRoutes(router *gin.Engine, authHandler *AuthHandler, authMiddleware *middleware.AuthMiddleware) {
+func MapRoutes(router *gin.Engine,
+	authHandler *AuthHandler,
+	invitationFriendHandler *InvitationFriendHandler,
+	authMiddleware *middleware.AuthMiddleware,
+) {
 	v1 := router.Group("/api/v1")
 	{
 		auth := v1.Group("/auth")
@@ -21,6 +25,12 @@ func MapRoutes(router *gin.Engine, authHandler *AuthHandler, authMiddleware *mid
 			auth.POST("/forgot-password", authHandler.SetPassword)
 
 			auth.GET("/test", authMiddleware.VerifyAccessToken, authHandler.Test)
+		}
+
+		invitationFriend := v1.Group("/invitation-friend")
+		{
+			invitationFriend.POST("/add", authMiddleware.VerifyAccessToken, invitationFriendHandler.AddFriend)
+			invitationFriend.GET("/get-all", authMiddleware.VerifyAccessToken, invitationFriendHandler.GetAllInvitations)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

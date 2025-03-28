@@ -28,8 +28,11 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	mailClient := beanimplement.NewMailClient()
 	authService := serviceimplement.NewAuthService(userRepository, authenticationRepository, passwordEncoder, redisClient, mailClient)
 	authHandler := v1.NewAuthHandler(authService)
+	invitationFriendRepository := repositoryimplement.NewInvitationFriendRepository(db)
+	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository)
+	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
-	server := http.NewServer(authHandler, authMiddleware)
+	server := http.NewServer(authHandler, invitationFriendHandler, authMiddleware)
 	apiContainer := controller.NewApiContainer(server)
 	return apiContainer
 }
@@ -42,11 +45,11 @@ var container = wire.NewSet(controller.NewApiContainer)
 var serverSet = wire.NewSet(http.NewServer)
 
 // handler === controller | with service and repository layers to form 3 layers architecture
-var handlerSet = wire.NewSet(v1.NewAuthHandler)
+var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler)
 
-var serviceSet = wire.NewSet(serviceimplement.NewAuthService)
+var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService)
 
-var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository)
+var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 
