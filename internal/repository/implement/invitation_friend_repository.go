@@ -36,3 +36,18 @@ func (repo *InvitationFriendRepository) GetByReceiverIdCommand(ctx context.Conte
 	}
 	return invitationFriend, nil
 }
+
+func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx context.Context, senderId, receiverId int64) (*entity.InvitationFriend, error) {
+	var invitationFriend entity.InvitationFriend
+	query := `
+		SELECT * 
+		FROM invitation_friends 
+		WHERE 
+			((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+	`
+	err := repo.db.GetContext(ctx, &invitationFriend, query, senderId, receiverId, receiverId, senderId)
+	if err != nil {
+		return nil, err
+	}
+	return &invitationFriend, nil
+}

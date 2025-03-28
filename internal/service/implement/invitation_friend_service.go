@@ -30,7 +30,17 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	if !exists {
 		return errors.New("user not exists")
 	}
-	err := service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
+	if userId == invitation.ReceiverID {
+		return errors.New("cannot add yourself")
+	}
+	invitations, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId.(int64), invitation.ReceiverID)
+	if err != nil {
+		return err
+	}
+	if invitations.Status == "pending" {
+		return errors.New("invitation already sent")
+	}
+	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
 		SenderID:   userId.(int64),
 		ReceiverID: invitation.ReceiverID,
 		Status:     "pending",
