@@ -11,4 +11,5 @@ type UserRepository interface {
 	GetOneByEmailQuery(ctx context.Context, email string) (*entity.User, error)
 	GetIdByEmailQuery(ctx context.Context, email string) (int64, error)
 	UpdatePasswordByIdQuery(ctx context.Context, id int64, password string) error
+	GetOneByIDQuery(ctx context.Context, id int64) (*entity.User, error)
 }

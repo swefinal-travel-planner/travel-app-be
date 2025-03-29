@@ -292,7 +292,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Auths"
                 ],
                 "summary": "Register user",
                 "parameters": [
@@ -303,6 +303,98 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/model.RegisterRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-friends": {
+            "get": {
+                "description": "Get all invitations of current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Get all invitations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add friend",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Add friend",
+                "parameters": [
+                    {
+                        "description": "InvitationFriend payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.InvitationFriendRequest"
                         }
                     },
                     {
@@ -346,11 +438,11 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "googleId": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
+                },
+                "idToken": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -398,6 +490,26 @@ const docTemplate = `{
                 }
             }
         },
+        "httpcommon.HttpResponse-array_model_InvitationFriendResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.InvitationFriendResponse"
+                    }
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpcommon.Error"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "httpcommon.HttpResponse-entity_User": {
             "type": "object",
             "properties": {
@@ -420,10 +532,9 @@ const docTemplate = `{
             "required": [
                 "displayName",
                 "email",
+                "id_token",
                 "password",
-                "phoneNumber",
-                "photoURL",
-                "uid"
+                "photoURL"
             ],
             "properties": {
                 "displayName": {
@@ -436,6 +547,11 @@ const docTemplate = `{
                     "maxLength": 255,
                     "minLength": 10
                 },
+                "id_token": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 10
+                },
                 "password": {
                     "type": "string",
                     "maxLength": 255,
@@ -443,18 +559,38 @@ const docTemplate = `{
                 },
                 "phoneNumber": {
                     "type": "string",
-                    "maxLength": 255,
-                    "minLength": 10
+                    "maxLength": 255
                 },
                 "photoURL": {
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 10
+                }
+            }
+        },
+        "model.InvitationFriendRequest": {
+            "type": "object",
+            "required": [
+                "receiverID"
+            ],
+            "properties": {
+                "receiverID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.InvitationFriendResponse": {
+            "type": "object",
+            "required": [
+                "receiverImageURL",
+                "receiverUsername"
+            ],
+            "properties": {
+                "receiverImageURL": {
+                    "type": "string"
                 },
-                "uid": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 10
+                "receiverUsername": {
+                    "type": "string"
                 }
             }
         },
@@ -493,8 +629,7 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
-                "password",
-                "phoneNumber"
+                "password"
             ],
             "properties": {
                 "email": {
@@ -511,11 +646,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 8
-                },
-                "phoneNumber": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 10
                 }
             }
         },
@@ -583,7 +713,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",

@@ -27,15 +27,18 @@ var serverSet = wire.NewSet(
 // handler === controller | with service and repository layers to form 3 layers architecture
 var handlerSet = wire.NewSet(
 	v1.NewAuthHandler,
+	v1.NewInvitationFriendHandler,
 )
 
 var serviceSet = wire.NewSet(
 	serviceimplement.NewAuthService,
+	serviceimplement.NewInvitationFriendService,
 )
 
 var repositorySet = wire.NewSet(
 	repositoryimplement.NewUserRepository,
 	repositoryimplement.NewAuthenticationRepository,
+	repositoryimplement.NewInvitationFriendRepository,
 )
 
 var middlewareSet = wire.NewSet(

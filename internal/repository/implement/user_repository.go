@@ -56,3 +56,13 @@ func (repo *UserRepository) UpdatePasswordByIdQuery(ctx context.Context, id int6
 
 	return nil
 }
+
+func (repo *UserRepository) GetOneByIDQuery(ctx context.Context, id int64) (*entity.User, error) {
+	var customer entity.User
+	query := "SELECT * FROM users WHERE id = ? AND users.deleted_at IS NULL"
+	err := repo.db.QueryRowxContext(ctx, query, id).StructScan(&customer)
+	if err != nil {
+		return nil, err
+	}
+	return &customer, nil
+}

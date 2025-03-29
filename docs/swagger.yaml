@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   entity.User:
     properties:
@@ -7,10 +8,10 @@ definitions:
         type: string
       email:
         type: string
-      googleId:
-        type: string
       id:
         type: integer
+      idToken:
+        type: string
       name:
         type: string
       password:
@@ -41,6 +42,19 @@ definitions:
       success:
         type: boolean
     type: object
+  httpcommon.HttpResponse-array_model_InvitationFriendResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.InvitationFriendResponse'
+        type: array
+      errors:
+        items:
+          $ref: '#/definitions/httpcommon.Error'
+        type: array
+      success:
+        type: boolean
+    type: object
   httpcommon.HttpResponse-entity_User:
     properties:
       data:
@@ -62,29 +76,44 @@ definitions:
         maxLength: 255
         minLength: 10
         type: string
+      id_token:
+        maxLength: 255
+        minLength: 10
+        type: string
       password:
         maxLength: 255
         minLength: 8
         type: string
       phoneNumber:
         maxLength: 255
-        minLength: 10
         type: string
       photoURL:
-        maxLength: 255
-        minLength: 10
-        type: string
-      uid:
         maxLength: 255
         minLength: 10
         type: string
     required:
     - displayName
     - email
+    - id_token
     - password
-    - phoneNumber
     - photoURL
-    - uid
+    type: object
+  model.InvitationFriendRequest:
+    properties:
+      receiverID:
+        type: integer
+    required:
+    - receiverID
+    type: object
+  model.InvitationFriendResponse:
+    properties:
+      receiverImageURL:
+        type: string
+      receiverUsername:
+        type: string
+    required:
+    - receiverImageURL
+    - receiverUsername
     type: object
   model.LoginRequest:
     properties:
@@ -121,15 +150,10 @@ definitions:
         maxLength: 255
         minLength: 8
         type: string
-      phoneNumber:
-        maxLength: 255
-        minLength: 10
-        type: string
     required:
     - email
     - name
     - password
-    - phoneNumber
     type: object
   model.SendOTPRequest:
     properties:
@@ -382,5 +406,66 @@ paths:
             $ref: '#/definitions/httpcommon.HttpResponse-any'
       summary: Register user
       tags:
-      - User
+      - Auths
+  /invitation-friends:
+    get:
+      consumes:
+      - application/json
+      description: Get all invitations of current user
+      parameters:
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Get all invitations
+      tags:
+      - InvitationFriend
+    post:
+      consumes:
+      - application/json
+      description: Add friend
+      parameters:
+      - description: InvitationFriend payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.InvitationFriendRequest'
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Add friend
+      tags:
+      - InvitationFriend
 swagger: "2.0"
