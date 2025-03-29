@@ -18,13 +18,13 @@ func NewInvitationFriendHandler(invitationFriendService service.InvitationFriend
 	return &InvitationFriendHandler{invitationFriendService: invitationFriendService}
 }
 
-// @Summary Register user
-// @Description User register
-// @Tags User
+// @Summary Add friend
+// @Description Add friend
+// @Tags InvitationFriend
 // @Accept json
-// @Param request body model.RegisterRequest true "Auth payload"
+// @Param request body model.InvitationFriendRequest true "InvitationFriend payload"
 // @Produce  json
-// @Router /auth/register [post]
+// @Router /invitation-friends [post]
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
@@ -46,15 +46,14 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
-// @Summary Register user
-// @Description User register
-// @Tags User
+// @Summary Get all invitations
+// @Description Get all invitations of current user
+// @Tags InvitationFriend
 // @Accept json
-// @Param request body model.RegisterRequest true "Auth payload"
 // @Produce  json
-// @Router /auth/register [post]
+// @Router /invitation-friends [get]
 // @Param  Authorization header string true "Authorization: Bearer"
-// @Success 204 "No Content"
+// @Success 200 {object} httpcommon.HttpResponse[[]model.InvitationFriendResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *InvitationFriendHandler) GetAllInvitations(ctx *gin.Context) {

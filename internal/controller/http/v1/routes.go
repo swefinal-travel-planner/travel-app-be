@@ -27,10 +27,10 @@ func MapRoutes(router *gin.Engine,
 			auth.GET("/test", authMiddleware.VerifyAccessToken, authHandler.Test)
 		}
 
-		invitationFriend := v1.Group("/invitation-friend")
+		invitationFriend := v1.Group("/invitation-friends")
 		{
-			invitationFriend.POST("/add", authMiddleware.VerifyAccessToken, invitationFriendHandler.AddFriend)
-			invitationFriend.GET("/get-all", authMiddleware.VerifyAccessToken, invitationFriendHandler.GetAllInvitations)
+			invitationFriend.POST("", authMiddleware.VerifyAccessToken, invitationFriendHandler.AddFriend)
+			invitationFriend.GET("", authMiddleware.VerifyAccessToken, invitationFriendHandler.GetAllInvitations)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

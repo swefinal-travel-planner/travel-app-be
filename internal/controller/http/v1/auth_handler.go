@@ -24,7 +24,7 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 
 // @Summary Register user
 // @Description User register
-// @Tags User
+// @Tags Auths
 // @Accept json
 // @Param request body model.RegisterRequest true "Auth payload"
 // @Produce  json
