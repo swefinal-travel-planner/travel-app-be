@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
@@ -30,13 +31,7 @@ func NewInvitationFriendHandler(invitationFriendService service.InvitationFriend
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
-	userId, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "Can not find UserId", Field: "token", Code: httpcommon.ErrorResponseCode.InvalidUserInfo,
-		}))
-		return
-	}
+	userId := middleware.GetUserIdHelper(ctx)
 
 	var invitationFriendRequest model.InvitationFriendRequest
 
@@ -44,7 +39,7 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.invitationFriendService.AddFriend(ctx, invitationFriendRequest, userId.(int64))
+	err := handler.invitationFriendService.AddFriend(ctx, invitationFriendRequest, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
@@ -65,15 +60,9 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *InvitationFriendHandler) GetAllInvitations(ctx *gin.Context) {
-	userId, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "Can not find UserId", Field: "token", Code: httpcommon.ErrorResponseCode.InvalidUserInfo,
-		}))
-		return
-	}
+	userId := middleware.GetUserIdHelper(ctx)
 
-	invitationFriends, err := handler.invitationFriendService.GetAllInvitations(ctx, userId.(int64))
+	invitationFriends, err := handler.invitationFriendService.GetAllInvitations(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
