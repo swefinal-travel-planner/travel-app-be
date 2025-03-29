@@ -6,6 +6,6 @@ import (
 )
 
 type InvitationFriendService interface {
-	AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest) error
-	GetAllInvitations(ctx *gin.Context) ([]model.InvitationFriendResponse, error)
+	AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) error
+	GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error)
 }

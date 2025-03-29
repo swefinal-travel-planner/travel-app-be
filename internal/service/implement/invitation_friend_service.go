@@ -25,15 +25,11 @@ func NewInvitationFriendService(
 	}
 }
 
-func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest) error {
-	userId, exists := ctx.Get("userId")
-	if !exists {
-		return errors.New("user not exists")
-	}
+func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) error {
 	if userId == invitation.ReceiverID {
 		return errors.New("cannot add yourself")
 	}
-	invitations, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId.(int64), invitation.ReceiverID)
+	invitations, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, invitation.ReceiverID)
 	if err != nil {
 		return err
 	}
@@ -41,7 +37,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return errors.New("invitation already sent")
 	}
 	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
-		SenderID:   userId.(int64),
+		SenderID:   userId,
 		ReceiverID: invitation.ReceiverID,
 		Status:     "pending",
 	})
@@ -51,12 +47,8 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	return nil
 }
 
-func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context) ([]model.InvitationFriendResponse, error) {
-	userId, exists := ctx.Get("userId")
-	if !exists {
-		return nil, errors.New("user not exists")
-	}
-	invitations, err := service.invitationFriendRepository.GetByReceiverIdCommand(ctx, userId.(int64))
+func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error) {
+	invitations, err := service.invitationFriendRepository.GetByReceiverIdCommand(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
