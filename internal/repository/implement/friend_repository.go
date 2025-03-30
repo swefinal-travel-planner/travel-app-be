@@ -27,7 +27,7 @@ func (repo *FriendRepository) CreateCommand(ctx context.Context, friend *entity.
 	return nil
 }
 
-func (repo *FriendRepository) GetByUserIdCommand(ctx context.Context, userId int64) ([]*entity.Friend, error) {
+func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64) ([]*entity.Friend, error) {
 	var friends []*entity.Friend
 	query := "SELECT * FROM friends WHERE user_id_1 = ? OR user_id_2 = ?"
 	err := repo.db.SelectContext(ctx, &friends, query, userId, userId)

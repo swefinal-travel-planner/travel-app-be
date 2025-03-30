@@ -24,7 +24,7 @@ func NewFriendService(
 }
 
 func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, error) {
-	friends, err := service.friendRepository.GetByUserIdCommand(ctx, userId)
+	friends, err := service.friendRepository.GetByUserIdQuery(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
