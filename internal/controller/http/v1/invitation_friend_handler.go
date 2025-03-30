@@ -73,6 +73,17 @@ func (handler *InvitationFriendHandler) GetAllInvitations(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendResponse](&invitationFriends))
 }
 
+// @Summary Accept friend invitation
+// @Description Accept friend invitation
+// @Tags InvitationFriend
+// @Accept json
+// @Param invitationId path int true "Invitation ID"
+// @Produce  json
+// @Router /invitation-friends/accept/{invitationId} [put]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *InvitationFriendHandler) AcceptInvitation(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
@@ -101,6 +112,17 @@ func (handler *InvitationFriendHandler) AcceptInvitation(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
+// @Summary Deny friend invitation
+// @Description Deny friend invitation
+// @Tags InvitationFriend
+// @Accept json
+// @Param invitationId path int true "Invitation ID"
+// @Produce  json
+// @Router /invitation-friends/deny/{invitationId} [put]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *InvitationFriendHandler) DenyInvitation(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
