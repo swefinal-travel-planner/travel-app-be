@@ -32,17 +32,13 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	if userId == invitation.ReceiverID {
 		return errors.New("cannot add yourself")
 	}
-	invitations, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, invitation.ReceiverID)
-	if err != nil {
-		return err
-	}
-	if invitations.Status == "pending" {
-		return errors.New("invitation already sent")
+	_, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, invitation.ReceiverID)
+	if err == nil {
+		return errors.New("invitation already exists")
 	}
 	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
 		SenderID:   userId,
 		ReceiverID: invitation.ReceiverID,
-		Status:     "pending",
 	})
 	if err != nil {
 		return err
@@ -77,22 +73,11 @@ func (service *InvitationFriendService) validateInvitation(ctx *gin.Context, inv
 	if userId == invitation.SenderID {
 		return nil, errors.New("cannot process your own invitation")
 	}
-	if invitation.Status == "accepted" {
-		return nil, errors.New("cannot process an already accepted invitation")
-	}
-	if invitation.Status == "rejected" {
-		return nil, errors.New("cannot process a rejected invitation")
-	}
 	return invitation, nil
 }
 
 func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) error {
 	invitation, err := service.validateInvitation(ctx, invitationId, userId)
-	if err != nil {
-		return err
-	}
-	invitation.Status = "accepted"
-	err = service.invitationFriendRepository.UpdateStatusCommand(ctx, invitation)
 	if err != nil {
 		return err
 	}
@@ -103,16 +88,19 @@ func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invit
 	if err != nil {
 		return err
 	}
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) error {
-	invitation, err := service.validateInvitation(ctx, invitationId, userId)
+	_, err := service.validateInvitation(ctx, invitationId, userId)
 	if err != nil {
 		return err
 	}
-	invitation.Status = "rejected"
-	err = service.invitationFriendRepository.UpdateStatusCommand(ctx, invitation)
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
 	if err != nil {
 		return err
 	}
