@@ -28,11 +28,13 @@ var serverSet = wire.NewSet(
 var handlerSet = wire.NewSet(
 	v1.NewAuthHandler,
 	v1.NewInvitationFriendHandler,
+	v1.NewFriendHandler,
 )
 
 var serviceSet = wire.NewSet(
 	serviceimplement.NewAuthService,
 	serviceimplement.NewInvitationFriendService,
+	serviceimplement.NewFriendService,
 )
 
 var repositorySet = wire.NewSet(
