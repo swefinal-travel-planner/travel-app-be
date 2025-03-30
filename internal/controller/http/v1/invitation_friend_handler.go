@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
@@ -70,4 +71,60 @@ func (handler *InvitationFriendHandler) GetAllInvitations(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendResponse](&invitationFriends))
+}
+
+func (handler *InvitationFriendHandler) AcceptInvitation(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	invitationId := ctx.Param("invitationId")
+	if invitationId == "" {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+	}
+
+	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+		return
+	}
+
+	err = handler.invitationFriendService.AcceptInvitation(ctx, invitationIdInt, userId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
+		}))
+		return
+	}
+	ctx.AbortWithStatus(204)
+}
+
+func (handler *InvitationFriendHandler) DenyInvitation(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	invitationId := ctx.Param("invitationId")
+	if invitationId == "" {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+	}
+
+	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+		return
+	}
+
+	err = handler.invitationFriendService.DenyInvitation(ctx, invitationIdInt, userId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
+		}))
+		return
+	}
+	ctx.AbortWithStatus(204)
 }

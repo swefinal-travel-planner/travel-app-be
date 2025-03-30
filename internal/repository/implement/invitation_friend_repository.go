@@ -51,3 +51,23 @@ func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx contex
 	}
 	return &invitationFriend, nil
 }
+
+func (repo *InvitationFriendRepository) UpdateCommand(ctx context.Context, invitation *entity.InvitationFriend) error {
+	// Update the invitation status
+	updateQuery := `UPDATE invitation_friends SET status = :status WHERE sender_id = :sender_id AND receiver_id = :receiver_id`
+	_, err := repo.db.NamedExecContext(ctx, updateQuery, invitation)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *InvitationFriendRepository) GetOneByIDQuery(ctx context.Context, id int64) (*entity.InvitationFriend, error) {
+	var invitationFriend entity.InvitationFriend
+	query := "SELECT * FROM invitation_friends WHERE id = ?"
+	err := repo.db.GetContext(ctx, &invitationFriend, query, id)
+	if err != nil {
+		return nil, err
+	}
+	return &invitationFriend, nil
+}

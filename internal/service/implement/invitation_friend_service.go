@@ -13,15 +13,18 @@ import (
 type InvitationFriendService struct {
 	invitationFriendRepository repository.InvitationFriendRepository
 	userRepository             repository.UserRepository
+	friendRepository           repository.FriendRepository
 }
 
 func NewInvitationFriendService(
 	invitationFriendRepository repository.InvitationFriendRepository,
 	userRepository repository.UserRepository,
+	friendRepository repository.FriendRepository,
 ) service.InvitationFriendService {
 	return &InvitationFriendService{
 		invitationFriendRepository: invitationFriendRepository,
 		userRepository:             userRepository,
+		friendRepository:           friendRepository,
 	}
 }
 
@@ -64,4 +67,54 @@ func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, user
 		})
 	}
 	return invitationResponses, nil
+}
+
+func (service *InvitationFriendService) validateInvitation(ctx *gin.Context, invitationId int64, userId int64) (*entity.InvitationFriend, error) {
+	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId)
+	if err != nil {
+		return nil, err
+	}
+	if userId == invitation.SenderID {
+		return nil, errors.New("cannot process your own invitation")
+	}
+	if invitation.Status == "accepted" {
+		return nil, errors.New("cannot process an already accepted invitation")
+	}
+	if invitation.Status == "rejected" {
+		return nil, errors.New("cannot process a rejected invitation")
+	}
+	return invitation, nil
+}
+
+func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) error {
+	invitation, err := service.validateInvitation(ctx, invitationId, userId)
+	if err != nil {
+		return err
+	}
+	invitation.Status = "accepted"
+	err = service.invitationFriendRepository.UpdateCommand(ctx, invitation)
+	if err != nil {
+		return err
+	}
+	err = service.friendRepository.CreateCommand(ctx, &entity.Friend{
+		UserID1: invitation.ReceiverID,
+		UserID2: invitation.SenderID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) error {
+	invitation, err := service.validateInvitation(ctx, invitationId, userId)
+	if err != nil {
+		return err
+	}
+	invitation.Status = "rejected"
+	err = service.invitationFriendRepository.UpdateCommand(ctx, invitation)
+	if err != nil {
+		return err
+	}
+	return nil
 }
