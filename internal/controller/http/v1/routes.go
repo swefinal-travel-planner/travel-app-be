@@ -31,6 +31,8 @@ func MapRoutes(router *gin.Engine,
 		{
 			invitationFriend.POST("", authMiddleware.VerifyAccessToken, invitationFriendHandler.AddFriend)
 			invitationFriend.GET("", authMiddleware.VerifyAccessToken, invitationFriendHandler.GetAllInvitations)
+			invitationFriend.PUT("/accept/:invitationId", authMiddleware.VerifyAccessToken, invitationFriendHandler.AcceptInvitation)
+			invitationFriend.PUT("/deny/:invitationId", authMiddleware.VerifyAccessToken, invitationFriendHandler.DenyInvitation)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

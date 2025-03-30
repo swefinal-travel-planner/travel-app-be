@@ -8,4 +8,6 @@ import (
 type InvitationFriendService interface {
 	AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) error
 	GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error)
+	AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) error
+	DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) error
 }

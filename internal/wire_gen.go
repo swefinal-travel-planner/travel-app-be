@@ -29,7 +29,8 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	authService := serviceimplement.NewAuthService(userRepository, authenticationRepository, passwordEncoder, redisClient, mailClient)
 	authHandler := v1.NewAuthHandler(authService)
 	invitationFriendRepository := repositoryimplement.NewInvitationFriendRepository(db)
-	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository)
+	friendRepository := repositoryimplement.NewFriendRepository(db)
+	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository, friendRepository)
 	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
 	server := http.NewServer(authHandler, invitationFriendHandler, authMiddleware)
@@ -49,7 +50,7 @@ var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler)
 
 var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService)
 
-var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository)
+var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 

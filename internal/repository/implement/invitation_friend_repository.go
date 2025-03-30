@@ -19,7 +19,7 @@ func NewInvitationFriendRepository(db database.Db) repository.InvitationFriendRe
 
 func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invitation *entity.InvitationFriend) error {
 	// Insert the new invitation
-	insertQuery := `INSERT INTO invitation_friends(sender_id, receiver_id, status) VALUES (:sender_id, :receiver_id, :status)`
+	insertQuery := `INSERT INTO invitation_friends(sender_id, receiver_id) VALUES (:sender_id, :receiver_id)`
 	_, err := repo.db.NamedExecContext(ctx, insertQuery, invitation)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invit
 
 func (repo *InvitationFriendRepository) GetByReceiverIdCommand(ctx context.Context, receiverId int64) ([]*entity.InvitationFriend, error) {
 	var invitationFriend []*entity.InvitationFriend
-	query := "SELECT * FROM invitation_friends WHERE status = 'pending' AND receiver_id = ?"
+	query := "SELECT * FROM invitation_friends WHERE receiver_id = ?"
 	err := repo.db.SelectContext(ctx, &invitationFriend, query, receiverId)
 	if err != nil {
 		return nil, err
@@ -50,4 +50,23 @@ func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx contex
 		return nil, err
 	}
 	return &invitationFriend, nil
+}
+
+func (repo *InvitationFriendRepository) GetOneByIDQuery(ctx context.Context, id int64) (*entity.InvitationFriend, error) {
+	var invitationFriend entity.InvitationFriend
+	query := "SELECT * FROM invitation_friends WHERE id = ?"
+	err := repo.db.GetContext(ctx, &invitationFriend, query, id)
+	if err != nil {
+		return nil, err
+	}
+	return &invitationFriend, nil
+}
+
+func (repo *InvitationFriendRepository) DeleteByIDCommand(ctx context.Context, id int64) error {
+	query := "DELETE FROM invitation_friends WHERE id = ?"
+	_, err := repo.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
