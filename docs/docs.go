@@ -423,6 +423,102 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/invitation-friends/accept/{invitationId}": {
+            "put": {
+                "description": "Accept friend invitation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Accept friend invitation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invitation ID",
+                        "name": "invitationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-friends/deny/{invitationId}": {
+            "put": {
+                "description": "Deny friend invitation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Deny friend invitation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invitation ID",
+                        "name": "invitationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

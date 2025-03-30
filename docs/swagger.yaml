@@ -468,4 +468,68 @@ paths:
       summary: Add friend
       tags:
       - InvitationFriend
+  /invitation-friends/accept/{invitationId}:
+    put:
+      consumes:
+      - application/json
+      description: Accept friend invitation
+      parameters:
+      - description: Invitation ID
+        in: path
+        name: invitationId
+        required: true
+        type: integer
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Accept friend invitation
+      tags:
+      - InvitationFriend
+  /invitation-friends/deny/{invitationId}:
+    put:
+      consumes:
+      - application/json
+      description: Deny friend invitation
+      parameters:
+      - description: Invitation ID
+        in: path
+        name: invitationId
+        required: true
+        type: integer
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Deny friend invitation
+      tags:
+      - InvitationFriend
 swagger: "2.0"

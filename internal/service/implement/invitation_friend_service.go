@@ -92,7 +92,7 @@ func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invit
 		return err
 	}
 	invitation.Status = "accepted"
-	err = service.invitationFriendRepository.UpdateCommand(ctx, invitation)
+	err = service.invitationFriendRepository.UpdateStatusCommand(ctx, invitation)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 		return err
 	}
 	invitation.Status = "rejected"
-	err = service.invitationFriendRepository.UpdateCommand(ctx, invitation)
+	err = service.invitationFriendRepository.UpdateStatusCommand(ctx, invitation)
 	if err != nil {
 		return err
 	}

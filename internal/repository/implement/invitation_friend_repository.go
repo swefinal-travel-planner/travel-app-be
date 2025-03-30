@@ -52,7 +52,7 @@ func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx contex
 	return &invitationFriend, nil
 }
 
-func (repo *InvitationFriendRepository) UpdateCommand(ctx context.Context, invitation *entity.InvitationFriend) error {
+func (repo *InvitationFriendRepository) UpdateStatusCommand(ctx context.Context, invitation *entity.InvitationFriend) error {
 	// Update the invitation status
 	updateQuery := `UPDATE invitation_friends SET status = :status WHERE sender_id = :sender_id AND receiver_id = :receiver_id`
 	_, err := repo.db.NamedExecContext(ctx, updateQuery, invitation)
