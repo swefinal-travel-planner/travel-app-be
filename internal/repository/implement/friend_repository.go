@@ -27,12 +27,24 @@ func (repo *FriendRepository) CreateCommand(ctx context.Context, friend *entity.
 	return nil
 }
 
-func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64) ([]*entity.Friend, error) {
-	var friends []*entity.Friend
-	query := "SELECT * FROM friends WHERE user_id_1 = ? OR user_id_2 = ?"
-	err := repo.db.SelectContext(ctx, &friends, query, userId, userId)
+func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64) ([]*entity.User, error) {
+	var users []*entity.User
+	query := `
+		SELECT u.id, u.name, u.photo_url 
+		FROM friends f
+		JOIN users u ON f.user_id_2 = u.id
+		WHERE f.user_id_1 = ?
+
+		UNION
+
+		SELECT u.id, u.name, u.photo_url 
+		FROM friends f
+		JOIN users u ON f.user_id_1 = u.id
+		WHERE f.user_id_2 = ?;
+	`
+	err := repo.db.SelectContext(ctx, &users, query, userId, userId)
 	if err != nil {
 		return nil, err
 	}
-	return friends, nil
+	return users, nil
 }

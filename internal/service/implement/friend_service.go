@@ -2,7 +2,6 @@ package serviceimplement
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
@@ -29,26 +28,7 @@ func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]m
 		return nil, err
 	}
 	var friendResponses []model.FriendResponse
-	for _, friendRecord := range friends {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, userId)
-		if err != nil {
-			return nil, err
-		}
-
-		// get user from friend record
-		var friend *entity.User
-		if user.Id == friendRecord.UserID1 {
-			friend, err = service.userRepository.GetOneByIDQuery(ctx, friendRecord.UserID2)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			friend, err = service.userRepository.GetOneByIDQuery(ctx, friendRecord.UserID1)
-			if err != nil {
-				return nil, err
-			}
-		}
-
+	for _, friend := range friends {
 		friendResponses = append(friendResponses, model.FriendResponse{
 			Username: friend.Name,
 			ImageURL: friend.PhotoURL,
