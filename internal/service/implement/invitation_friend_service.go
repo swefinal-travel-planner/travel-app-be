@@ -47,7 +47,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 }
 
 func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error) {
-	invitations, err := service.invitationFriendRepository.GetByReceiverIdCommand(ctx, userId)
+	invitations, err := service.invitationFriendRepository.GetByReceiverIdQuery(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

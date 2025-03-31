@@ -27,7 +27,7 @@ func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invit
 	return nil
 }
 
-func (repo *InvitationFriendRepository) GetByReceiverIdCommand(ctx context.Context, receiverId int64) ([]*entity.InvitationFriend, error) {
+func (repo *InvitationFriendRepository) GetByReceiverIdQuery(ctx context.Context, receiverId int64) ([]*entity.InvitationFriend, error) {
 	var invitationFriend []*entity.InvitationFriend
 	query := "SELECT * FROM invitation_friends WHERE receiver_id = ?"
 	err := repo.db.SelectContext(ctx, &invitationFriend, query, receiverId)
