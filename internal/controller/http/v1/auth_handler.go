@@ -172,7 +172,7 @@ func (handler *AuthHandler) Refresh(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.SendOTPRequest true "Send OTP payload"
 // @Produce json
-// @Router /auth/forgot-password/otp [post]
+// @Router /auth/send-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
@@ -203,7 +203,7 @@ func (handler *AuthHandler) SendOTPToMail(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.VerifyOTPRequest true "Verify OTP payload"
 // @Produce json
-// @Router /auth/forgot-password/verify-otp [post]
+// @Router /auth/verify-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
