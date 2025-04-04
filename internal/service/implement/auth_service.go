@@ -3,6 +3,7 @@ package serviceimplement
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/bean"
@@ -200,21 +201,18 @@ func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest mode
 	otp := mail.GenerateOTP(6)
 
 	// store otp in redis
-	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email)
-	if err != nil {
-		return err
-	}
-	baseKey := constants.RESET_PASSWORD_KEY
-	key := redis.Concat(baseKey, customerId)
+	email := sendOTPRequest.Email
+	baseKey := constants.VERIFY_EMAIL_KEY
+	key := fmt.Sprintf("%s:%s", baseKey, email)
 
-	err = service.redisClient.Set(ctx, key, otp)
+	err := service.redisClient.Set(ctx, key, otp)
 	if err != nil {
 		return err
 	}
 
 	// send otp to user email
-	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.FORGOT_PASSWORD, constants.RESET_PASSWORD_EXP_TIME)
-	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP reset password", emailBody)
+	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.VERIFY_EMAIL, constants.VERIFY_EMAIL_EXP_TIME)
+	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP verify email", emailBody)
 	if err != nil {
 		return err
 	}
