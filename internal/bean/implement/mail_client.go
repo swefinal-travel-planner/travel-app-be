@@ -46,7 +46,7 @@ func (m *MailClient) GenerateOTPBody(to, code, context string, ttl time.Duration
 			<hr>
 			<p style="color: red;"><strong>Cảnh báo: Không bao giờ chia sẻ mã OTP của bạn với bất kỳ ai.</strong></p>
 			<p><strong>Tại sao bạn nhận được email này?</strong></p>
-			<p>Chúng tôi yêu cầu xác minh bất cứ khi nào mật khẩu được cập nhật hoặc giao dịch được thực hiện.</p>
+			<p>Chúng tôi yêu cầu xác minh bất cứ khi nào hành động đăng ký được thực hiện.</p>
 			<p>Nếu bạn không thực hiện yêu cầu này, bạn có thể bỏ qua email này.</p>
 		</body>
 		</html>`, to, contextMessage, code, ttl/time.Minute)
