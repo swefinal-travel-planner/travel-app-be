@@ -196,7 +196,7 @@ func (service *AuthService) ValidateRefreshToken(ctx *gin.Context, userId int64)
 	return refreshToken, nil
 }
 
-func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
 	// check if email exists
 	_, err := service.userRepository.GetOneByEmailQuery(ctx, sendOTPRequest.Email)
 	if err == nil {
@@ -226,7 +226,7 @@ func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest mode
 	return nil
 }
 
-func (service *AuthService) VerifyOTP(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
+func (service *AuthService) VerifyOTPForRegister(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
 	email := verifyOTPRequest.Email
 	baseKey := constants.VERIFY_EMAIL_KEY
 	key := fmt.Sprintf("%s:%s", baseKey, email)
@@ -238,6 +238,54 @@ func (service *AuthService) VerifyOTP(ctx *gin.Context, verifyOTPRequest model.V
 
 	if val != verifyOTPRequest.OTP {
 		return errors.New("invalid OTP")
+	}
+
+	return nil
+}
+
+func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+	// generate otp
+	otp := mail.GenerateOTP(6)
+
+	// store otp in redis
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email)
+	if err != nil {
+		return err
+	}
+	baseKey := constants.RESET_PASSWORD_KEY
+	key := redis.Concat(baseKey, customerId)
+
+	err = service.redisClient.Set(ctx, key, otp)
+	if err != nil {
+		return err
+	}
+
+	// send otp to user email
+	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.FORGOT_PASSWORD, constants.RESET_PASSWORD_EXP_TIME)
+	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP reset password", emailBody)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *AuthService) VerifyOTPForResetPassword(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email)
+	if err != nil {
+		return err
+	}
+
+	baseKey := constants.RESET_PASSWORD_KEY
+	key := redis.Concat(baseKey, customerId)
+
+	val, err := service.redisClient.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+
+	if val != verifyOTPRequest.OTP {
+		return errors.New("Invalid OTP")
 	}
 
 	return nil

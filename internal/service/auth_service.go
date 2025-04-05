@@ -12,7 +12,9 @@ type AuthService interface {
 	GoogleLogin(ctx *gin.Context, userRequest model.GoogleLoginRequest) (*model.LoginResponse, error)
 	ValidateRefreshToken(ctx *gin.Context, userId int64) (*entity.Authentication, error)
 
-	SendOTPToEmail(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error
-	VerifyOTP(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error
+	SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error
+	VerifyOTPForRegister(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error
+	SendOTPToEmailForResetPassword(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error
+	VerifyOTPForResetPassword(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error
 	SetPassword(ctx *gin.Context, setPasswordRequest model.SetPasswordRequest) error
 }
