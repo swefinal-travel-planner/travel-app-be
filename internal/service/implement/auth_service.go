@@ -197,6 +197,12 @@ func (service *AuthService) ValidateRefreshToken(ctx *gin.Context, userId int64)
 }
 
 func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+	// check if email exists
+	_, err := service.userRepository.GetOneByEmailQuery(ctx, sendOTPRequest.Email)
+	if err == nil {
+		return errors.New("email already exists")
+	}
+
 	// generate otp
 	otp := mail.GenerateOTP(6)
 
@@ -205,7 +211,7 @@ func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest mode
 	baseKey := constants.VERIFY_EMAIL_KEY
 	key := fmt.Sprintf("%s:%s", baseKey, email)
 
-	err := service.redisClient.Set(ctx, key, otp)
+	err = service.redisClient.Set(ctx, key, otp)
 	if err != nil {
 		return err
 	}
@@ -221,13 +227,9 @@ func (service *AuthService) SendOTPToEmail(ctx *gin.Context, sendOTPRequest mode
 }
 
 func (service *AuthService) VerifyOTP(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
-	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email)
-	if err != nil {
-		return err
-	}
-
-	baseKey := constants.RESET_PASSWORD_KEY
-	key := redis.Concat(baseKey, customerId)
+	email := verifyOTPRequest.Email
+	baseKey := constants.VERIFY_EMAIL_KEY
+	key := fmt.Sprintf("%s:%s", baseKey, email)
 
 	val, err := service.redisClient.Get(ctx, key)
 	if err != nil {
