@@ -21,9 +21,11 @@ func MapRoutes(router *gin.Engine,
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/google-login", authHandler.FirebaseLogin)
 			auth.POST("/refresh", authHandler.Refresh)
-			auth.POST("/send-otp", authHandler.SendOTPToMail)
-			auth.POST("/verify-otp", authHandler.VerifyOTP)
-			auth.POST("/forgot-password", authHandler.SetPassword)
+			auth.POST("/send-otp/register", authHandler.SendOTPToEmailForRegister)
+			auth.POST("/verify-otp/register", authHandler.VerifyOTPForRegister)
+			auth.POST("/send-otp/reset-password", authHandler.SendOTPToEmailForResetPassword)
+			auth.POST("/verify-otp/reset-password", authHandler.VerifyOTPForResetPassword)
+			auth.POST("/reset-password", authHandler.SetPassword)
 
 			auth.GET("/test", authMiddleware.VerifyAccessToken, authHandler.Test)
 		}

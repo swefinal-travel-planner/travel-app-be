@@ -166,24 +166,24 @@ func (handler *AuthHandler) Refresh(ctx *gin.Context) {
 	ctx.JSON(200, httpcommon.NewSuccessResponse(&newAccessToken))
 }
 
-// @Summary Send OTP to Mail
-// @Description Send OTP to user email
+// @Summary Send OTP to Mail for register
+// @Description Send OTP to user email when registering
 // @Tags Auths
 // @Accept json
 // @Param request body model.SendOTPRequest true "Send OTP payload"
 // @Produce json
-// @Router /auth/send-otp [post]
+// @Router /auth/send-otp/register [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
-func (handler *AuthHandler) SendOTPToMail(ctx *gin.Context) {
+func (handler *AuthHandler) SendOTPToEmailForRegister(ctx *gin.Context) {
 	var sendOTPRequest model.SendOTPRequest
 
 	if err := validation.BindJsonAndValidate(ctx, &sendOTPRequest); err != nil {
 		return
 	}
 
-	err := handler.authService.SendOTPToEmail(ctx, sendOTPRequest)
+	err := handler.authService.SendOTPToEmailForRegister(ctx, sendOTPRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
 			httpcommon.Error{
@@ -197,24 +197,86 @@ func (handler *AuthHandler) SendOTPToMail(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
-// @Summary Verify OTP
-// @Description Verify OTP with email and otp
+// @Summary Verify OTP for register
+// @Description Verify OTP with email and otp when registering
 // @Tags Auths
 // @Accept json
 // @Param request body model.VerifyOTPRequest true "Verify OTP payload"
 // @Produce json
-// @Router /auth/verify-otp [post]
+// @Router /auth/verify-otp/register [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
-func (handler *AuthHandler) VerifyOTP(ctx *gin.Context) {
+func (handler *AuthHandler) VerifyOTPForRegister(ctx *gin.Context) {
 	var verifyOTPRequest model.VerifyOTPRequest
 
 	if err := validation.BindJsonAndValidate(ctx, &verifyOTPRequest); err != nil {
 		return
 	}
 
-	err := handler.authService.VerifyOTP(ctx, verifyOTPRequest)
+	err := handler.authService.VerifyOTPForRegister(ctx, verifyOTPRequest)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
+			},
+		))
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+}
+
+// @Summary Send OTP to Mail for reset password
+// @Description Send OTP to user email when resetting password
+// @Tags Auths
+// @Accept json
+// @Param request body model.SendOTPRequest true "Send OTP payload"
+// @Produce json
+// @Router /auth/send-otp/reset-password [post]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *AuthHandler) SendOTPToEmailForResetPassword(ctx *gin.Context) {
+	var sendOTPRequest model.SendOTPRequest
+
+	if err := validation.BindJsonAndValidate(ctx, &sendOTPRequest); err != nil {
+		return
+	}
+
+	err := handler.authService.SendOTPToEmailForResetPassword(ctx, sendOTPRequest)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
+			httpcommon.Error{
+				Message: err.Error(),
+				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
+			},
+		))
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+}
+
+// @Summary Verify OTP for reset password
+// @Description Verify OTP with email and otp when resetting password
+// @Tags Auths
+// @Accept json
+// @Param request body model.VerifyOTPRequest true "Verify OTP payload"
+// @Produce json
+// @Router /auth/verify-otp/reset-password [post]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *AuthHandler) VerifyOTPForResetPassword(ctx *gin.Context) {
+	var verifyOTPRequest model.VerifyOTPRequest
+
+	if err := validation.BindJsonAndValidate(ctx, &verifyOTPRequest); err != nil {
+		return
+	}
+
+	err := handler.authService.VerifyOTPForResetPassword(ctx, verifyOTPRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
 			httpcommon.Error{

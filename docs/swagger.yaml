@@ -42,6 +42,19 @@ definitions:
       success:
         type: boolean
     type: object
+  httpcommon.HttpResponse-array_model_FriendResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.FriendResponse'
+        type: array
+      errors:
+        items:
+          $ref: '#/definitions/httpcommon.Error'
+        type: array
+      success:
+        type: boolean
+    type: object
   httpcommon.HttpResponse-array_model_InvitationFriendResponse:
     properties:
       data:
@@ -65,6 +78,16 @@ definitions:
         type: array
       success:
         type: boolean
+    type: object
+  model.FriendResponse:
+    properties:
+      imageURL:
+        type: string
+      username:
+        type: string
+    required:
+    - imageURL
+    - username
     type: object
   model.GoogleLoginRequest:
     properties:
@@ -228,62 +251,6 @@ paths:
       summary: Set Password
       tags:
       - Auths
-  /auth/forgot-password/otp:
-    post:
-      consumes:
-      - application/json
-      description: Send OTP to user email
-      parameters:
-      - description: Send OTP payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.SendOTPRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-      summary: Send OTP to Mail
-      tags:
-      - Auths
-  /auth/forgot-password/verify-otp:
-    post:
-      consumes:
-      - application/json
-      description: Verify OTP with email and otp
-      parameters:
-      - description: Verify OTP payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.VerifyOTPRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-      summary: Verify OTP
-      tags:
-      - Auths
   /auth/google-login:
     post:
       consumes:
@@ -407,6 +374,147 @@ paths:
       summary: Register user
       tags:
       - Auths
+  /auth/send-otp/register:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to user email when registering
+      parameters:
+      - description: Send OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Send OTP to Mail for register
+      tags:
+      - Auths
+  /auth/send-otp/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to user email when resetting password
+      parameters:
+      - description: Send OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Send OTP to Mail for reset password
+      tags:
+      - Auths
+  /auth/verify-otp/register:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP with email and otp when registering
+      parameters:
+      - description: Verify OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Verify OTP for register
+      tags:
+      - Auths
+  /auth/verify-otp/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP with email and otp when resetting password
+      parameters:
+      - description: Verify OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Verify OTP for reset password
+      tags:
+      - Auths
+  /friends:
+    get:
+      consumes:
+      - application/json
+      description: View friends
+      parameters:
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-array_model_FriendResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: View friends
+      tags:
+      - Friend
   /invitation-friends:
     get:
       consumes:
