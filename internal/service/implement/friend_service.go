@@ -36,3 +36,18 @@ func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]m
 	}
 	return friendResponses, nil
 }
+
+func (service *FriendService) RemoveFriend(ctx *gin.Context, userId int64, friendId int64) error {
+	// Check if the user is a friend
+	err := service.friendRepository.GetByUserId1AndUserId2Query(ctx, userId, friendId)
+	if err != nil {
+		return err
+	}
+
+	// Only delete the friend if the user is a friend
+	err = service.friendRepository.DeleteByIdCommand(ctx, friendId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
