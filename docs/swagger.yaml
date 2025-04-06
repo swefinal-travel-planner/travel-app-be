@@ -81,11 +81,14 @@ definitions:
     type: object
   model.FriendResponse:
     properties:
+      id:
+        type: integer
       imageURL:
         type: string
       username:
         type: string
     required:
+    - id
     - imageURL
     - username
     type: object
@@ -129,11 +132,14 @@ definitions:
     type: object
   model.InvitationFriendResponse:
     properties:
+      id:
+        type: integer
       receiverImageURL:
         type: string
       receiverUsername:
         type: string
     required:
+    - id
     - receiverImageURL
     - receiverUsername
     type: object
