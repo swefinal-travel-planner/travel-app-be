@@ -810,7 +810,6 @@ const docTemplate = `{
                 },
                 "id_token": {
                     "type": "string",
-                    "maxLength": 255,
                     "minLength": 10
                 },
                 "password": {
@@ -890,6 +889,7 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
+                "otp",
                 "password"
             ],
             "properties": {
@@ -902,6 +902,11 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 5
+                },
+                "otp": {
+                    "type": "string",
+                    "maxLength": 6,
+                    "minLength": 6
                 },
                 "password": {
                     "type": "string",
