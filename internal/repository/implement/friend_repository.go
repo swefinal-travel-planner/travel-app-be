@@ -48,3 +48,27 @@ func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64
 	}
 	return users, nil
 }
+
+func (repo *FriendRepository) DeleteByIdCommand(ctx context.Context, userId int64) error {
+	// Delete friend by userId
+	deleteQuery := `DELETE FROM friends WHERE user_id_1 = ? OR user_id_2 = ?`
+	_, err := repo.db.ExecContext(ctx, deleteQuery, userId, userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *FriendRepository) GetByUserId1AndUserId2Query(ctx context.Context, userId1 int64, userId2 int64) error {
+	var friend entity.Friend
+	query := `
+		SELECT * FROM friends 
+		WHERE (user_id_1 = ? AND user_id_2 = ?) 
+		   OR (user_id_1 = ? AND user_id_2 = ?)
+	`
+	err := repo.db.GetContext(ctx, &friend, query, userId1, userId2, userId2, userId1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
