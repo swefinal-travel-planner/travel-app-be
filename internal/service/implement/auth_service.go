@@ -43,6 +43,23 @@ func NewAuthService(userRepository repository.UserRepository,
 }
 
 func (service *AuthService) Register(ctx *gin.Context, registerRequest model.RegisterRequest) error {
+	// OTP validation
+	email := registerRequest.Email
+	baseKey := constants.VERIFY_EMAIL_KEY
+	key := fmt.Sprintf("%s:%s", baseKey, email)
+
+	val, err := service.redisClient.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+	if val == registerRequest.OTP {
+		service.redisClient.Delete(ctx, key)
+	} else {
+		fmt.Println("OTP: ", val)
+		return errors.New("invalid OTP")
+	}
+
+	// Register if pass OTP validation
 	existsCustomer, err := service.userRepository.GetOneByEmailQuery(ctx, registerRequest.Email)
 	if err != nil && err.Error() != httpcommon.ErrorMessage.SqlxNoRow {
 		return err
