@@ -100,7 +100,6 @@ definitions:
         minLength: 10
         type: string
       id_token:
-        maxLength: 255
         minLength: 10
         type: string
       password:
@@ -169,6 +168,10 @@ definitions:
         maxLength: 255
         minLength: 5
         type: string
+      otp:
+        maxLength: 6
+        minLength: 6
+        type: string
       password:
         maxLength: 255
         minLength: 8
@@ -176,6 +179,7 @@ definitions:
     required:
     - email
     - name
+    - otp
     - password
     type: object
   model.SendOTPRequest:

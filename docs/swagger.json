@@ -800,7 +800,6 @@
                 },
                 "id_token": {
                     "type": "string",
-                    "maxLength": 255,
                     "minLength": 10
                 },
                 "password": {
@@ -880,6 +879,7 @@
             "required": [
                 "email",
                 "name",
+                "otp",
                 "password"
             ],
             "properties": {
@@ -892,6 +892,11 @@
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 5
+                },
+                "otp": {
+                    "type": "string",
+                    "maxLength": 6,
+                    "minLength": 6
                 },
                 "password": {
                     "type": "string",
