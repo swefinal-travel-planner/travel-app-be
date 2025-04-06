@@ -374,7 +374,7 @@ paths:
       summary: Register user
       tags:
       - Auths
-  /auth/send-otp/register:
+  /auth/register/send-otp:
     post:
       consumes:
       - application/json
@@ -402,35 +402,7 @@ paths:
       summary: Send OTP to Mail for register
       tags:
       - Auths
-  /auth/send-otp/reset-password:
-    post:
-      consumes:
-      - application/json
-      description: Send OTP to user email when resetting password
-      parameters:
-      - description: Send OTP payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.SendOTPRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-      summary: Send OTP to Mail for reset password
-      tags:
-      - Auths
-  /auth/verify-otp/register:
+  /auth/register/verify-otp:
     post:
       consumes:
       - application/json
@@ -458,7 +430,35 @@ paths:
       summary: Verify OTP for register
       tags:
       - Auths
-  /auth/verify-otp/reset-password:
+  /auth/reset-password/send-otp:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to user email when resetting password
+      parameters:
+      - description: Send OTP payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Send OTP to Mail for reset password
+      tags:
+      - Auths
+  /auth/reset-password/verify-otp:
     post:
       consumes:
       - application/json

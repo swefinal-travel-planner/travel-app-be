@@ -172,7 +172,7 @@ func (handler *AuthHandler) Refresh(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.SendOTPRequest true "Send OTP payload"
 // @Produce json
-// @Router /auth/send-otp/register [post]
+// @Router /auth/register/send-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
@@ -203,7 +203,7 @@ func (handler *AuthHandler) SendOTPToEmailForRegister(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.VerifyOTPRequest true "Verify OTP payload"
 // @Produce json
-// @Router /auth/verify-otp/register [post]
+// @Router /auth/register/verify-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
@@ -234,7 +234,7 @@ func (handler *AuthHandler) VerifyOTPForRegister(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.SendOTPRequest true "Send OTP payload"
 // @Produce json
-// @Router /auth/send-otp/reset-password [post]
+// @Router /auth/reset-password/send-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
@@ -265,7 +265,7 @@ func (handler *AuthHandler) SendOTPToEmailForResetPassword(ctx *gin.Context) {
 // @Accept json
 // @Param request body model.VerifyOTPRequest true "Verify OTP payload"
 // @Produce json
-// @Router /auth/verify-otp/reset-password [post]
+// @Router /auth/reset-password/verify-otp [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]

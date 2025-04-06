@@ -246,7 +246,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/send-otp/register": {
+        "/auth/register/send-otp": {
             "post": {
                 "description": "Send OTP to user email when registering",
                 "consumes": [
@@ -289,50 +289,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/send-otp/reset-password": {
-            "post": {
-                "description": "Send OTP to user email when resetting password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auths"
-                ],
-                "summary": "Send OTP to Mail for reset password",
-                "parameters": [
-                    {
-                        "description": "Send OTP payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.SendOTPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/verify-otp/register": {
+        "/auth/register/verify-otp": {
             "post": {
                 "description": "Verify OTP with email and otp when registering",
                 "consumes": [
@@ -375,7 +332,50 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/verify-otp/reset-password": {
+        "/auth/reset-password/send-otp": {
+            "post": {
+                "description": "Send OTP to user email when resetting password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auths"
+                ],
+                "summary": "Send OTP to Mail for reset password",
+                "parameters": [
+                    {
+                        "description": "Send OTP payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SendOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password/verify-otp": {
             "post": {
                 "description": "Verify OTP with email and otp when resetting password",
                 "consumes": [
