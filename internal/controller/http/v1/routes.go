@@ -40,6 +40,7 @@ func MapRoutes(router *gin.Engine,
 		friend := v1.Group("/friends")
 		{
 			friend.GET("", authMiddleware.VerifyAccessToken, friendHandler.ViewFriends)
+			friend.DELETE("/:friendId", authMiddleware.VerifyAccessToken, friendHandler.RemoveFriend)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -462,6 +462,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/friends/{friendId}": {
+            "put": {
+                "description": "Remove friend",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Friend"
+                ],
+                "summary": "Remove friend",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "friend ID",
+                        "name": "friendId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/invitation-friends": {
             "get": {
                 "description": "Get all invitations of current user",
@@ -810,7 +858,6 @@ const docTemplate = `{
                 },
                 "id_token": {
                     "type": "string",
-                    "maxLength": 255,
                     "minLength": 10
                 },
                 "password": {
@@ -890,6 +937,7 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
+                "otp",
                 "password"
             ],
             "properties": {
@@ -902,6 +950,11 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 5
+                },
+                "otp": {
+                    "type": "string",
+                    "maxLength": 6,
+                    "minLength": 6
                 },
                 "password": {
                     "type": "string",
