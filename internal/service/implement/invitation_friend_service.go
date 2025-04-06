@@ -36,6 +36,10 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	if err == nil {
 		return errors.New("invitation already exists")
 	}
+	err = service.friendRepository.GetByUserId1AndUserId2Query(ctx, userId, invitation.ReceiverID)
+	if err == nil {
+		return errors.New("already friends")
+	}
 	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
 		SenderID:   userId,
 		ReceiverID: invitation.ReceiverID,
