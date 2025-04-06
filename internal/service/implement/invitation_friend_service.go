@@ -33,6 +33,9 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return errors.New("cannot add yourself")
 	}
 	_, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, invitation.ReceiverID)
+	if err != nil {
+		return err
+	}
 	if err == nil {
 		return errors.New("invitation already exists")
 	}
@@ -58,6 +61,7 @@ func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, user
 			return nil, err
 		}
 		invitationResponses = append(invitationResponses, model.InvitationFriendResponse{
+			ReceiverID:       user.Id,
 			ReceiverUsername: user.Name,
 			ReceiverImageURL: user.PhotoURL,
 		})
