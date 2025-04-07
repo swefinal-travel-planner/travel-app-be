@@ -77,6 +77,9 @@ func (service *InvitationFriendService) validateInvitation(ctx *gin.Context, inv
 	if userId == invitation.SenderID {
 		return nil, errors.New("cannot process your own invitation")
 	}
+	if userId != invitation.ReceiverID {
+		return nil, errors.New("not your invitation")
+	}
 	return invitation, nil
 }
 
