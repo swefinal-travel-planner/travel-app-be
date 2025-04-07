@@ -1,0 +1,1 @@
+ALTER TABLE users MODIFY id_token LONGTEXT;
