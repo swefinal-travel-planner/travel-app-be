@@ -49,10 +49,14 @@ func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64
 	return users, nil
 }
 
-func (repo *FriendRepository) DeleteByIdCommand(ctx context.Context, userId int64) error {
+func (repo *FriendRepository) DeleteByUserId1AndUserId2Command(ctx context.Context, userId1 int64, userId2 int64) error {
 	// Delete friend by userId
-	deleteQuery := `DELETE FROM friends WHERE user_id_1 = ? OR user_id_2 = ?`
-	_, err := repo.db.ExecContext(ctx, deleteQuery, userId, userId)
+	deleteQuery := `
+		DELETE FROM friends
+		WHERE (user_id_1 = ? AND user_id_2 = ?)
+		   OR (user_id_1 = ? AND user_id_2 = ?)
+	`
+	_, err := repo.db.ExecContext(ctx, deleteQuery, userId1, userId2, userId2, userId1)
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func (service *FriendService) RemoveFriend(ctx *gin.Context, userId int64, frien
 	}
 
 	// Only delete the friend if the user is a friend
-	err = service.friendRepository.DeleteByIdCommand(ctx, friendId)
+	err = service.friendRepository.DeleteByUserId1AndUserId2Command(ctx, userId, friendId)
 	if err != nil {
 		return err
 	}
