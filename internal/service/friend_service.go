@@ -7,4 +7,5 @@ import (
 
 type FriendService interface {
 	GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, error)
+	RemoveFriend(ctx *gin.Context, userId int64, friendId int64) error
 }

@@ -525,6 +525,38 @@ paths:
       summary: View friends
       tags:
       - Friend
+  /friends/{friendId}:
+    put:
+      consumes:
+      - application/json
+      description: Remove friend
+      parameters:
+      - description: friend ID
+        in: path
+        name: friendId
+        required: true
+        type: integer
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Remove friend
+      tags:
+      - Friend
   /invitation-friends:
     get:
       consumes:
