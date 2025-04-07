@@ -1,1 +1,4 @@
-ALTER TABLE users MODIFY id_token LONGTEXT;
+ALTER TABLE
+    users DROP INDEX id_token,
+MODIFY
+    id_token LONGTEXT;
