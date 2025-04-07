@@ -58,6 +58,7 @@ func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, user
 			return nil, err
 		}
 		invitationResponses = append(invitationResponses, model.InvitationFriendResponse{
+			Id:               invitation.ID,
 			ReceiverUsername: user.Name,
 			ReceiverImageURL: user.PhotoURL,
 		})

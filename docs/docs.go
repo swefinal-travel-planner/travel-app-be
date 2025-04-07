@@ -776,10 +776,14 @@ const docTemplate = `{
         "model.FriendResponse": {
             "type": "object",
             "required": [
+                "id",
                 "imageURL",
                 "username"
             ],
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "imageURL": {
                     "type": "string"
                 },
@@ -842,10 +846,14 @@ const docTemplate = `{
         "model.InvitationFriendResponse": {
             "type": "object",
             "required": [
+                "id",
                 "receiverImageURL",
                 "receiverUsername"
             ],
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "receiverImageURL": {
                     "type": "string"
                 },

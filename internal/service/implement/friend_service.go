@@ -30,6 +30,7 @@ func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]m
 	var friendResponses []model.FriendResponse
 	for _, friend := range friends {
 		friendResponses = append(friendResponses, model.FriendResponse{
+			Id:       friend.Id,
 			Username: friend.Name,
 			ImageURL: friend.PhotoURL,
 		})
