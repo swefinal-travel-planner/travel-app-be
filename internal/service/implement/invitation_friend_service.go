@@ -165,3 +165,24 @@ func (service *InvitationFriendService) IsInCooldown(ctx *gin.Context, userId1, 
 
 	return true, nil
 }
+
+func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) error {
+	// Get the invitation
+	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId)
+	if err != nil {
+		return err
+	}
+
+	// Check if the current user is the sender
+	if userId != invitation.SenderID {
+		return errors.New("only the sender can withdraw the invitation")
+	}
+
+	// Delete the invitation
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

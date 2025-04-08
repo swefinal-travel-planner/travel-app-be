@@ -150,3 +150,43 @@ func (handler *InvitationFriendHandler) DenyInvitation(ctx *gin.Context) {
 	}
 	ctx.AbortWithStatus(204)
 }
+
+// @Summary Withdraw friend invitation
+// @Description Withdraw friend invitation (only allowed for the sender)
+// @Tags InvitationFriend
+// @Accept json
+// @Param invitationId path int true "Invitation ID"
+// @Produce  json
+// @Router /invitation-friends/{invitationId} [delete]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *InvitationFriendHandler) WithdrawInvitation(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	invitationId := ctx.Param("invitationId")
+	if invitationId == "" {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+		return
+	}
+
+	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
+		}))
+		return
+	}
+
+	err = handler.invitationFriendService.WithdrawInvitation(ctx, invitationIdInt, userId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
+		}))
+		return
+	}
+	ctx.AbortWithStatus(204)
+}

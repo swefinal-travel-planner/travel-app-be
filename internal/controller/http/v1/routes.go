@@ -36,6 +36,7 @@ func MapRoutes(router *gin.Engine,
 			invitationFriend.GET("", authMiddleware.VerifyAccessToken, invitationFriendHandler.GetAllInvitations)
 			invitationFriend.PUT("/accept/:invitationId", authMiddleware.VerifyAccessToken, invitationFriendHandler.AcceptInvitation)
 			invitationFriend.PUT("/deny/:invitationId", authMiddleware.VerifyAccessToken, invitationFriendHandler.DenyInvitation)
+			invitationFriend.DELETE("/:invitationId", authMiddleware.VerifyAccessToken, invitationFriendHandler.WithdrawInvitation)
 		}
 		friend := v1.Group("/friends")
 		{

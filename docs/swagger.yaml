@@ -618,6 +618,38 @@ paths:
       summary: Add friend
       tags:
       - InvitationFriend
+  /invitation-friends/{invitationId}:
+    delete:
+      consumes:
+      - application/json
+      description: Withdraw friend invitation (only allowed for the sender)
+      parameters:
+      - description: Invitation ID
+        in: path
+        name: invitationId
+        required: true
+        type: integer
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Withdraw friend invitation
+      tags:
+      - InvitationFriend
   /invitation-friends/accept/{invitationId}:
     put:
       consumes:
