@@ -30,7 +30,8 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	authHandler := v1.NewAuthHandler(authService)
 	invitationFriendRepository := repositoryimplement.NewInvitationFriendRepository(db)
 	friendRepository := repositoryimplement.NewFriendRepository(db)
-	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository, friendRepository)
+	invitationCooldownRepository := repositoryimplement.NewInvitationCooldownRepository(db)
+	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository, friendRepository, invitationCooldownRepository)
 	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	friendService := serviceimplement.NewFriendService(friendRepository, userRepository)
 	friendHandler := v1.NewFriendHandler(friendService)
@@ -52,7 +53,7 @@ var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v
 
 var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService)
 
-var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository)
+var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 
