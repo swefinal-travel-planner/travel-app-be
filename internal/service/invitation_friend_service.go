@@ -10,4 +10,5 @@ type InvitationFriendService interface {
 	GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error)
 	AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) error
 	DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) error
+	IsInCooldown(ctx *gin.Context, userId1, userId2 int64) (bool, error)
 }

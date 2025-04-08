@@ -42,6 +42,7 @@ var repositorySet = wire.NewSet(
 	repositoryimplement.NewAuthenticationRepository,
 	repositoryimplement.NewInvitationFriendRepository,
 	repositoryimplement.NewFriendRepository,
+	repositoryimplement.NewInvitationCooldownRepository,
 )
 
 var middlewareSet = wire.NewSet(
