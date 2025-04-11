@@ -931,11 +931,11 @@ const docTemplate = `{
         "model.InvitationFriendRequest": {
             "type": "object",
             "required": [
-                "receiverID"
+                "receiverEmail"
             ],
             "properties": {
-                "receiverID": {
-                    "type": "integer"
+                "receiverEmail": {
+                    "type": "string"
                 }
             }
         },
@@ -943,17 +943,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
-                "receiverImageURL",
-                "receiverUsername"
+                "senderImageURL",
+                "senderUsername"
             ],
             "properties": {
                 "id": {
                     "type": "integer"
                 },
-                "receiverImageURL": {
+                "senderImageURL": {
                     "type": "string"
                 },
-                "receiverUsername": {
+                "senderUsername": {
                     "type": "string"
                 }
             }

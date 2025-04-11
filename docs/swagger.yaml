@@ -125,23 +125,23 @@ definitions:
     type: object
   model.InvitationFriendRequest:
     properties:
-      receiverID:
-        type: integer
+      receiverEmail:
+        type: string
     required:
-    - receiverID
+    - receiverEmail
     type: object
   model.InvitationFriendResponse:
     properties:
       id:
         type: integer
-      receiverImageURL:
+      senderImageURL:
         type: string
-      receiverUsername:
+      senderUsername:
         type: string
     required:
     - id
-    - receiverImageURL
-    - receiverUsername
+    - senderImageURL
+    - senderUsername
     type: object
   model.LoginRequest:
     properties:

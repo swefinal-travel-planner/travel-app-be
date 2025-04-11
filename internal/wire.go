@@ -29,12 +29,14 @@ var handlerSet = wire.NewSet(
 	v1.NewAuthHandler,
 	v1.NewInvitationFriendHandler,
 	v1.NewFriendHandler,
+	v1.NewUserHandler,
 )
 
 var serviceSet = wire.NewSet(
 	serviceimplement.NewAuthService,
 	serviceimplement.NewInvitationFriendService,
 	serviceimplement.NewFriendService,
+	serviceimplement.NewUserService,
 )
 
 var repositorySet = wire.NewSet(
