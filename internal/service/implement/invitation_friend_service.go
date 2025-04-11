@@ -78,14 +78,14 @@ func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, user
 	}
 	var invitationResponses []model.InvitationFriendResponse
 	for _, invitation := range invitations {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.ReceiverID)
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
 		if err != nil {
 			return nil, err
 		}
 		invitationResponses = append(invitationResponses, model.InvitationFriendResponse{
-			Id:               invitation.ID,
-			ReceiverUsername: user.Name,
-			ReceiverImageURL: user.PhotoURL,
+			Id:             invitation.ID,
+			SenderUsername: user.Name,
+			SenderImageURL: user.PhotoURL,
 		})
 	}
 	return invitationResponses, nil
