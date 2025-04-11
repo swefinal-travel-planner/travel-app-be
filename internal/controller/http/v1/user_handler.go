@@ -17,6 +17,16 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
+// @Summary Search 1 friend
+// @Description Search 1 friend by email
+// @Tags User
+// @Accept json
+// @Produce  json
+// @Router /users/{userEmail} [get]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 200 {object} httpcommon.HttpResponse[model.FriendResponse]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *UserHandler) SearchUser(ctx *gin.Context) {
 	userEmail := ctx.Param("userEmail")
 	if userEmail == "" {
