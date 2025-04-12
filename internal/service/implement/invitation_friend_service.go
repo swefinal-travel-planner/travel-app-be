@@ -71,21 +71,41 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	return nil
 }
 
-func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendResponse, error) {
+func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendReceivedResponse, error) {
 	invitations, err := service.invitationFriendRepository.GetByReceiverIdQuery(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
-	var invitationResponses []model.InvitationFriendResponse
+	var invitationResponses []model.InvitationFriendReceivedResponse
 	for _, invitation := range invitations {
 		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
 		if err != nil {
 			return nil, err
 		}
-		invitationResponses = append(invitationResponses, model.InvitationFriendResponse{
+		invitationResponses = append(invitationResponses, model.InvitationFriendReceivedResponse{
 			Id:             invitation.ID,
 			SenderUsername: user.Name,
 			SenderImageURL: user.PhotoURL,
+		})
+	}
+	return invitationResponses, nil
+}
+
+func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendRequestedResponse, error) {
+	invitations, err := service.invitationFriendRepository.GetBySenderIdQuery(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	var invitationResponses []model.InvitationFriendRequestedResponse
+	for _, invitation := range invitations {
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.ReceiverID)
+		if err != nil {
+			return nil, err
+		}
+		invitationResponses = append(invitationResponses, model.InvitationFriendRequestedResponse{
+			Id:               invitation.ID,
+			ReceiverUsername: user.Name,
+			ReceiverImageURL: user.PhotoURL,
 		})
 	}
 	return invitationResponses, nil

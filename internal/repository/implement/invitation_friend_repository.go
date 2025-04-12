@@ -37,6 +37,16 @@ func (repo *InvitationFriendRepository) GetByReceiverIdQuery(ctx context.Context
 	return invitationFriend, nil
 }
 
+func (repo *InvitationFriendRepository) GetBySenderIdQuery(ctx context.Context, senderId int64) ([]*entity.InvitationFriend, error) {
+	var invitationFriend []*entity.InvitationFriend
+	query := "SELECT * FROM invitation_friends WHERE sender_id = ?"
+	err := repo.db.SelectContext(ctx, &invitationFriend, query, senderId)
+	if err != nil {
+		return nil, err
+	}
+	return invitationFriend, nil
+}
+
 func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx context.Context, senderId, receiverId int64) (*entity.InvitationFriend, error) {
 	var invitationFriend entity.InvitationFriend
 	query := `
