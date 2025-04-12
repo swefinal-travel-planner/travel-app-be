@@ -55,11 +55,24 @@ definitions:
       success:
         type: boolean
     type: object
-  httpcommon.HttpResponse-array_model_InvitationFriendResponse:
+  httpcommon.HttpResponse-array_model_InvitationFriendReceivedResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/model.InvitationFriendResponse'
+          $ref: '#/definitions/model.InvitationFriendReceivedResponse'
+        type: array
+      errors:
+        items:
+          $ref: '#/definitions/httpcommon.Error'
+        type: array
+      success:
+        type: boolean
+    type: object
+  httpcommon.HttpResponse-array_model_InvitationFriendRequestedResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.InvitationFriendRequestedResponse'
         type: array
       errors:
         items:
@@ -134,14 +147,7 @@ definitions:
     - password
     - photoURL
     type: object
-  model.InvitationFriendRequest:
-    properties:
-      receiverEmail:
-        type: string
-    required:
-    - receiverEmail
-    type: object
-  model.InvitationFriendResponse:
+  model.InvitationFriendReceivedResponse:
     properties:
       id:
         type: integer
@@ -153,6 +159,26 @@ definitions:
     - id
     - senderImageURL
     - senderUsername
+    type: object
+  model.InvitationFriendRequest:
+    properties:
+      receiverEmail:
+        type: string
+    required:
+    - receiverEmail
+    type: object
+  model.InvitationFriendRequestedResponse:
+    properties:
+      id:
+        type: integer
+      receiverImageURL:
+        type: string
+      receiverUsername:
+        type: string
+    required:
+    - id
+    - receiverImageURL
+    - receiverUsername
     type: object
   model.LoginRequest:
     properties:
@@ -569,34 +595,6 @@ paths:
       tags:
       - Friend
   /invitation-friends:
-    get:
-      consumes:
-      - application/json
-      description: Get all invitations of current user
-      parameters:
-      - description: 'Authorization: Bearer'
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpcommon.HttpResponse-any'
-      summary: Get all invitations
-      tags:
-      - InvitationFriend
     post:
       consumes:
       - application/json
@@ -723,6 +721,64 @@ paths:
           schema:
             $ref: '#/definitions/httpcommon.HttpResponse-any'
       summary: Deny friend invitation
+      tags:
+      - InvitationFriend
+  /invitation-friends/received:
+    get:
+      consumes:
+      - application/json
+      description: Get all received invitations of current user
+      parameters:
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendReceivedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Get all received invitations
+      tags:
+      - InvitationFriend
+  /invitation-friends/requested:
+    get:
+      consumes:
+      - application/json
+      description: Get all requested invitations of current user
+      parameters:
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendRequestedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Get all requested invitations
       tags:
       - InvitationFriend
   /users/{userEmail}:

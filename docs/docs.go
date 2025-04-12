@@ -511,48 +511,6 @@ const docTemplate = `{
             }
         },
         "/invitation-friends": {
-            "get": {
-                "description": "Get all invitations of current user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "InvitationFriend"
-                ],
-                "summary": "Get all invitations",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization: Bearer",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Add friend",
                 "consumes": [
@@ -682,6 +640,94 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-friends/received": {
+            "get": {
+                "description": "Get all received invitations of current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Get all received invitations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendReceivedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-friends/requested": {
+            "get": {
+                "description": "Get all requested invitations of current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InvitationFriend"
+                ],
+                "summary": "Get all requested invitations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-array_model_InvitationFriendRequestedResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -876,13 +922,33 @@ const docTemplate = `{
                 }
             }
         },
-        "httpcommon.HttpResponse-array_model_InvitationFriendResponse": {
+        "httpcommon.HttpResponse-array_model_InvitationFriendReceivedResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.InvitationFriendResponse"
+                        "$ref": "#/definitions/model.InvitationFriendReceivedResponse"
+                    }
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpcommon.Error"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "httpcommon.HttpResponse-array_model_InvitationFriendRequestedResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.InvitationFriendRequestedResponse"
                     }
                 },
                 "errors": {
@@ -989,18 +1055,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.InvitationFriendRequest": {
-            "type": "object",
-            "required": [
-                "receiverEmail"
-            ],
-            "properties": {
-                "receiverEmail": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.InvitationFriendResponse": {
+        "model.InvitationFriendReceivedResponse": {
             "type": "object",
             "required": [
                 "id",
@@ -1015,6 +1070,36 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "senderUsername": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.InvitationFriendRequest": {
+            "type": "object",
+            "required": [
+                "receiverEmail"
+            ],
+            "properties": {
+                "receiverEmail": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.InvitationFriendRequestedResponse": {
+            "type": "object",
+            "required": [
+                "id",
+                "receiverImageURL",
+                "receiverUsername"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "receiverImageURL": {
+                    "type": "string"
+                },
+                "receiverUsername": {
                     "type": "string"
                 }
             }

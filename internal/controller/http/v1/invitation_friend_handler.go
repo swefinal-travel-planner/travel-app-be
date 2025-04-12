@@ -50,27 +50,50 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
-// @Summary Get all invitations
-// @Description Get all invitations of current user
+// @Summary Get all received invitations
+// @Description Get all received invitations of current user
 // @Tags InvitationFriend
 // @Accept json
 // @Produce  json
-// @Router /invitation-friends [get]
+// @Router /invitation-friends/received [get]
 // @Param  Authorization header string true "Authorization: Bearer"
-// @Success 200 {object} httpcommon.HttpResponse[[]model.InvitationFriendResponse]
+// @Success 200 {object} httpcommon.HttpResponse[[]model.InvitationFriendReceivedResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
-func (handler *InvitationFriendHandler) GetAllInvitations(ctx *gin.Context) {
+func (handler *InvitationFriendHandler) GetAllReceivedInvitations(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	invitationFriends, err := handler.invitationFriendService.GetAllInvitations(ctx, userId)
+	invitationFriends, err := handler.invitationFriendService.GetAllReceivedInvitations(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
 		}))
 		return
 	}
-	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendResponse](&invitationFriends))
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendReceivedResponse](&invitationFriends))
+}
+
+// @Summary Get all requested invitations
+// @Description Get all requested invitations of current user
+// @Tags InvitationFriend
+// @Accept json
+// @Produce  json
+// @Router /invitation-friends/requested [get]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 200 {object} httpcommon.HttpResponse[[]model.InvitationFriendRequestedResponse]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *InvitationFriendHandler) GetAllRequestedInvitations(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	invitationFriends, err := handler.invitationFriendService.GetAllRequestedInvitations(ctx, userId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
+		}))
+		return
+	}
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendRequestedResponse](&invitationFriends))
 }
 
 // @Summary Accept friend invitation
