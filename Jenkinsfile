@@ -10,11 +10,20 @@ pipeline {
         DB_PASSWORD = credentials('DB_PASSWORD') 
         DB_ROOT_PASSWORD = credentials('DB_ROOT_PASSWORD')
 
+        MAIL_HOST = credentials('MAIL_HOST')
+        MAIL_PORT = credentials('MAIL_PORT')
+        MAIL_USERNAME = credentials('MAIL_USERNAME')
+        MAIL_PASSWORD = credentials('MAIL_PASSWORD')
+        MAIL_FROM = credentials('MAIL_FROM')
+        MAIL_FROM_NAME = credentials('MAIL_FROM_NAME')
+
         REDIS_HOST = credentials('REDIS_HOST')
         REDIS_PORT = credentials('REDIS_PORT')
         REDIS_PASSWORD = credentials('REDIS_PASSWORD')
 
         JWT_SECRET = credentials('JWT_SECRET') 
+        
+        ALLOWED_ORIGINS = credentials('ALLOWED_ORIGINS')
     }
 
     stages {
@@ -43,10 +52,17 @@ pipeline {
                         --build-arg DB_USERNAME=$DB_USERNAME \
                         --build-arg DB_PASSWORD=$DB_PASSWORD \
                         --build-arg DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
+                        --build-arg MAIL_HOST=$MAIL_HOST \
+                        --build-arg MAIL_PORT=$MAIL_PORT \
+                        --build-arg MAIL_USERNAME=$MAIL_USERNAME \
+                        --build-arg MAIL_PASSWORD=$MAIL_PASSWORD \
+                        --build-arg MAIL_FROM=$MAIL_FROM \
+                        --build-arg MAIL_FROM_NAME=$MAIL_FROM_NAME \
                         --build-arg REDIS_HOST=$REDIS_HOST \
                         --build-arg REDIS_PORT=$REDIS_PORT \
                         --build-arg REDIS_PASSWORD=$REDIS_PASSWORD \
                         --build-arg JWT_SECRET=$JWT_SECRET \
+                        --build-arg ALLOWED_ORIGIN=$ALLOWED_ORIGIN \
                         -t travel-be .'
                 }
             }
