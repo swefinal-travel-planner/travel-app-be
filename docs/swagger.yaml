@@ -787,6 +787,11 @@ paths:
       - application/json
       description: Search 1 friend by email
       parameters:
+      - description: Email of the friend
+        in: query
+        name: userEmail
+        required: true
+        type: string
       - description: 'Authorization: Bearer'
         in: header
         name: Authorization

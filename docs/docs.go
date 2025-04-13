@@ -808,6 +808,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Email of the friend",
+                        "name": "userEmail",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Authorization: Bearer",
                         "name": "Authorization",
                         "in": "header",

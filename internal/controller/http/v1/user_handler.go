@@ -23,12 +23,13 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Accept json
 // @Produce  json
 // @Router /users/{userEmail} [get]
+// @Param userEmail query string true "Email of the friend"
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Success 200 {object} httpcommon.HttpResponse[model.FriendResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *UserHandler) SearchUser(ctx *gin.Context) {
-	userEmail := ctx.Param("userEmail")
+	userEmail := ctx.Query("userEmail")
 	if userEmail == "" {
 		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: "userEmail is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,

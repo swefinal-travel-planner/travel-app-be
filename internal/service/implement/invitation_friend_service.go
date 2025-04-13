@@ -98,7 +98,7 @@ func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Cont
 	}
 	var invitationResponses []model.InvitationFriendRequestedResponse
 	for _, invitation := range invitations {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.ReceiverID)
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
 		if err != nil {
 			return nil, err
 		}
