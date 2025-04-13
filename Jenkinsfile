@@ -7,7 +7,7 @@ pipeline {
         DB_PORT = credentials('DB_PORT')
         DB_DATABASE = credentials('DB_DATABASE')
         DB_USERNAME = credentials('DB_USERNAME')
-        DB_PASSWORD = credentials('DB_PASWORD') 
+        DB_PASSWORD = credentials('DB_PASSWORD') 
         DB_ROOT_PASSWORD = credentials('DB_ROOT_PASSWORD')
 
         REDIS_HOST = credentials('REDIS_HOST')
