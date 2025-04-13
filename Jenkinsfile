@@ -5,7 +5,7 @@ pipeline {
 
         DB_HOST = credentials('DB_HOST')
         DB_PORT = credentials('DB_PORT')
-        DB_DATABASE = credentials('DB_NAME')
+        DB_DATABASE = credentials('DB_DATABASE')
         DB_USERNAME = credentials('DB_USERNAME')
         DB_PASSWORD = credentials('DB_PASWORD') 
         DB_ROOT_PASSWORD = credentials('DB_ROOT_PASSWORD')
