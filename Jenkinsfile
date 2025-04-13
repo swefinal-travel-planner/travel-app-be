@@ -62,7 +62,7 @@ pipeline {
                         --build-arg REDIS_PORT=$REDIS_PORT \
                         --build-arg REDIS_PASSWORD=$REDIS_PASSWORD \
                         --build-arg JWT_SECRET=$JWT_SECRET \
-                        --build-arg ALLOWED_ORIGINS='$ALLOWED_ORIGINS' \
+                        --build-arg ALLOWED_ORIGINS=$ALLOWED_ORIGINS \
                         -t travel-be .'
                 }
             }
