@@ -22,6 +22,7 @@ pipeline {
                 script {
                     // Stop and remove the old container if it exists
                     sh 'docker stop travel-be-container || true'
+                    sh 'docker rm travel-be-container || true'
                     
                     // Remove the old image
                     sh 'docker rmi $(docker images -q travel-be) || true'  // || true to prevent error if no image exists
