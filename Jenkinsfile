@@ -44,6 +44,7 @@ pipeline {
                         --build-arg DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
                         --build-arg REDIS_HOST=$REDIS_HOST \
                         --build-arg REDIS_PORT=$REDIS_PORT \
+                        --build-arg REDIS_PORT=$REDIS_PASSWORD \
                         --build-arg JWT_SECRET=$JWT_SECRET \
                         -t travel-be .'
                 }
