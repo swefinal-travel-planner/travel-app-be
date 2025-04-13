@@ -12,6 +12,7 @@ pipeline {
 
         REDIS_HOST = credentials('REDIS_HOST')
         REDIS_PORT = credentials('REDIS_PORT')
+        REDIS_PASSWORD = credentials('REDIS_PASSWORD')
 
         JWT_SECRET = credentials('JWT_SECRET') 
     }
@@ -44,7 +45,7 @@ pipeline {
                         --build-arg DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
                         --build-arg REDIS_HOST=$REDIS_HOST \
                         --build-arg REDIS_PORT=$REDIS_PORT \
-                        --build-arg REDIS_PORT=$REDIS_PASSWORD \
+                        --build-arg REDIS_PASSWORD=$REDIS_PASSWORD \
                         --build-arg JWT_SECRET=$JWT_SECRET \
                         -t travel-be .'
                 }
