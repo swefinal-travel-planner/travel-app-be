@@ -32,16 +32,16 @@ pipeline {
                 script {
                     // Build the new Docker image
                     sh 'docker build \
-                        -e PORT=$PORT \
-                        -e DB_HOST=$DB_HOST \
-                        -e DB_PORT=$DB_PORT \
-                        -e DB_DATABASE=$DB_DATABASE \
-                        -e DB_USERNAME=$DB_USERNAME \
-                        -e DB_PASSWORD=$DB_PASSWORD \
-                        -e DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
-                        -e REDIS_HOST=$REDIS_HOST \
-                        -e REDIS_PORT=$REDIS_PORT \
-                        -e JWT_SECRET=$JWT_SECRET \
+                        --build-arg PORT=$PORT \
+                        --build-arg DB_HOST=$DB_HOST \
+                        --build-arg DB_PORT=$DB_PORT \
+                        --build-arg DB_DATABASE=$DB_DATABASE \
+                        --build-arg DB_USERNAME=$DB_USERNAME \
+                        --build-arg DB_PASSWORD=$DB_PASSWORD \
+                        --build-arg DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
+                        --build-arg REDIS_HOST=$REDIS_HOST \
+                        --build-arg REDIS_PORT=$REDIS_PORT \
+                        --build-arg JWT_SECRET=$JWT_SECRET \
                         -t travel-be .'
                 }
             }

@@ -34,13 +34,37 @@ RUN apk --no-cache add ca-certificates
 # Set working directory
 WORKDIR /app
 
+# Define build arguments
+ARG PORT
+ARG DB_HOST
+ARG DB_PORT
+ARG DB_DATABASE
+ARG DB_USERNAME
+ARG DB_PASSWORD
+ARG DB_ROOT_PASSWORD
+ARG REDIS_HOST
+ARG REDIS_PORT
+ARG JWT_SECRET
+
+# Set environment variables from build arguments
+ENV PORT=${PORT}
+ENV DB_HOST=${DB_HOST}
+ENV DB_PORT=${DB_PORT}
+ENV DB_DATABASE=${DB_DATABASE}
+ENV DB_USERNAME=${DB_USERNAME}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+ENV REDIS_HOST=${REDIS_HOST}
+ENV REDIS_PORT=${REDIS_PORT}
+ENV JWT_SECRET=${JWT_SECRET}
+
 # Copy the binary from builder
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/docs ./docs
 
 # Expose port
-EXPOSE 9090
+EXPOSE ${PORT}
 
 # Run the application
 CMD ["./main"] 
