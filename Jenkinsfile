@@ -1,5 +1,20 @@
 pipeline {
     agent any
+    environment {
+        PORT =  credentials('BACKEND_PORT')
+
+        DB_HOST = credentials('DB_HOST')
+        DB_PORT = credentials('DB_PORT')
+        DB_DATABASE = credentials('DB_NAME')
+        DB_USERNAME = credentials('DB_USERNAME')
+        DB_PASSWORD = credentials('DB_PASWORD') 
+        DB_ROOT_PASSWORD = credentials('DB_ROOT_PASSWORD')
+
+        REDIS_HOST = credentials('REDIS_HOST')
+        REDIS_PORT = credentials('REDIS_PORT')
+
+        JWT_SECRET = credentials('JWT_SECRET') 
+    }
 
     stages {
         stage('Remove Old Docker Image') {
@@ -16,7 +31,18 @@ pipeline {
             steps {
                 script {
                     // Build the new Docker image
-                    sh 'docker build -t travel-be .'
+                    sh 'docker build \
+                        -e PORT=$PORT \
+                        -e DB_HOST=$DB_HOST \
+                        -e DB_PORT=$DB_PORT \
+                        -e DB_DATABASE=$DB_DATABASE \
+                        -e DB_USERNAME=$DB_USERNAME \
+                        -e DB_PASSWORD=$DB_PASSWORD \
+                        -e DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
+                        -e REDIS_HOST=$REDIS_HOST \
+                        -e REDIS_PORT=$REDIS_PORT \
+                        -e JWT_SECRET=$JWT_SECRET \
+                        -t travel-be .'
                 }
             }
         }
