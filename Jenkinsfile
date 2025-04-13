@@ -20,8 +20,11 @@ pipeline {
         stage('Remove Old Docker Image') {
             steps {
                 script {
-                    // Remove the old image (optional)
-                    // This assumes the old image is tagged with 'travel-be' and you want to remove it before re-building
+                    // Stop and remove the old container if it exists
+                    sh 'docker stop travel-be-container |   | true'
+                    sh 'docker rm travel-be-container || true'
+                    
+                    // Remove the old image
                     sh 'docker rmi $(docker images -q travel-be) || true'  // || true to prevent error if no image exists
                 }
             }
@@ -50,8 +53,8 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    // Run the newly built container
-                    sh 'docker run -d --rm --name travel-be-container travel-be'
+                    // Run the newly built container with restart policy
+                    sh 'docker run --rm -d --restart unless-stopped --name travel-be-container -p 9090:9090 travel-be'
                 }
             }
         }

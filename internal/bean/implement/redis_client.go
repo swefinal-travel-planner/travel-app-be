@@ -23,9 +23,13 @@ func NewRedisService() bean.RedisClient {
 	if err != nil {
 		panic(err)
 	}
+	redisPassword, err := env.GetEnv("REDIS_PASSWORD")
+	if err != nil {
+		panic(err)
+	}
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
-		Password: "",
+		Password: redisPassword,
 		DB:       0,
 	})
 
