@@ -79,6 +79,17 @@ definitions:
       success:
         type: boolean
     type: object
+  httpcommon.HttpResponse-model_FriendResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.FriendResponse'
+      errors:
+        items:
+          $ref: '#/definitions/httpcommon.Error'
+        type: array
+      success:
+        type: boolean
+    type: object
   model.FriendResponse:
     properties:
       id:
@@ -125,23 +136,23 @@ definitions:
     type: object
   model.InvitationFriendRequest:
     properties:
-      receiverID:
-        type: integer
+      receiverEmail:
+        type: string
     required:
-    - receiverID
+    - receiverEmail
     type: object
   model.InvitationFriendResponse:
     properties:
       id:
         type: integer
-      receiverImageURL:
+      senderImageURL:
         type: string
-      receiverUsername:
+      senderUsername:
         type: string
     required:
     - id
-    - receiverImageURL
-    - receiverUsername
+    - senderImageURL
+    - senderUsername
     type: object
   model.LoginRequest:
     properties:
@@ -714,4 +725,38 @@ paths:
       summary: Deny friend invitation
       tags:
       - InvitationFriend
+  /users/{userEmail}:
+    get:
+      consumes:
+      - application/json
+      description: Search 1 friend by email
+      parameters:
+      - description: Email of the friend
+        in: query
+        name: userEmail
+        required: true
+        type: string
+      - description: 'Authorization: Bearer'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-model_FriendResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpcommon.HttpResponse-any'
+      summary: Search 1 friend
+      tags:
+      - User
 swagger: "2.0"

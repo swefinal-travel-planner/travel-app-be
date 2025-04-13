@@ -745,6 +745,57 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{userEmail}": {
+            "get": {
+                "description": "Search 1 friend by email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Search 1 friend",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email of the friend",
+                        "name": "userEmail",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization: Bearer",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-model_FriendResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpcommon.HttpResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -869,6 +920,23 @@ const docTemplate = `{
                 }
             }
         },
+        "httpcommon.HttpResponse-model_FriendResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/model.FriendResponse"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpcommon.Error"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "model.FriendResponse": {
             "type": "object",
             "required": [
@@ -931,11 +999,11 @@ const docTemplate = `{
         "model.InvitationFriendRequest": {
             "type": "object",
             "required": [
-                "receiverID"
+                "receiverEmail"
             ],
             "properties": {
-                "receiverID": {
-                    "type": "integer"
+                "receiverEmail": {
+                    "type": "string"
                 }
             }
         },
@@ -943,17 +1011,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
-                "receiverImageURL",
-                "receiverUsername"
+                "senderImageURL",
+                "senderUsername"
             ],
             "properties": {
                 "id": {
                     "type": "integer"
                 },
-                "receiverImageURL": {
+                "senderImageURL": {
                     "type": "string"
                 },
-                "receiverUsername": {
+                "senderUsername": {
                     "type": "string"
                 }
             }

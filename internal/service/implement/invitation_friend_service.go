@@ -34,12 +34,16 @@ func NewInvitationFriendService(
 }
 
 func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) error {
-	if userId == invitation.ReceiverID {
+	friend, err := service.userRepository.GetOneByEmailQuery(ctx, invitation.ReceiverEmail)
+	if err != nil {
+		return err
+	}
+	if userId == friend.Id {
 		return errors.New("cannot add yourself")
 	}
 
 	// Check if users are in cooldown period
-	inCooldown, err := service.IsInCooldown(ctx, userId, invitation.ReceiverID)
+	inCooldown, err := service.IsInCooldown(ctx, userId, friend.Id)
 	if err != nil {
 		return err
 	}
@@ -47,19 +51,19 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return errors.New("cannot send friend request during cooldown period")
 	}
 
-	_, err = service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, invitation.ReceiverID)
+	_, err = service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id)
 	if err == nil {
 		return errors.New("invitation already exists")
 	}
 
-	err = service.friendRepository.GetByUserId1AndUserId2Query(ctx, userId, invitation.ReceiverID)
+	err = service.friendRepository.GetByUserId1AndUserId2Query(ctx, userId, friend.Id)
 	if err == nil {
 		return errors.New("already friends")
 	}
 
 	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
 		SenderID:   userId,
-		ReceiverID: invitation.ReceiverID,
+		ReceiverID: friend.Id,
 	})
 	if err != nil {
 		return err
@@ -74,14 +78,14 @@ func (service *InvitationFriendService) GetAllInvitations(ctx *gin.Context, user
 	}
 	var invitationResponses []model.InvitationFriendResponse
 	for _, invitation := range invitations {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.ReceiverID)
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
 		if err != nil {
 			return nil, err
 		}
 		invitationResponses = append(invitationResponses, model.InvitationFriendResponse{
-			Id:               invitation.ID,
-			ReceiverUsername: user.Name,
-			ReceiverImageURL: user.PhotoURL,
+			Id:             invitation.ID,
+			SenderUsername: user.Name,
+			SenderImageURL: user.PhotoURL,
 		})
 	}
 	return invitationResponses, nil
