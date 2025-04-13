@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     // Run the newly built container with restart policy
-                    sh 'docker run --rm -d --restart unless-stopped --name travel-be-container -p 9090:9090 travel-be'
+                    sh 'docker run -d --restart unless-stopped --name travel-be-container -p 9090:9090 travel-be'
                 }
             }
         }
