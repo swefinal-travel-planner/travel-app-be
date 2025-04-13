@@ -6,7 +6,7 @@ import (
 )
 
 func CorsMiddleware() gin.HandlerFunc {
-	url, err := env.GetEnv("ALLOWED_ORIGIN")
+	url, err := env.GetEnv("ALLOWED_ORIGINS")
 	if err != nil {
 		panic(err)
 	}
