@@ -45,24 +45,24 @@ pipeline {
                 script {
                     // Build the new Docker image
                     sh 'docker build \
-                        --build-arg PORT=$PORT \
-                        --build-arg DB_HOST=$DB_HOST \
-                        --build-arg DB_PORT=$DB_PORT \
-                        --build-arg DB_DATABASE=$DB_DATABASE \
-                        --build-arg DB_USERNAME=$DB_USERNAME \
-                        --build-arg DB_PASSWORD=$DB_PASSWORD \
-                        --build-arg DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD \
-                        --build-arg MAIL_HOST=$MAIL_HOST \
-                        --build-arg MAIL_PORT=$MAIL_PORT \
-                        --build-arg MAIL_USERNAME=$MAIL_USERNAME \
-                        --build-arg MAIL_PASSWORD=$MAIL_PASSWORD \
-                        --build-arg MAIL_FROM=$MAIL_FROM \
-                        --build-arg MAIL_FROM_NAME=$MAIL_FROM_NAME \
-                        --build-arg REDIS_HOST=$REDIS_HOST \
-                        --build-arg REDIS_PORT=$REDIS_PORT \
-                        --build-arg REDIS_PASSWORD=$REDIS_PASSWORD \
+                        --build-arg PORT="$PORT" \
+                        --build-arg DB_HOST="$DB_HOST" \
+                        --build-arg DB_PORT="$DB_PORT" \
+                        --build-arg DB_DATABASE="$DB_DATABASE" \
+                        --build-arg DB_USERNAME="$DB_USERNAME" \
+                        --build-arg DB_PASSWORD="$DB_PASSWORD" \
+                        --build-arg DB_ROOT_PASSWORD="$DB_ROOT_PASSWORD" \
+                        --build-arg MAIL_HOST="$MAIL_HOST" \
+                        --build-arg MAIL_PORT="$MAIL_PORT" \
+                        --build-arg MAIL_USERNAME="$MAIL_USERNAME" \
+                        --build-arg MAIL_PASSWORD="$MAIL_PASSWORD" \
+                        --build-arg MAIL_FROM="$MAIL_FROM" \
+                        --build-arg MAIL_FROM_NAME="$MAIL_FROM_NAME" \
+                        --build-arg REDIS_HOST="$REDIS_HOST" \
+                        --build-arg REDIS_PORT="$REDIS_PORT" \
+                        --build-arg REDIS_PASSWORD="$REDIS_PASSWORD" \
+                        --build-arg JWT_SECRET="$JWT_SECRET" \
                         --build-arg ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
-                        --build-arg JWT_SECRET=$JWT_SECRET \
                         -t travel-be .'
                 }
             }
