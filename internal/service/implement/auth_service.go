@@ -1,14 +1,14 @@
 package serviceimplement
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
+
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/bean"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
-	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
@@ -16,7 +16,7 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/jwt"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/mail"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/redis"
+	redisHelper "github.com/swefinal-travel-planner/travel-app-be/internal/utils/redis_helper"
 )
 
 type AuthService struct {
@@ -42,7 +42,7 @@ func NewAuthService(userRepository repository.UserRepository,
 	}
 }
 
-func (service *AuthService) Register(ctx *gin.Context, registerRequest model.RegisterRequest) error {
+func (service *AuthService) Register(ctx *gin.Context, registerRequest model.RegisterRequest) string {
 	// OTP validation
 	email := registerRequest.Email
 	baseKey := constants.VERIFY_EMAIL_KEY
@@ -50,27 +50,37 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 
 	val, err := service.redisClient.Get(ctx, key)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.RedisNil {
+			return error_utils.ErrorCode.REGISTER_OTP_NOT_FOUND
+		}
+		log.Error("AuthService.Register Redis is down when get: " + err.Error())
+		return error_utils.ErrorCode.REDIS_DOWN
 	}
+
 	if val == registerRequest.OTP {
-		service.redisClient.Delete(ctx, key)
+		err := service.redisClient.Delete(ctx, key)
+		if err != nil {
+			log.Error("AuthService.Register Redis is down when delete: " + err.Error())
+			return error_utils.ErrorCode.REDIS_DOWN
+		}
 	} else {
-		fmt.Println("OTP: ", val)
-		return errors.New("invalid OTP")
+		return error_utils.ErrorCode.REGISTER_OTP_INVALID
 	}
 
 	// Register if pass OTP validation
 	existsCustomer, err := service.userRepository.GetOneByEmailQuery(ctx, registerRequest.Email)
-	if err != nil && err.Error() != httpcommon.ErrorMessage.SqlxNoRow {
-		return err
+	if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
+		log.Error("AuthService.Register DB is down: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
 	if existsCustomer != nil {
-		return errors.New("email have already registered")
+		return error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
 	}
 
 	hashPW, err := service.passwordEncoder.Encrypt(registerRequest.Password)
 	if err != nil {
-		return err
+		log.Error("AuthService.Register Error when encrypt password: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	user := &entity.User{
@@ -82,35 +92,40 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 
 	err = service.userRepository.CreateCommand(ctx, user)
 	if err != nil {
-		return err
+		log.Error("AuthService.Register Error when create user: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
-	return nil
+	return ""
 }
 
-func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int64) (string, string, error) {
+func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int64) (string, string, string) {
 	jwtSecret, err := env.GetEnv("JWT_SECRET")
 	if err != nil {
-		return "", "", err
+		log.Error("AuthService.generateAndStoreTokens Error when get JWT secret: " + err.Error())
+		return "", "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	accessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
 		"id": userId,
 	})
 	if err != nil {
-		return "", "", err
+		log.Error("AuthService.generateAndStoreTokens Error when generate access token: " + err.Error())
+		return "", "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	refreshToken, err := jwt.GenerateToken(constants.REFRESH_TOKEN_DURATION, jwtSecret, map[string]interface{}{
 		"id": userId,
 	})
 	if err != nil {
-		return "", "", err
+		log.Error("AuthService.generateAndStoreTokens Error when generate refresh token: " + err.Error())
+		return "", "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	// Check if a refresh token already exists
 	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
-	if err != nil && err != sql.ErrNoRows {
-		return "", "", err
+	if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
+		log.Error("AuthService.generateAndStoreTokens Error when get existing refresh token: " + err.Error())
+		return "", "", error_utils.ErrorCode.DB_DOWN
 	}
 
 	authData := entity.Authentication{
@@ -127,29 +142,31 @@ func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int6
 	}
 
 	if err != nil {
-		return "", "", err
+		log.Error("AuthService.generateAndStoreTokens Error when create/update user's authentication: " + err.Error())
+		return "", "", error_utils.ErrorCode.DB_DOWN
 	}
 
-	return accessToken, refreshToken, nil
+	return accessToken, refreshToken, ""
 }
 
-func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequest) (*model.LoginResponse, error) {
+func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequest) (*model.LoginResponse, string) {
 	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 	if err != nil {
-		if err.Error() == httpcommon.ErrorMessage.SqlxNoRow {
-			return nil, errors.New("email not found")
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, error_utils.ErrorCode.LOGIN_EMAIL_NOT_FOUND
 		}
-		return nil, err
+		log.Error("AuthService.Login Error when get user: " + err.Error())
+		return nil, error_utils.ErrorCode.DB_DOWN
 	}
 	checkPw := service.passwordEncoder.Compare(existsUser.Password, loginRequest.Password)
 	if !checkPw {
-		return nil, errors.New("invalid password")
+		return nil, error_utils.ErrorCode.LOGIN_INVALID_PASSWORD
 	}
 
 	// Generate and store tokens
-	accessToken, refreshToken, err := service.generateAndStoreTokens(ctx, existsUser.Id)
-	if err != nil {
-		return nil, err
+	accessToken, refreshToken, errCode := service.generateAndStoreTokens(ctx, existsUser.Id)
+	if errCode != "" {
+		return nil, errCode
 	}
 
 	return &model.LoginResponse{
@@ -158,13 +175,13 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 		UserId:       existsUser.Id,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-	}, nil
+	}, ""
 }
 
-func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.GoogleLoginRequest) (*model.LoginResponse, error) {
+func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.GoogleLoginRequest) (*model.LoginResponse, string) {
 	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 	if err != nil {
-		if err.Error() == httpcommon.ErrorMessage.SqlxNoRow { // email not founded => create new user with googleID
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow { // email not founded => create new user with googleID
 			newUser := &entity.User{
 				Email:       loginRequest.Email,
 				Name:        loginRequest.DisplayName,
@@ -174,27 +191,30 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 			}
 			err = service.userRepository.CreateCommand(ctx, newUser)
 			if err != nil {
-				return nil, err
+				log.Error("AuthService.GoogleLogin Error when create user: " + err.Error())
+				return nil, error_utils.ErrorCode.DB_DOWN
 			}
 			existsUser, err = service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
 			if err != nil {
-				return nil, err
+				log.Error("AuthService.GoogleLogin Error when get existing user: " + err.Error())
+				return nil, error_utils.ErrorCode.DB_DOWN
 			}
 		} else {
-			return nil, err
+			log.Error("AuthService.GoogleLogin Error when get user: " + err.Error())
+			return nil, error_utils.ErrorCode.DB_DOWN
 		}
 	}
 	// User exists
 	// 1. User register internally => Deny
 	// 2. User register with google => Process to login
 	if existsUser.IDToken == nil {
-		return nil, errors.New("this email is already registered")
+		return nil, error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
 	}
 
 	// Generate and store tokens
-	accessToken, refreshToken, err := service.generateAndStoreTokens(ctx, existsUser.Id)
-	if err != nil {
-		return nil, err
+	accessToken, refreshToken, errCode := service.generateAndStoreTokens(ctx, existsUser.Id)
+	if errCode != "" {
+		return nil, errCode
 	}
 	return &model.LoginResponse{
 		Name:         existsUser.Name,
@@ -202,22 +222,14 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 		UserId:       existsUser.Id,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-	}, nil
+	}, ""
 }
 
-func (service *AuthService) ValidateRefreshToken(ctx *gin.Context, userId int64) (*entity.Authentication, error) {
-	refreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
-	return refreshToken, nil
-}
-
-func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) string {
 	// check if email exists
 	_, err := service.userRepository.GetOneByEmailQuery(ctx, sendOTPRequest.Email)
 	if err == nil {
-		return errors.New("email already exists")
+		return error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
 	}
 
 	// generate otp
@@ -230,113 +242,179 @@ func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPR
 
 	err = service.redisClient.Set(ctx, key, otp)
 	if err != nil {
-		return err
+		log.Error("AuthService.SendOTPToEmailForRegister Error when set redis key: " + err.Error())
+		return error_utils.ErrorCode.REDIS_DOWN
 	}
 
 	// send otp to user email
 	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.VERIFY_EMAIL, constants.VERIFY_EMAIL_EXP_TIME)
 	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP verify email", emailBody)
 	if err != nil {
-		return err
+		log.Error("AuthService.SendOTPToEmailForRegister Error when send email: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
-	return nil
+	return ""
 }
 
-func (service *AuthService) VerifyOTPForRegister(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
+func (service *AuthService) VerifyOTPForRegister(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) string {
 	email := verifyOTPRequest.Email
 	baseKey := constants.VERIFY_EMAIL_KEY
 	key := fmt.Sprintf("%s:%s", baseKey, email)
 
 	val, err := service.redisClient.Get(ctx, key)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.RedisNil {
+			return error_utils.ErrorCode.REGISTER_OTP_NOT_FOUND
+		}
+		log.Error("AuthService.VerifyOTPForRegister Error when get redis key: " + err.Error())
+		return error_utils.ErrorCode.REDIS_DOWN
 	}
 
 	if val != verifyOTPRequest.OTP {
-		return errors.New("invalid OTP")
+		return error_utils.ErrorCode.REGISTER_OTP_INVALID
 	}
 
-	return nil
+	return ""
 }
 
-func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) error {
+func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) string {
 	// generate otp
 	otp := mail.GenerateOTP(6)
 
 	// store otp in redis
 	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
+		}
+		log.Error("AuthService.SendOTPToEmailForResetPassword Error when get ID by email: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
 	baseKey := constants.RESET_PASSWORD_KEY
-	key := redis.Concat(baseKey, customerId)
+	key := redisHelper.Concat(baseKey, customerId)
 
 	err = service.redisClient.Set(ctx, key, otp)
 	if err != nil {
-		return err
+		log.Error("AuthService.SendOTPToEmailForResetPassword Error when set redis key: " + err.Error())
+		return error_utils.ErrorCode.REDIS_DOWN
 	}
 
 	// send otp to user email
 	emailBody := service.mailClient.GenerateOTPBody(sendOTPRequest.Email, otp, constants.FORGOT_PASSWORD, constants.RESET_PASSWORD_EXP_TIME)
 	err = service.mailClient.SendEmail(ctx, sendOTPRequest.Email, "OTP reset password", emailBody)
 	if err != nil {
-		return err
+		log.Error("AuthService.SendOTPToEmailForResetPassword Error when send email: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
-	return nil
+	return ""
 }
 
-func (service *AuthService) VerifyOTPForResetPassword(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) error {
+func (service *AuthService) VerifyOTPForResetPassword(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) string {
 	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
+		}
+		log.Error("AuthService.VerifyOTPForResetPassword Error when get ID by email: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
 
 	baseKey := constants.RESET_PASSWORD_KEY
-	key := redis.Concat(baseKey, customerId)
+	key := redisHelper.Concat(baseKey, customerId)
 
 	val, err := service.redisClient.Get(ctx, key)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.RedisNil {
+			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
+		}
+		log.Error("AuthService.VerifyOTPForResetPassword Error when get redis key: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
 
 	if val != verifyOTPRequest.OTP {
-		return errors.New("Invalid OTP")
+		return error_utils.ErrorCode.RESET_PASSWORD_OTP_INVALID
 	}
 
-	return nil
+	return ""
 }
 
-func (service *AuthService) SetPassword(ctx *gin.Context, setPasswordRequest model.SetPasswordRequest) error {
+func (service *AuthService) SetPassword(ctx *gin.Context, setPasswordRequest model.SetPasswordRequest) string {
 	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, setPasswordRequest.Email)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
+		}
+		log.Error("AuthService.SetPassword Error when get ID by email: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
 
 	baseKey := constants.RESET_PASSWORD_KEY
-	key := redis.Concat(baseKey, customerId)
+	key := redisHelper.Concat(baseKey, customerId)
 
 	val, err := service.redisClient.Get(ctx, key)
 	if err != nil {
-		return err
+		if err.Error() == error_utils.SystemErrorMessage.RedisNil {
+			return error_utils.ErrorCode.SET_PASSWORD_OTP_NOT_FOUND
+		}
+		log.Error("AuthService.SetPassword Error when get redis key: " + err.Error())
+		return error_utils.ErrorCode.REDIS_DOWN
 	}
 
 	if val == setPasswordRequest.OTP {
-		service.redisClient.Delete(ctx, key)
+		err := service.redisClient.Delete(ctx, key)
+		if err != nil {
+			log.Error("AuthService.SetPassword Error when delete redis key: " + err.Error())
+			return error_utils.ErrorCode.REDIS_DOWN
+		}
 
 		hashedPW, err := service.passwordEncoder.Encrypt(setPasswordRequest.Password)
 		if err != nil {
-			return err
+			log.Error("AuthService.SetPassword Error when encrypt password: " + err.Error())
+			return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 		}
 
 		err = service.userRepository.UpdatePasswordByIdQuery(ctx, customerId, hashedPW)
 		if err != nil {
-			return err
+			log.Error("AuthService.SetPassword Error when update password: " + err.Error())
+			return error_utils.ErrorCode.DB_DOWN
 		}
 	} else {
-		return errors.New("invalid OTP")
+		return error_utils.ErrorCode.SET_PASSWORD_OTP_INVALID
 	}
 
-	return nil
+	return ""
+}
+
+func (service *AuthService) RefreshToken(ctx *gin.Context, refreshTokenRequest model.RefreshTokenRequest) (string, string) {
+	jwtSecret, err := env.GetEnv("JWT_SECRET")
+	if err != nil {
+		log.Error("AuthService.RefreshToken Error when get JWT secret: " + err.Error())
+		return "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	refreshClaims, errRf := jwt.VerifyToken(refreshTokenRequest.RefreshToken, jwtSecret)
+	if errRf != nil {
+		log.Error("AuthService.RefreshToken Error when verify JWT secret: " + errRf.Error())
+		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+	}
+
+	// Extract user Id from refresh token claims
+	payload, ok := refreshClaims.Payload.(map[string]interface{})
+	if !ok {
+		log.Error("AuthService.RefreshToken Error when extracting claims from request token")
+		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+	}
+	userId := int64(payload["id"].(float64))
+
+	// Generate a new access token
+	newAccessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
+		"id": userId,
+	})
+	if err != nil {
+		log.Error("AuthService.RefreshToken Error when generate access token: " + err.Error())
+		return "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	return newAccessToken, ""
 }

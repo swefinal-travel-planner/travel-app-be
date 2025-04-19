@@ -2,13 +2,12 @@ package validation
 
 import (
 	"encoding/json"
-	"net/http"
-	"strings"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	stringutils "github.com/swefinal-travel-planner/travel-app-be/internal/utils/string_utils"
+	"net/http"
 )
 
 func BindJsonAndValidate(c *gin.Context, dest interface{}) error {
@@ -24,12 +23,12 @@ func checkErr(c *gin.Context, err error) {
 	switch t := err.(type) {
 	case *json.UnmarshalTypeError:
 		httpErr := httpcommon.Error{
-			Message: httpcommon.ErrorMessage.InvalidDataType, Code: httpcommon.ErrorResponseCode.InvalidDataType, Field: t.Field,
+			Message: "Invalid data type", Code: error_utils.ErrorCode.BAD_REQUEST, Field: t.Field,
 		}
 		c.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpErr))
 		return
 	case *json.SyntaxError:
-		httpErr := httpcommon.Error{Message: err.Error(), Code: httpcommon.ErrorResponseCode.InvalidRequest}
+		httpErr := httpcommon.Error{Message: err.Error(), Code: error_utils.ErrorCode.BAD_REQUEST}
 		c.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpErr))
 		return
 	case validator.ValidationErrors:
@@ -37,7 +36,7 @@ func checkErr(c *gin.Context, err error) {
 		c.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpErrs...))
 		return
 	default:
-		httpErr := httpcommon.Error{Message: err.Error(), Code: httpcommon.ErrorResponseCode.InvalidRequest, Field: ""}
+		httpErr := httpcommon.Error{Message: err.Error(), Code: error_utils.ErrorCode.BAD_REQUEST, Field: ""}
 		c.JSON(http.StatusBadRequest, httpErr)
 		return
 	}
@@ -45,19 +44,10 @@ func checkErr(c *gin.Context, err error) {
 
 func handleValidationErrors(errs error) (httpErrs []httpcommon.Error) {
 	for _, fieldErr := range errs.(validator.ValidationErrors) {
-		errCodeWithStructNs := httpcommon.CustomValidationErrCode[strings.ToLower(fieldErr.StructNamespace())]
 		field := stringutils.FirstLetterToLower(fieldErr.Field())
-		if errCodeWithStructNs == "" {
-			// handle builtin validation
-			httpErrs = append(httpErrs, httpcommon.Error{
-				Message: httpcommon.ErrorMessage.InvalidRequest, Code: httpcommon.ErrorResponseCode.InvalidRequest, Field: field,
-			})
-		} else {
-			// handle custom validation
-			httpErrs = append(httpErrs, httpcommon.Error{
-				Message: httpcommon.ErrorMessage.InvalidRequest, Code: errCodeWithStructNs, Field: field,
-			})
-		}
+		httpErrs = append(httpErrs, httpcommon.Error{
+			Message: "Invalid request", Code: error_utils.ErrorCode.BAD_REQUEST, Field: field,
+		})
 	}
 	return httpErrs
 }

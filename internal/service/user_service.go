@@ -6,5 +6,5 @@ import (
 )
 
 type UserService interface {
-	SearchUser(ctx *gin.Context, userEmail string) (*model.FriendResponse, error)
+	SearchUser(ctx *gin.Context, userEmail string) (*model.FriendResponse, string)
 }

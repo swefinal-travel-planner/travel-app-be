@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,15 +32,14 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 func (handler *UserHandler) SearchUser(ctx *gin.Context) {
 	userEmail := ctx.Query("userEmail")
 	if userEmail == "" {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "userEmail is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "userEmail")
+		ctx.JSON(statusCode, errResponse)
+		return
 	}
-	user, err := handler.userService.SearchUser(ctx, userEmail)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	user, errCode := handler.userService.SearchUser(ctx, userEmail)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[model.FriendResponse](user))

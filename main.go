@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 
-	_ "github.com/swefinal-travel-planner/travel-app-be/docs"
 	"github.com/swefinal-travel-planner/travel-app-be/startup"
 )
 

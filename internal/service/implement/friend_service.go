@@ -2,9 +2,11 @@ package serviceimplement
 
 import (
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type FriendService struct {
@@ -22,10 +24,14 @@ func NewFriendService(
 	}
 }
 
-func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, error) {
+func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, string) {
 	friends, err := service.friendRepository.GetByUserIdQuery(ctx, userId)
 	if err != nil {
-		return nil, err
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, ""
+		}
+		log.Error("FriendService.GetAllFriends error when get user:", err.Error())
+		return nil, error_utils.ErrorCode.DB_DOWN
 	}
 	var friendResponses []model.FriendResponse
 	for _, friend := range friends {
@@ -35,20 +41,21 @@ func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]m
 			ImageURL: friend.PhotoURL,
 		})
 	}
-	return friendResponses, nil
+	return friendResponses, ""
 }
 
-func (service *FriendService) RemoveFriend(ctx *gin.Context, userId int64, friendId int64) error {
+func (service *FriendService) RemoveFriend(ctx *gin.Context, userId int64, friendId int64) string {
 	// Check if the user is a friend
-	err := service.friendRepository.GetByUserId1AndUserId2Query(ctx, userId, friendId)
-	if err != nil {
-		return err
+	isFriend := service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friendId)
+	if !isFriend {
+		return error_utils.ErrorCode.REMOVE_FRIEND_NOT_FOUND
 	}
 
 	// Only delete the friend if the user is a friend
-	err = service.friendRepository.DeleteByUserId1AndUserId2Command(ctx, userId, friendId)
+	err := service.friendRepository.DeleteByUserId1AndUserId2Command(ctx, userId, friendId)
 	if err != nil {
-		return err
+		log.Error("FriendService.RemoveFriend error when remove friend:", err.Error())
+		return error_utils.ErrorCode.DB_DOWN
 	}
-	return nil
+	return ""
 }
