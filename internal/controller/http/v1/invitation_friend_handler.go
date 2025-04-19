@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 	"strconv"
 
@@ -40,11 +41,10 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.invitationFriendService.AddFriend(ctx, invitationFriendRequest, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.invitationFriendService.AddFriend(ctx, invitationFriendRequest, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)
@@ -63,11 +63,10 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 func (handler *InvitationFriendHandler) GetAllReceivedInvitations(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	invitationFriends, err := handler.invitationFriendService.GetAllReceivedInvitations(ctx, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	invitationFriends, errCode := handler.invitationFriendService.GetAllReceivedInvitations(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendReceivedResponse](&invitationFriends))
@@ -86,11 +85,10 @@ func (handler *InvitationFriendHandler) GetAllReceivedInvitations(ctx *gin.Conte
 func (handler *InvitationFriendHandler) GetAllRequestedInvitations(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	invitationFriends, err := handler.invitationFriendService.GetAllRequestedInvitations(ctx, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	invitationFriends, errCode := handler.invitationFriendService.GetAllRequestedInvitations(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.InvitationFriendRequestedResponse](&invitationFriends))
@@ -112,24 +110,22 @@ func (handler *InvitationFriendHandler) AcceptInvitation(ctx *gin.Context) {
 
 	invitationId := ctx.Param("invitationId")
 	if invitationId == "" {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
+		return
 	}
 
 	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
-	err = handler.invitationFriendService.AcceptInvitation(ctx, invitationIdInt, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.invitationFriendService.AcceptInvitation(ctx, invitationIdInt, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)
@@ -151,24 +147,22 @@ func (handler *InvitationFriendHandler) DenyInvitation(ctx *gin.Context) {
 
 	invitationId := ctx.Param("invitationId")
 	if invitationId == "" {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
+		return
 	}
 
 	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
-	err = handler.invitationFriendService.DenyInvitation(ctx, invitationIdInt, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.invitationFriendService.DenyInvitation(ctx, invitationIdInt, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)
@@ -190,25 +184,22 @@ func (handler *InvitationFriendHandler) WithdrawInvitation(ctx *gin.Context) {
 
 	invitationId := ctx.Param("invitationId")
 	if invitationId == "" {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invitationId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
 	invitationIdInt, err := strconv.ParseInt(invitationId, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invalid invitationId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "invitationId")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
-	err = handler.invitationFriendService.WithdrawInvitation(ctx, invitationIdInt, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.invitationFriendService.WithdrawInvitation(ctx, invitationIdInt, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)

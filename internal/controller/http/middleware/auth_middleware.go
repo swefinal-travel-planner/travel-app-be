@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	log "github.com/sirupsen/logrus"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 	"strings"
 
@@ -52,10 +54,11 @@ func (a *AuthMiddleware) VerifyAccessToken(c *gin.Context) {
 	// Get the JWT secret from the environment
 	jwtSecret, err := env.GetEnv("JWT_SECRET")
 	if err != nil {
+		log.Error("AuthMiddleware.VerifyAccessToken Error getting JWT secret: " + err.Error())
 		c.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
 			httpcommon.Error{
 				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InternalServerError,
+				Code:    error_utils.ErrorCode.INTERNAL_SERVER_ERROR,
 			},
 		))
 		return
@@ -78,8 +81,8 @@ func (a *AuthMiddleware) VerifyAccessToken(c *gin.Context) {
 	// For all other errors, abort with unauthorized
 	c.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
 		httpcommon.Error{
-			Message: err.Error(),
-			Code:    httpcommon.ErrorResponseCode.Unauthorized,
+			Message: "Error verifying access token",
+			Code:    error_utils.ErrorCode.INTERNAL_SERVER_ERROR,
 		},
 	))
 }
