@@ -3,11 +3,9 @@ package middleware
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
@@ -55,12 +53,8 @@ func (a *AuthMiddleware) VerifyAccessToken(c *gin.Context) {
 	jwtSecret, err := env.GetEnv("JWT_SECRET")
 	if err != nil {
 		log.Error("AuthMiddleware.VerifyAccessToken Error getting JWT secret: " + err.Error())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    error_utils.ErrorCode.INTERNAL_SERVER_ERROR,
-			},
-		))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.INTERNAL_SERVER_ERROR, "")
+		c.AbortWithStatusJSON(statusCode, errResponse)
 		return
 	}
 
@@ -78,11 +72,6 @@ func (a *AuthMiddleware) VerifyAccessToken(c *gin.Context) {
 		}
 	}
 
-	// For all other errors, abort with unauthorized
-	c.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-		httpcommon.Error{
-			Message: "Error verifying access token",
-			Code:    error_utils.ErrorCode.INTERNAL_SERVER_ERROR,
-		},
-	))
+	statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.ACCESS_TOKEN_INVALID, "accessToken")
+	c.AbortWithStatusJSON(statusCode, errResponse)
 }
