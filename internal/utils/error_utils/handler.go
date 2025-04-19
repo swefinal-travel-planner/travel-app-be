@@ -114,7 +114,7 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Code:    ErrorCode.SET_PASSWORD_OTP_NOT_FOUND,
 		})
 	case ErrorCode.REFRESH_TOKEN_NOT_FOUND:
-		statusCode = http.StatusNotFound
+		statusCode = http.StatusUnauthorized
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: "Your session has expired. Please log in again to continue",
 			Field:   field,
@@ -124,6 +124,13 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 		statusCode = http.StatusUnauthorized
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: "Your session is invalid. Please log in again to continue",
+			Field:   field,
+			Code:    ErrorCode.REFRESH_TOKEN_INVALID,
+		})
+	case ErrorCode.ACCESS_TOKEN_INVALID:
+		statusCode = http.StatusUnauthorized
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "Your access token is no longer valid",
 			Field:   field,
 			Code:    ErrorCode.REFRESH_TOKEN_INVALID,
 		})
@@ -158,7 +165,7 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 	case ErrorCode.ADD_FRIEND_IN_COOLDOWN:
 		statusCode = http.StatusTooManyRequests
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "You have sent too many friend requests. Please wait before sending another one",
+			Message: "Friend request to this user has been cooled down. Please wait before sending another one",
 			Field:   field,
 			Code:    ErrorCode.ADD_FRIEND_IN_COOLDOWN,
 		})
@@ -196,13 +203,6 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Message: "Only the sender can withdraw a friend invitation",
 			Field:   field,
 			Code:    ErrorCode.FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW,
-		})
-	case ErrorCode.SEARCHED_USER_NOT_FOUND:
-		statusCode = http.StatusNotFound
-		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "The searched user does not exist",
-			Field:   field,
-			Code:    ErrorCode.SEARCHED_USER_NOT_FOUND,
 		})
 	default:
 		statusCode = http.StatusInternalServerError
