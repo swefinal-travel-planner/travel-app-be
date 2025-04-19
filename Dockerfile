@@ -20,7 +20,7 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 COPY . .
 
 # Generate swagger docs
-RUN swag init -g main.go
+RUN swag init -g main.go --output docs --parseDependency --parseInternal
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
