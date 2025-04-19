@@ -132,7 +132,7 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
 			Message: "Your access token is no longer valid",
 			Field:   field,
-			Code:    ErrorCode.REFRESH_TOKEN_INVALID,
+			Code:    ErrorCode.ACCESS_TOKEN_INVALID,
 		})
 	case ErrorCode.REMOVE_FRIEND_NOT_FOUND:
 		statusCode = http.StatusNotFound
