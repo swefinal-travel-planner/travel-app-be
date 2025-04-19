@@ -63,16 +63,16 @@ func (repo *FriendRepository) DeleteByUserId1AndUserId2Command(ctx context.Conte
 	return nil
 }
 
-func (repo *FriendRepository) GetByUserId1AndUserId2Query(ctx context.Context, userId1 int64, userId2 int64) error {
-	var friend entity.Friend
+func (repo *FriendRepository) ExistsByUserId1AndUserId2Query(ctx context.Context, userId1 int64, userId2 int64) bool {
+	var count int
 	query := `
-		SELECT * FROM friends 
+		SELECT COUNT(*) FROM friends 
 		WHERE (user_id_1 = ? AND user_id_2 = ?) 
 		   OR (user_id_1 = ? AND user_id_2 = ?)
 	`
-	err := repo.db.GetContext(ctx, &friend, query, userId1, userId2, userId2, userId1)
+	err := repo.db.GetContext(ctx, &count, query, userId1, userId2, userId2, userId1)
 	if err != nil {
-		return err
+		return false
 	}
-	return nil
+	return count > 0
 }

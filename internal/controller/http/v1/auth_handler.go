@@ -1,16 +1,11 @@
 package v1
 
 import (
-	"errors"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/constants"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/jwt"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/validation"
 )
 
@@ -40,11 +35,10 @@ func (handler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.Register(ctx, registerRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.authService.Register(ctx, registerRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)
@@ -67,17 +61,10 @@ func (handler *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := handler.authService.Login(ctx, loginRequest)
-	if err != nil || user == nil {
-		if user == nil && err == nil {
-			err = errors.New(httpcommon.ErrorMessage.SqlxNoRow)
-		}
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	user, errCode := handler.authService.Login(ctx, loginRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -101,68 +88,12 @@ func (handler *AuthHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	jwtSecret, err := env.GetEnv("JWT_SECRET")
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: httpcommon.ErrorMessage.BadCredential,
-				Code:    httpcommon.ErrorResponseCode.Unauthorized,
-			},
-		))
+	newAccessToken, errCode := handler.authService.RefreshToken(ctx, refreshTokenRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
-
-	refreshClaims, errRf := jwt.VerifyToken(refreshTokenRequest.RefreshToken, jwtSecret)
-	if errRf != nil {
-		// If the refresh token is invalid or expired, abort with unauthorized
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: httpcommon.ErrorMessage.BadCredential,
-				Code:    httpcommon.ErrorResponseCode.Unauthorized,
-			},
-		))
-		return
-	}
-
-	// Extract user Id from refresh token claims
-	payload, ok := refreshClaims.Payload.(map[string]interface{})
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: httpcommon.ErrorMessage.BadCredential,
-				Code:    httpcommon.ErrorResponseCode.Unauthorized,
-			},
-		))
-		return
-	}
-	userId := int64(payload["id"].(float64))
-
-	// Check if the refresh token exists and is still valid in the database
-	refreshTokenEntity, err := handler.authService.ValidateRefreshToken(ctx, userId)
-	if err != nil || refreshTokenEntity == nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: httpcommon.ErrorMessage.BadCredential,
-				Code:    httpcommon.ErrorResponseCode.Unauthorized,
-			},
-		))
-		return
-	}
-
-	// Generate a new access token
-	newAccessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
-		"id": userId,
-	})
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InternalServerError,
-			},
-		))
-		return
-	}
-
 	ctx.JSON(200, httpcommon.NewSuccessResponse(&newAccessToken))
 }
 
@@ -183,14 +114,10 @@ func (handler *AuthHandler) SendOTPToEmailForRegister(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.SendOTPToEmailForRegister(ctx, sendOTPRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	errCode := handler.authService.SendOTPToEmailForRegister(ctx, sendOTPRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -214,14 +141,10 @@ func (handler *AuthHandler) VerifyOTPForRegister(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.VerifyOTPForRegister(ctx, verifyOTPRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	errCode := handler.authService.VerifyOTPForRegister(ctx, verifyOTPRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -245,14 +168,10 @@ func (handler *AuthHandler) SendOTPToEmailForResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.SendOTPToEmailForResetPassword(ctx, sendOTPRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	errCode := handler.authService.SendOTPToEmailForResetPassword(ctx, sendOTPRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -276,14 +195,10 @@ func (handler *AuthHandler) VerifyOTPForResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.VerifyOTPForResetPassword(ctx, verifyOTPRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	errCode := handler.authService.VerifyOTPForResetPassword(ctx, verifyOTPRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -307,14 +222,10 @@ func (handler *AuthHandler) SetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.authService.SetPassword(ctx, setPasswordRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	errCode := handler.authService.SetPassword(ctx, setPasswordRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
@@ -340,27 +251,14 @@ func (handler *AuthHandler) Test(ctx *gin.Context) {
 func (handler *AuthHandler) FirebaseLogin(ctx *gin.Context) {
 	var googleLoginReq model.GoogleLoginRequest
 
-	if err := ctx.ShouldBindJSON(&googleLoginReq); err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	if err := validation.BindJsonAndValidate(ctx, &googleLoginReq); err != nil {
 		return
 	}
 
-	user, err := handler.authService.GoogleLogin(ctx, googleLoginReq)
-	if err != nil || user == nil {
-		if user == nil && err == nil {
-			err = errors.New(httpcommon.ErrorMessage.SqlxNoRow)
-		}
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(
-			httpcommon.Error{
-				Message: err.Error(),
-				Code:    httpcommon.ErrorResponseCode.InvalidRequest,
-			},
-		))
+	user, errCode := handler.authService.GoogleLogin(ctx, googleLoginReq)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 	"strconv"
 
@@ -32,11 +33,10 @@ func NewFriendHandler(friendService service.FriendService) *FriendHandler {
 func (handler *FriendHandler) ViewFriends(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	friends, err := handler.friendService.GetAllFriends(ctx, userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	friends, errCode := handler.friendService.GetAllFriends(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.FriendResponse](&friends))
@@ -58,24 +58,22 @@ func (handler *FriendHandler) RemoveFriend(ctx *gin.Context) {
 
 	friendId := ctx.Param("friendId")
 	if friendId == "" {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "friendId is required", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "friendId")
+		ctx.JSON(statusCode, errResponse)
+		return
 	}
 
 	friendIdInt, err := strconv.ParseInt(friendId, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: "invalid friendId format", Field: "", Code: httpcommon.ErrorResponseCode.InvalidRequest,
-		}))
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "friendId")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 
-	err = handler.friendService.RemoveFriend(ctx, userId, friendIdInt)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, httpcommon.NewErrorResponse(httpcommon.Error{
-			Message: err.Error(), Field: "", Code: httpcommon.ErrorResponseCode.InternalServerError,
-		}))
+	errCode := handler.friendService.RemoveFriend(ctx, userId, friendIdInt)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
 		return
 	}
 	ctx.AbortWithStatus(204)
