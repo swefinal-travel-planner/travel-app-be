@@ -141,6 +141,69 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Field:   field,
 			Code:    ErrorCode.BAD_REQUEST,
 		})
+	case ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND:
+		statusCode = http.StatusNotFound
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "The user you are trying to add as friend does not exist",
+			Field:   field,
+			Code:    ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND,
+		})
+	case ErrorCode.ADD_FRIEND_CANNOT_ADD_YOURSELF:
+		statusCode = http.StatusBadRequest
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "You cannot add yourself as a friend",
+			Field:   field,
+			Code:    ErrorCode.ADD_FRIEND_CANNOT_ADD_YOURSELF,
+		})
+	case ErrorCode.ADD_FRIEND_IN_COOLDOWN:
+		statusCode = http.StatusTooManyRequests
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "You have sent too many friend requests. Please wait before sending another one",
+			Field:   field,
+			Code:    ErrorCode.ADD_FRIEND_IN_COOLDOWN,
+		})
+	case ErrorCode.ADD_FRIEND_INVITATION_ALREADY_EXISTS:
+		statusCode = http.StatusConflict
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "A friend invitation already exists between you and this user",
+			Field:   field,
+			Code:    ErrorCode.ADD_FRIEND_INVITATION_ALREADY_EXISTS,
+		})
+	case ErrorCode.ADD_FRIEND_ALREADY_FRIEND:
+		statusCode = http.StatusConflict
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "You are already friends with this user",
+			Field:   field,
+			Code:    ErrorCode.ADD_FRIEND_ALREADY_FRIEND,
+		})
+	case ErrorCode.FRIEND_INVITATION_NOT_FOUND:
+		statusCode = http.StatusNotFound
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "The friend invitation does not exist",
+			Field:   field,
+			Code:    ErrorCode.FRIEND_INVITATION_NOT_FOUND,
+		})
+	case ErrorCode.FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER:
+		statusCode = http.StatusBadRequest
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "You cannot accept a friend invitation that you sent",
+			Field:   field,
+			Code:    ErrorCode.FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER,
+		})
+	case ErrorCode.FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW:
+		statusCode = http.StatusForbidden
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "Only the sender can withdraw a friend invitation",
+			Field:   field,
+			Code:    ErrorCode.FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW,
+		})
+	case ErrorCode.SEARCHED_USER_NOT_FOUND:
+		statusCode = http.StatusNotFound
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "The searched user does not exist",
+			Field:   field,
+			Code:    ErrorCode.SEARCHED_USER_NOT_FOUND,
+		})
 	default:
 		statusCode = http.StatusInternalServerError
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
