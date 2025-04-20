@@ -44,26 +44,7 @@ pipeline {
             steps {
                 script {
                     // Build the new Docker image
-                    sh 'docker build \
-                        --build-arg PORT="$PORT" \
-                        --build-arg DB_HOST="$DB_HOST" \
-                        --build-arg DB_PORT="$DB_PORT" \
-                        --build-arg DB_DATABASE="$DB_DATABASE" \
-                        --build-arg DB_USERNAME="$DB_USERNAME" \
-                        --build-arg DB_PASSWORD="$DB_PASSWORD" \
-                        --build-arg DB_ROOT_PASSWORD="$DB_ROOT_PASSWORD" \
-                        --build-arg MAIL_HOST="$MAIL_HOST" \
-                        --build-arg MAIL_PORT="$MAIL_PORT" \
-                        --build-arg MAIL_USERNAME="$MAIL_USERNAME" \
-                        --build-arg MAIL_PASSWORD="$MAIL_PASSWORD" \
-                        --build-arg MAIL_FROM="$MAIL_FROM" \
-                        --build-arg MAIL_FROM_NAME="$MAIL_FROM_NAME" \
-                        --build-arg REDIS_HOST="$REDIS_HOST" \
-                        --build-arg REDIS_PORT="$REDIS_PORT" \
-                        --build-arg REDIS_PASSWORD="$REDIS_PASSWORD" \
-                        --build-arg JWT_SECRET="$JWT_SECRET" \
-                        --build-arg ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
-                        -t travel-be .'
+                    sh 'docker build -t travel-be .'
                 }
             }
         }
@@ -71,8 +52,32 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    // Run the newly built container with restart policy
-                    sh 'docker run -d --restart unless-stopped --name travel-be-container -p 9090:9090 travel-be'
+                    // Run the newly built container with environment variables
+                    sh '''
+                        docker run -d \
+                            --restart unless-stopped \
+                            --name travel-be-container \
+                            -p ${PORT}:${PORT} \
+                            -e PORT="$PORT" \
+                            -e DB_HOST="$DB_HOST" \
+                            -e DB_PORT="$DB_PORT" \
+                            -e DB_DATABASE="$DB_DATABASE" \
+                            -e DB_USERNAME="$DB_USERNAME" \
+                            -e DB_PASSWORD="$DB_PASSWORD" \
+                            -e DB_ROOT_PASSWORD="$DB_ROOT_PASSWORD" \
+                            -e MAIL_HOST="$MAIL_HOST" \
+                            -e MAIL_PORT="$MAIL_PORT" \
+                            -e MAIL_USERNAME="$MAIL_USERNAME" \
+                            -e MAIL_PASSWORD="$MAIL_PASSWORD" \
+                            -e MAIL_FROM="$MAIL_FROM" \
+                            -e MAIL_FROM_NAME="$MAIL_FROM_NAME" \
+                            -e REDIS_HOST="$REDIS_HOST" \
+                            -e REDIS_PORT="$REDIS_PORT" \
+                            -e REDIS_PASSWORD="$REDIS_PASSWORD" \
+                            -e JWT_SECRET="$JWT_SECRET" \
+                            -e ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+                            travel-be
+                    '''
                 }
             }
         }
