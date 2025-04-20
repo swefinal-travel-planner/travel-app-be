@@ -82,4 +82,26 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully'
+            // Clean up any temporary files or resources
+            cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed'
+            // Clean up on failure
+            script {
+                sh 'docker stop travel-be-container || true'
+                sh 'docker rm travel-be-container || true'
+                cleanWs()
+            }
+        }
+        always {
+            echo 'Pipeline completed'
+            // Always clean up workspace
+            cleanWs()
+        }
+    }
 }
