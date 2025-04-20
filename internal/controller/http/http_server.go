@@ -18,6 +18,7 @@ type Server struct {
 	friendHandler           *v1.FriendHandler
 	userHandler             *v1.UserHandler
 	authMiddleware          *middleware.AuthMiddleware
+	healthHandler           *v1.HealthHandler
 }
 
 func NewServer(authAuthHandler *v1.AuthHandler,
@@ -25,6 +26,7 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 	friendHandler *v1.FriendHandler,
 	userHandler *v1.UserHandler,
 	authMiddleware *middleware.AuthMiddleware,
+	healthHandler *v1.HealthHandler,
 ) *Server {
 	return &Server{
 		authAuthHandler:         authAuthHandler,
@@ -32,6 +34,7 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 		friendHandler:           friendHandler,
 		userHandler:             userHandler,
 		authMiddleware:          authMiddleware,
+		healthHandler:           healthHandler,
 	}
 }
 
@@ -44,7 +47,7 @@ func (s *Server) Run() {
 	}
 	fmt.Println("Server running at " + httpServerInstance.Addr)
 
-	v1.MapRoutes(router, s.authAuthHandler, s.invitationFriendHandler, s.friendHandler, s.userHandler, s.authMiddleware)
+	v1.MapRoutes(router, s.authAuthHandler, s.invitationFriendHandler, s.friendHandler, s.userHandler, s.authMiddleware, s.healthHandler)
 	err := httpServerInstance.ListenAndServe()
 	if err != nil {
 		fmt.Println("There is error: " + err.Error())

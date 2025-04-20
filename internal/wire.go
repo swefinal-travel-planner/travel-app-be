@@ -30,6 +30,7 @@ var handlerSet = wire.NewSet(
 	v1.NewInvitationFriendHandler,
 	v1.NewFriendHandler,
 	v1.NewUserHandler,
+	v1.NewHealthHandler,
 )
 
 var serviceSet = wire.NewSet(
