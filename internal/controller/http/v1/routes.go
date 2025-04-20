@@ -13,9 +13,14 @@ func MapRoutes(router *gin.Engine,
 	friendHandler *FriendHandler,
 	userHandler *UserHandler,
 	authMiddleware *middleware.AuthMiddleware,
+	healHandler *HealthHandler,
 ) {
 	v1 := router.Group("/api/v1")
 	{
+		health := v1.Group("/health")
+		{
+			health.GET("", healHandler.Check)
+		}
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)

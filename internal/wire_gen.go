@@ -38,7 +38,8 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	userService := serviceimplement.NewUserService(userRepository)
 	userHandler := v1.NewUserHandler(userService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
-	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware)
+	healthHandler := v1.NewHealthHandler(db, redisClient)
+	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler)
 	apiContainer := controller.NewApiContainer(server)
 	return apiContainer
 }
@@ -51,7 +52,7 @@ var container = wire.NewSet(controller.NewApiContainer)
 var serverSet = wire.NewSet(http.NewServer)
 
 // handler === controller | with service and repository layers to form 3 layers architecture
-var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler)
+var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler)
 
 var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService)
 
