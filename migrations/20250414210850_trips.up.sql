@@ -1,0 +1,21 @@
+CREATE TABLE trips (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   title VARCHAR(255) UNIQUE NOT NULL,
+   city VARCHAR(255) NOT NULL,
+   start_date TIMESTAMP NOT NULL,
+   days INT NOT NULL,
+   budget DECIMAL(10, 2) NOT NULL,
+   num_members INT NOT NULL,
+   vi_location_attributes JSON,
+   vi_food_attributes JSON,
+   vi_special_requirements JSON,
+   vi_medical_conditions JSON,
+   en_location_attributes JSON,
+   en_food_attributes JSON,
+   en_special_requirements JSON,
+   en_medical_conditions JSON,
+   status ENUM('not_started', 'in_progress', 'completed', 'cancel') NOT NULL DEFAULT 'not_started',
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   deleted_at TIMESTAMP NULL DEFAULT NULL
+);
