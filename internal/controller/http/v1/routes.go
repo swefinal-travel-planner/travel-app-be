@@ -12,6 +12,7 @@ func MapRoutes(router *gin.Engine,
 	invitationFriendHandler *InvitationFriendHandler,
 	friendHandler *FriendHandler,
 	userHandler *UserHandler,
+	tripHandler *TripHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) {
 	v1 := router.Group("/api/v1")
@@ -48,6 +49,10 @@ func MapRoutes(router *gin.Engine,
 		user := v1.Group("/users")
 		{
 			user.GET("/", authMiddleware.VerifyAccessToken, userHandler.SearchUser)
+		}
+		trip := v1.Group("/trips")
+		{
+			trip.POST("/ai", authMiddleware.VerifyAccessToken, tripHandler.CreateTripByAI)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

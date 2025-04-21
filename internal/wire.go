@@ -30,6 +30,7 @@ var handlerSet = wire.NewSet(
 	v1.NewInvitationFriendHandler,
 	v1.NewFriendHandler,
 	v1.NewUserHandler,
+	v1.NewTripHandler,
 )
 
 var serviceSet = wire.NewSet(
@@ -37,6 +38,8 @@ var serviceSet = wire.NewSet(
 	serviceimplement.NewInvitationFriendService,
 	serviceimplement.NewFriendService,
 	serviceimplement.NewUserService,
+	serviceimplement.NewTripService,
+	serviceimplement.NewTripItemService,
 )
 
 var repositorySet = wire.NewSet(
@@ -45,6 +48,8 @@ var repositorySet = wire.NewSet(
 	repositoryimplement.NewInvitationFriendRepository,
 	repositoryimplement.NewFriendRepository,
 	repositoryimplement.NewInvitationCooldownRepository,
+	repositoryimplement.NewTripRepository,
+	repositoryimplement.NewTripItemRepository,
 )
 
 var middlewareSet = wire.NewSet(
