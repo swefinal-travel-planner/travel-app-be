@@ -26,11 +26,11 @@ type RefreshTokenRequest struct {
 }
 
 type LoginResponse struct {
-	Email        string `json:"email" binding:"required,email,min=10,max=255"`
-	Name         string `json:"name" binding:"required,min=5,max=255"`
-	UserId       int64  `json:"userId" binding:"required"`
-	AccessToken  string `json:"accessToken" binding:"required"`
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	Email        string `json:"email"`
+	Name         string `json:"name"`
+	UserId       int64  `json:"userId"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type SendOTPRequest struct {

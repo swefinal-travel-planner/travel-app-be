@@ -1,7 +1,7 @@
 package model
 
 type FriendResponse struct {
-	Id       int64   `json:"id" binding:"required"`
-	Username string  `json:"username" binding:"required"`
-	ImageURL *string `json:"imageURL" binding:"required"`
+	Id       int64   `json:"id"`
+	Username string  `json:"username"`
+	ImageURL *string `json:"imageURL"`
 }
