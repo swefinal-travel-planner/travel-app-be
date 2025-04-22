@@ -49,7 +49,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	}
 
 	// Check if users are in cooldown period
-	inCooldown := service.IsInCooldown(ctx, userId, friend.Id)
+	inCooldown, _ := service.IsInCooldown(ctx, userId, friend.Id)
 	if inCooldown {
 		return error_utils.ErrorCode.ADD_FRIEND_IN_COOLDOWN
 	}
@@ -195,36 +195,22 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 	return ""
 }
 
-func (service *InvitationFriendService) IsInCooldown(ctx *gin.Context, userId1, userId2 int64) bool {
+func (service *InvitationFriendService) IsInCooldown(ctx *gin.Context, userId1, userId2 int64) (bool, int64) {
 	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2)
 	if err != nil {
 		// If no cooldown record exists, return false
-		return false
+		return false, 0
 	}
 
 	currentTime := time.Now().UnixMilli()
 	cooldownEndTime := cooldown.StartCooldownMillis + cooldown.CooldownDuration
 
 	// Check if cooldown period has ended
-	if currentTime >= cooldownEndTime {
-		return false
+	if currentTime > cooldownEndTime {
+		return false, 0
 	}
 
-	return true
-}
-
-func (service *InvitationFriendService) GetCooldownRemainingAsSender(ctx *gin.Context, userId1, userId2 int64) int64 {
-	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2)
-	if err != nil || cooldown.UserID1 != userId1 {
-		// If no cooldown record exists, return time < 0, indicating no cooldown
-		return -1
-	}
-
-	currentTime := time.Now().UnixMilli()
-	cooldownEndTime := cooldown.StartCooldownMillis + cooldown.CooldownDuration
-	cooldownRemaining := cooldownEndTime - currentTime
-
-	return cooldownRemaining
+	return true, cooldownEndTime - currentTime
 }
 
 func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string {
