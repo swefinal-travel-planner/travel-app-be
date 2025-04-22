@@ -45,22 +45,22 @@ func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail
 	// if not sent the invitation, check to see if the user is the one who received the invitation or not
 	// if not invited, check to see if the user is rejcted or not (in cooldown table, user must be a sender)
 	// if not match any cases above, user is stranger
-	var status model.FriendStatus
+	var status string
 	var timeRemaining *int64 = nil
 
 	if service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id) {
-		status = model.Friend
+		status = model.FriendStatus.Friend
 	} else if invitationFriend, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id); err == nil {
 		if invitationFriend.SenderID == userId { // user is sender
-			status = model.Sent
+			status = model.FriendStatus.Sent
 		} else if invitationFriend.ReceiverID == userId { // user is receiver
-			status = model.Received
+			status = model.FriendStatus.Received
 		}
 	} else if _, cooldownRemaining := service.invitationFriendService.IsInCoolDownAndGetRemainingTime(ctx, userId, friend.Id); cooldownRemaining > 0 {
-		status = model.Restricted
+		status = model.FriendStatus.Restricted
 		timeRemaining = &cooldownRemaining
 	} else {
-		status = model.Stranger
+		status = model.FriendStatus.Stranger
 	}
 
 	friendResponse := &model.FriendResponse{
