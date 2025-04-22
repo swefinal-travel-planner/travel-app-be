@@ -11,6 +11,6 @@ type InvitationFriendService interface {
 	GetAllRequestedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendRequestedResponse, string)
 	AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) string
 	DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) string
-	IsInCooldown(ctx *gin.Context, userId1, userId2 int64) (bool, int64)
+	IsInCoolDownAndGetRemainingTime(ctx *gin.Context, userId1, userId2 int64) (bool, int64)
 	WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string
 }

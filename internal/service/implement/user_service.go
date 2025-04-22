@@ -56,7 +56,7 @@ func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail
 		} else if invitationFriend.ReceiverID == userId { // user is receiver
 			status = model.Received
 		}
-	} else if _, cooldownRemaining := service.invitationFriendService.IsInCooldown(ctx, userId, friend.Id); cooldownRemaining > 0 {
+	} else if _, cooldownRemaining := service.invitationFriendService.IsInCoolDownAndGetRemainingTime(ctx, userId, friend.Id); cooldownRemaining > 0 {
 		status = model.Restricted
 		timeRemaining = &cooldownRemaining
 	} else {
