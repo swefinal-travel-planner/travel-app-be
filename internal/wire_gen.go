@@ -35,7 +35,7 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	friendService := serviceimplement.NewFriendService(friendRepository, userRepository)
 	friendHandler := v1.NewFriendHandler(friendService)
-	userService := serviceimplement.NewUserService(userRepository)
+	userService := serviceimplement.NewUserService(userRepository, friendRepository, invitationFriendRepository, invitationFriendService)
 	userHandler := v1.NewUserHandler(userService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
 	healthHandler := v1.NewHealthHandler(db, redisClient)

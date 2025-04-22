@@ -1,9 +1,10 @@
 package serviceimplement
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
@@ -47,9 +48,9 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
 	}
 
-	// Check if users are in cooldown period
-	inCooldown := service.IsInCooldown(ctx, userId, friend.Id)
-	if inCooldown {
+	// Check if users are in cooldown period and user are sender
+	cooldownRemaining := service.GetCooldownRemainingAsSender(ctx, userId, friend.Id)
+	if cooldownRemaining > 0 {
 		return error_utils.ErrorCode.ADD_FRIEND_IN_COOLDOWN
 	}
 
@@ -210,6 +211,20 @@ func (service *InvitationFriendService) IsInCooldown(ctx *gin.Context, userId1, 
 	}
 
 	return true
+}
+
+func (service *InvitationFriendService) GetCooldownRemainingAsSender(ctx *gin.Context, userId1, userId2 int64) int64 {
+	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2)
+	if err != nil || cooldown.UserID1 != userId1 {
+		// If no cooldown record exists, return time < 0, indicating no cooldown
+		return -1
+	}
+
+	currentTime := time.Now().UnixMilli()
+	cooldownEndTime := cooldown.StartCooldownMillis + cooldown.CooldownDuration
+	cooldownRemaining := cooldownEndTime - currentTime
+
+	return cooldownRemaining
 }
 
 func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string {

@@ -12,5 +12,6 @@ type InvitationFriendService interface {
 	AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) string
 	DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) string
 	IsInCooldown(ctx *gin.Context, userId1, userId2 int64) bool
+	GetCooldownRemainingAsSender(ctx *gin.Context, userId1, userId2 int64) int64
 	WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string
 }
