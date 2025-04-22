@@ -48,9 +48,9 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
 	}
 
-	// Check if users are in cooldown period and user are sender
-	cooldownRemaining := service.GetCooldownRemainingAsSender(ctx, userId, friend.Id)
-	if cooldownRemaining > 0 {
+	// Check if users are in cooldown period
+	inCooldown := service.IsInCooldown(ctx, userId, friend.Id)
+	if inCooldown {
 		return error_utils.ErrorCode.ADD_FRIEND_IN_COOLDOWN
 	}
 
