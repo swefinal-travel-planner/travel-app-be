@@ -1,9 +1,10 @@
 package serviceimplement
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
@@ -48,7 +49,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	}
 
 	// Check if users are in cooldown period
-	inCooldown := service.IsInCooldown(ctx, userId, friend.Id)
+	inCooldown, _ := service.IsInCoolDownAndGetRemainingTime(ctx, userId, friend.Id)
 	if inCooldown {
 		return error_utils.ErrorCode.ADD_FRIEND_IN_COOLDOWN
 	}
@@ -194,22 +195,22 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 	return ""
 }
 
-func (service *InvitationFriendService) IsInCooldown(ctx *gin.Context, userId1, userId2 int64) bool {
+func (service *InvitationFriendService) IsInCoolDownAndGetRemainingTime(ctx *gin.Context, userId1, userId2 int64) (bool, int64) {
 	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2)
 	if err != nil {
 		// If no cooldown record exists, return false
-		return false
+		return false, 0
 	}
 
 	currentTime := time.Now().UnixMilli()
 	cooldownEndTime := cooldown.StartCooldownMillis + cooldown.CooldownDuration
 
 	// Check if cooldown period has ended
-	if currentTime >= cooldownEndTime {
-		return false
+	if currentTime > cooldownEndTime {
+		return false, 0
 	}
 
-	return true
+	return true, cooldownEndTime - currentTime
 }
 
 func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string {
