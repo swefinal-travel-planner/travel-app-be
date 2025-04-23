@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"

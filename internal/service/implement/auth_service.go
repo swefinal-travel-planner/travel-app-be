@@ -408,6 +408,19 @@ func (service *AuthService) RefreshToken(ctx *gin.Context, refreshTokenRequest m
 	}
 	userId := int64(payload["id"].(float64))
 
+	// Check if the refresh token exists in the database
+	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+		}
+		log.Error("AuthService.RefreshToken Error when get existing refresh token: " + err.Error())
+		return "", error_utils.ErrorCode.DB_DOWN
+	}
+	if existingRefreshToken.RefreshToken != refreshTokenRequest.RefreshToken {
+		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+	}
+
 	// Generate a new access token
 	newAccessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
 		"id": userId,
