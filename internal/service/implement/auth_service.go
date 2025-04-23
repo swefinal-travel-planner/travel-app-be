@@ -396,17 +396,28 @@ func (service *AuthService) RefreshToken(ctx *gin.Context, refreshTokenRequest m
 
 	refreshClaims, errRf := jwt.VerifyToken(refreshTokenRequest.RefreshToken, jwtSecret)
 	if errRf != nil {
-		log.Error("AuthService.RefreshToken Error when verify JWT secret: " + errRf.Error())
 		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
 	}
 
 	// Extract user Id from refresh token claims
 	payload, ok := refreshClaims.Payload.(map[string]interface{})
 	if !ok {
-		log.Error("AuthService.RefreshToken Error when extracting claims from request token")
 		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
 	}
 	userId := int64(payload["id"].(float64))
+
+	// Check if the refresh token exists in the database
+	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+		}
+		log.Error("AuthService.RefreshToken Error when get existing refresh token: " + err.Error())
+		return "", error_utils.ErrorCode.DB_DOWN
+	}
+	if existingRefreshToken.RefreshToken != refreshTokenRequest.RefreshToken {
+		return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID
+	}
 
 	// Generate a new access token
 	newAccessToken, err := jwt.GenerateToken(constants.ACCESS_TOKEN_DURATION, jwtSecret, map[string]interface{}{
