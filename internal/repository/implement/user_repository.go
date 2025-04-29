@@ -17,52 +17,56 @@ func NewUserRepository(db database.Db) repository.UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (repo *UserRepository) CreateCommand(ctx context.Context, user *entity.User) error {
+func (repo *UserRepository) CreateCommand(ctx context.Context, user *entity.User, tx *sqlx.Tx) error {
 	// Insert the new user
 	insertQuery := `INSERT INTO users(email, name, phone_number, id_token, photo_url, password) VALUES (:email, :name, :phone_number, :id_token, :photo_url, :password)`
-	_, err := repo.db.NamedExecContext(ctx, insertQuery, user)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, insertQuery, user)
 		return err
 	}
-	return nil
+	_, err := repo.db.NamedExecContext(ctx, insertQuery, user)
+	return err
 }
 
-func (repo *UserRepository) GetOneByEmailQuery(ctx context.Context, email string) (*entity.User, error) {
+func (repo *UserRepository) GetOneByEmailQuery(ctx context.Context, email string, tx *sqlx.Tx) (*entity.User, error) {
 	var customer entity.User
 	query := "SELECT * FROM users WHERE email = ? AND users.deleted_at IS NULL"
-	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&customer)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.QueryRowxContext(ctx, query, email).StructScan(&customer)
+		return &customer, err
 	}
-	return &customer, nil
+	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&customer)
+	return &customer, err
 }
 
-func (repo *UserRepository) GetIdByEmailQuery(ctx context.Context, email string) (int64, error) {
+func (repo *UserRepository) GetIdByEmailQuery(ctx context.Context, email string, tx *sqlx.Tx) (int64, error) {
 	var user entity.User
 	query := "SELECT * FROM users WHERE email = ? AND users.deleted_at IS NULL"
-	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&user)
-	if err != nil {
-		return 0, err
+	if tx != nil {
+		err := tx.QueryRowxContext(ctx, query, email).StructScan(&user)
+		return user.Id, err
 	}
-	return user.Id, nil
+	err := repo.db.QueryRowxContext(ctx, query, email).StructScan(&user)
+	return user.Id, err
 }
 
-func (repo *UserRepository) UpdatePasswordByIdQuery(ctx context.Context, id int64, password string) error {
-	query := "UPDATE users SET password = ? WHERE id = ? AND users.deleted_at IS NULL"
-	_, err := repo.db.ExecContext(ctx, query, password, id)
-	if err != nil {
+func (repo *UserRepository) UpdatePasswordByIdQuery(ctx context.Context, id int64, password string, tx *sqlx.Tx) error {
+	query := "UPDATE users SET password = ? WHERE id = ?"
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, password, id)
 		return err
 	}
-
-	return nil
+	_, err := repo.db.ExecContext(ctx, query, password, id)
+	return err
 }
 
-func (repo *UserRepository) GetOneByIDQuery(ctx context.Context, id int64) (*entity.User, error) {
+func (repo *UserRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.User, error) {
 	var customer entity.User
 	query := "SELECT * FROM users WHERE id = ? AND users.deleted_at IS NULL"
-	err := repo.db.QueryRowxContext(ctx, query, id).StructScan(&customer)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.QueryRowxContext(ctx, query, id).StructScan(&customer)
+		return &customer, err
 	}
-	return &customer, nil
+	err := repo.db.QueryRowxContext(ctx, query, id).StructScan(&customer)
+	return &customer, err
 }

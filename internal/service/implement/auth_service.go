@@ -68,7 +68,7 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 	}
 
 	// Register if pass OTP validation
-	existsCustomer, err := service.userRepository.GetOneByEmailQuery(ctx, registerRequest.Email)
+	existsCustomer, err := service.userRepository.GetOneByEmailQuery(ctx, registerRequest.Email, nil)
 	if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
 		log.Error("AuthService.Register DB is down: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
@@ -90,7 +90,7 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 		Password:    string(hashPW),
 	}
 
-	err = service.userRepository.CreateCommand(ctx, user)
+	err = service.userRepository.CreateCommand(ctx, user, nil)
 	if err != nil {
 		log.Error("AuthService.Register Error when create user: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
@@ -122,7 +122,7 @@ func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int6
 	}
 
 	// Check if a refresh token already exists
-	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
+	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId, nil)
 	if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
 		log.Error("AuthService.generateAndStoreTokens Error when get existing refresh token: " + err.Error())
 		return "", "", error_utils.ErrorCode.DB_DOWN
@@ -135,10 +135,10 @@ func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int6
 
 	if existingRefreshToken == nil {
 		// Create a new refresh token
-		err = service.authenticationRepository.CreateCommand(ctx, authData)
+		err = service.authenticationRepository.CreateCommand(ctx, authData, nil)
 	} else {
 		// Update the existing refresh token
-		err = service.authenticationRepository.UpdateCommand(ctx, authData)
+		err = service.authenticationRepository.UpdateCommand(ctx, authData, nil)
 	}
 
 	if err != nil {
@@ -150,7 +150,7 @@ func (service *AuthService) generateAndStoreTokens(ctx *gin.Context, userId int6
 }
 
 func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequest) (*model.LoginResponse, string) {
-	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
+	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return nil, error_utils.ErrorCode.LOGIN_EMAIL_NOT_FOUND
@@ -179,7 +179,7 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 }
 
 func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.GoogleLoginRequest) (*model.LoginResponse, string) {
-	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
+	existsUser, err := service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow { // email not founded => create new user with googleID
 			newUser := &entity.User{
@@ -189,12 +189,12 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 				Password:    "",
 				IDToken:     loginRequest.IDToken,
 			}
-			err = service.userRepository.CreateCommand(ctx, newUser)
+			err = service.userRepository.CreateCommand(ctx, newUser, nil)
 			if err != nil {
 				log.Error("AuthService.GoogleLogin Error when create user: " + err.Error())
 				return nil, error_utils.ErrorCode.DB_DOWN
 			}
-			existsUser, err = service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email)
+			existsUser, err = service.userRepository.GetOneByEmailQuery(ctx, loginRequest.Email, nil)
 			if err != nil {
 				log.Error("AuthService.GoogleLogin Error when get existing user: " + err.Error())
 				return nil, error_utils.ErrorCode.DB_DOWN
@@ -227,7 +227,7 @@ func (service *AuthService) GoogleLogin(ctx *gin.Context, loginRequest model.Goo
 
 func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) string {
 	// check if email exists
-	_, err := service.userRepository.GetOneByEmailQuery(ctx, sendOTPRequest.Email)
+	_, err := service.userRepository.GetOneByEmailQuery(ctx, sendOTPRequest.Email, nil)
 	if err == nil {
 		return error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
 	}
@@ -283,7 +283,7 @@ func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sen
 	otp := mail.GenerateOTP(6)
 
 	// store otp in redis
-	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email)
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, sendOTPRequest.Email, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
@@ -312,7 +312,7 @@ func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sen
 }
 
 func (service *AuthService) VerifyOTPForResetPassword(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) string {
-	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email)
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, verifyOTPRequest.Email, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
@@ -341,7 +341,7 @@ func (service *AuthService) VerifyOTPForResetPassword(ctx *gin.Context, verifyOT
 }
 
 func (service *AuthService) SetPassword(ctx *gin.Context, setPasswordRequest model.SetPasswordRequest) string {
-	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, setPasswordRequest.Email)
+	customerId, err := service.userRepository.GetIdByEmailQuery(ctx, setPasswordRequest.Email, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.RESET_PASSWORD_EMAIL_NOT_FOUND
@@ -375,7 +375,7 @@ func (service *AuthService) SetPassword(ctx *gin.Context, setPasswordRequest mod
 			return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 		}
 
-		err = service.userRepository.UpdatePasswordByIdQuery(ctx, customerId, hashedPW)
+		err = service.userRepository.UpdatePasswordByIdQuery(ctx, customerId, hashedPW, nil)
 		if err != nil {
 			log.Error("AuthService.SetPassword Error when update password: " + err.Error())
 			return error_utils.ErrorCode.DB_DOWN
@@ -409,7 +409,7 @@ func (service *AuthService) RefreshToken(ctx *gin.Context, refreshTokenRequest m
 	userId := int64(payload["id"].(float64))
 
 	// Check if the refresh token exists in the database
-	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId)
+	existingRefreshToken, err := service.authenticationRepository.GetOneByUserIdQuery(ctx, userId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return "", error_utils.ErrorCode.REFRESH_TOKEN_INVALID

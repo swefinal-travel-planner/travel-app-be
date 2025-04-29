@@ -36,7 +36,7 @@ func NewInvitationFriendService(
 }
 
 func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) string {
-	friend, err := service.userRepository.GetOneByEmailQuery(ctx, invitation.ReceiverEmail)
+	friend, err := service.userRepository.GetOneByEmailQuery(ctx, invitation.ReceiverEmail, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
@@ -54,12 +54,12 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return error_utils.ErrorCode.ADD_FRIEND_IN_COOLDOWN
 	}
 
-	_, err = service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id)
+	_, err = service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id, nil)
 	if err == nil {
 		return error_utils.ErrorCode.ADD_FRIEND_INVITATION_ALREADY_EXISTS
 	}
 
-	isFriend := service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id)
+	isFriend := service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id, nil)
 	if isFriend {
 		return error_utils.ErrorCode.ADD_FRIEND_ALREADY_FRIEND
 	}
@@ -67,7 +67,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
 		SenderID:   userId,
 		ReceiverID: friend.Id,
-	})
+	}, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.AddFriend CreateCommand error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
@@ -77,7 +77,7 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 
 // PROBLEM: N+1
 func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendReceivedResponse, string) {
-	invitations, err := service.invitationFriendRepository.GetByReceiverIdQuery(ctx, userId)
+	invitations, err := service.invitationFriendRepository.GetByReceiverIdQuery(ctx, userId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return make([]model.InvitationFriendReceivedResponse, 0), ""
@@ -87,7 +87,7 @@ func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Conte
 	}
 	var invitationResponses []model.InvitationFriendReceivedResponse
 	for _, invitation := range invitations {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID, nil)
 		if err != nil {
 			log.Error("InvitationFriendService.GetAllReceivedInvitations GetOneByIDQuery error: " + err.Error())
 			return nil, error_utils.ErrorCode.DB_DOWN
@@ -103,7 +103,7 @@ func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Conte
 
 // PROBLEM: N+1
 func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendRequestedResponse, string) {
-	invitations, err := service.invitationFriendRepository.GetBySenderIdQuery(ctx, userId)
+	invitations, err := service.invitationFriendRepository.GetBySenderIdQuery(ctx, userId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return make([]model.InvitationFriendRequestedResponse, 0), ""
@@ -113,7 +113,7 @@ func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Cont
 	}
 	var invitationResponses []model.InvitationFriendRequestedResponse
 	for _, invitation := range invitations {
-		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID)
+		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID, nil)
 		if err != nil {
 			log.Error("InvitationFriendService.GetAllRequestedInvitations GetOneByIDQuery error: " + err.Error())
 			return nil, error_utils.ErrorCode.DB_DOWN
@@ -128,7 +128,7 @@ func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Cont
 }
 
 func (service *InvitationFriendService) validateInvitation(ctx *gin.Context, invitationId int64, userId int64) (*entity.InvitationFriend, string) {
-	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId)
+	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return nil, error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
@@ -153,12 +153,12 @@ func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invit
 	err := service.friendRepository.CreateCommand(ctx, &entity.Friend{
 		UserID1: invitation.ReceiverID,
 		UserID2: invitation.SenderID,
-	})
+	}, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.AcceptInvitation create friend error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
-	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.AcceptInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
@@ -180,14 +180,14 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 		UserID2:             invitation.ReceiverID,
 		StartCooldownMillis: currentTime,
 		CooldownDuration:    constants.InvitationCooldownDuration,
-	})
+	}, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.DenyInvitation create cooldown error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
 	// Delete the invitation
-	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.DenyInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
@@ -196,7 +196,7 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 }
 
 func (service *InvitationFriendService) IsInCoolDownAndGetRemainingTime(ctx *gin.Context, userId1, userId2 int64) (bool, int64) {
-	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2)
+	cooldown, err := service.invitationCooldownRepository.GetLatestCooldownBetweenUsersQuery(ctx, userId1, userId2, nil)
 	if err != nil {
 		// If no cooldown record exists, return false
 		return false, 0
@@ -215,7 +215,7 @@ func (service *InvitationFriendService) IsInCoolDownAndGetRemainingTime(ctx *gin
 
 func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, invitationId int64, userId int64) string {
 	// Get the invitation
-	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId)
+	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
@@ -230,7 +230,7 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 	}
 
 	// Delete the invitation
-	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId)
+	err = service.invitationFriendRepository.DeleteByIDCommand(ctx, invitationId, nil)
 	if err != nil {
 		log.Error("InvitationFriendService.WithdrawInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN

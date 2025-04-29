@@ -17,17 +17,18 @@ func NewFriendRepository(db database.Db) repository.FriendRepository {
 	return &FriendRepository{db: db}
 }
 
-func (repo *FriendRepository) CreateCommand(ctx context.Context, friend *entity.Friend) error {
+func (repo *FriendRepository) CreateCommand(ctx context.Context, friend *entity.Friend, tx *sqlx.Tx) error {
 	// Insert new friend
 	insertQuery := `INSERT INTO friends(user_id_1, user_id_2) VALUES (:user_id_1, :user_id_2)`
-	_, err := repo.db.NamedExecContext(ctx, insertQuery, friend)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, insertQuery, friend)
 		return err
 	}
-	return nil
+	_, err := repo.db.NamedExecContext(ctx, insertQuery, friend)
+	return err
 }
 
-func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64) ([]*entity.User, error) {
+func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.User, error) {
 	var users []*entity.User
 	query := `
 		SELECT u.id, u.name, u.photo_url 
@@ -42,37 +43,40 @@ func (repo *FriendRepository) GetByUserIdQuery(ctx context.Context, userId int64
 		JOIN users u ON f.user_id_1 = u.id
 		WHERE f.user_id_2 = ?;
 	`
-	err := repo.db.SelectContext(ctx, &users, query, userId, userId)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.SelectContext(ctx, &users, query, userId, userId)
+		return users, err
 	}
-	return users, nil
+	err := repo.db.SelectContext(ctx, &users, query, userId, userId)
+	return users, err
 }
 
-func (repo *FriendRepository) DeleteByUserId1AndUserId2Command(ctx context.Context, userId1 int64, userId2 int64) error {
+func (repo *FriendRepository) DeleteByUserId1AndUserId2Command(ctx context.Context, userId1 int64, userId2 int64, tx *sqlx.Tx) error {
 	// Delete friend by userId
 	deleteQuery := `
 		DELETE FROM friends
 		WHERE (user_id_1 = ? AND user_id_2 = ?)
 		   OR (user_id_1 = ? AND user_id_2 = ?)
 	`
-	_, err := repo.db.ExecContext(ctx, deleteQuery, userId1, userId2, userId2, userId1)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, deleteQuery, userId1, userId2, userId2, userId1)
 		return err
 	}
-	return nil
+	_, err := repo.db.ExecContext(ctx, deleteQuery, userId1, userId2, userId2, userId1)
+	return err
 }
 
-func (repo *FriendRepository) ExistsByUserId1AndUserId2Query(ctx context.Context, userId1 int64, userId2 int64) bool {
+func (repo *FriendRepository) ExistsByUserId1AndUserId2Query(ctx context.Context, userId1 int64, userId2 int64, tx *sqlx.Tx) bool {
 	var count int
 	query := `
 		SELECT COUNT(*) FROM friends 
 		WHERE (user_id_1 = ? AND user_id_2 = ?) 
 		   OR (user_id_1 = ? AND user_id_2 = ?)
 	`
-	err := repo.db.GetContext(ctx, &count, query, userId1, userId2, userId2, userId1)
-	if err != nil {
-		return false
+	if tx != nil {
+		err := tx.GetContext(ctx, &count, query, userId1, userId2, userId2, userId1)
+		return err == nil && count > 0
 	}
-	return count > 0
+	err := repo.db.GetContext(ctx, &count, query, userId1, userId2, userId2, userId1)
+	return err == nil && count > 0
 }
