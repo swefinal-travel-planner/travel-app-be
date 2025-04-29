@@ -31,7 +31,7 @@ func NewUserService(
 }
 
 func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail string) (*model.FriendResponse, string) {
-	friend, err := service.userRepository.GetOneByEmailQuery(ctx, userEmail)
+	friend, err := service.userRepository.GetOneByEmailQuery(ctx, userEmail, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return nil, ""
@@ -48,9 +48,9 @@ func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail
 	var status string
 	var timeRemaining *int64 = nil
 
-	if service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id) {
+	if service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id, nil) {
 		status = model.FriendStatus.Friend
-	} else if invitationFriend, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id); err == nil {
+	} else if invitationFriend, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id, nil); err == nil {
 		if invitationFriend.SenderID == userId { // user is sender
 			status = model.FriendStatus.Sent
 		} else if invitationFriend.ReceiverID == userId { // user is receiver
