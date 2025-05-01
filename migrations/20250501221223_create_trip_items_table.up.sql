@@ -4,7 +4,7 @@ CREATE TABLE trip_items (
    place_id VARCHAR(255) UNIQUE NOT NULL,
    trip_day INT NOT NULL,
    order_in_day INT NOT NULL,
-   tag ENUM('food_location', 'travel_location') NOT NULL,
+   time_in_date ENUM('morning', 'afternoon', 'evening', 'night') NOT NULL,
    CONSTRAINT fk_trip_trip_item FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
