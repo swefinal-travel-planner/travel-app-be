@@ -5,6 +5,6 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 )
 
-type UserService interface {
-	SearchUser(ctx *gin.Context, userId int64, userEmail string) (*model.FriendResponse, string)
+type NotificationService interface {
+	SendTestNotification(ctx *gin.Context, testNotificationRequest model.TestNotification) string
 }

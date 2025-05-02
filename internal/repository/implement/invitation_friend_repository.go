@@ -17,37 +17,40 @@ func NewInvitationFriendRepository(db database.Db) repository.InvitationFriendRe
 	return &InvitationFriendRepository{db: db}
 }
 
-func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invitation *entity.InvitationFriend) error {
+func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invitation *entity.InvitationFriend, tx *sqlx.Tx) error {
 	// Insert the new invitation
 	insertQuery := `INSERT INTO invitation_friends(sender_id, receiver_id) VALUES (:sender_id, :receiver_id)`
-	_, err := repo.db.NamedExecContext(ctx, insertQuery, invitation)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, insertQuery, invitation)
 		return err
 	}
-	return nil
+	_, err := repo.db.NamedExecContext(ctx, insertQuery, invitation)
+	return err
 }
 
-func (repo *InvitationFriendRepository) GetByReceiverIdQuery(ctx context.Context, receiverId int64) ([]*entity.InvitationFriend, error) {
+func (repo *InvitationFriendRepository) GetByReceiverIdQuery(ctx context.Context, receiverId int64, tx *sqlx.Tx) ([]*entity.InvitationFriend, error) {
 	var invitationFriend []*entity.InvitationFriend
 	query := "SELECT * FROM invitation_friends WHERE receiver_id = ?"
-	err := repo.db.SelectContext(ctx, &invitationFriend, query, receiverId)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.SelectContext(ctx, &invitationFriend, query, receiverId)
+		return invitationFriend, err
 	}
-	return invitationFriend, nil
+	err := repo.db.SelectContext(ctx, &invitationFriend, query, receiverId)
+	return invitationFriend, err
 }
 
-func (repo *InvitationFriendRepository) GetBySenderIdQuery(ctx context.Context, senderId int64) ([]*entity.InvitationFriend, error) {
+func (repo *InvitationFriendRepository) GetBySenderIdQuery(ctx context.Context, senderId int64, tx *sqlx.Tx) ([]*entity.InvitationFriend, error) {
 	var invitationFriend []*entity.InvitationFriend
 	query := "SELECT * FROM invitation_friends WHERE sender_id = ?"
-	err := repo.db.SelectContext(ctx, &invitationFriend, query, senderId)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.SelectContext(ctx, &invitationFriend, query, senderId)
+		return invitationFriend, err
 	}
-	return invitationFriend, nil
+	err := repo.db.SelectContext(ctx, &invitationFriend, query, senderId)
+	return invitationFriend, err
 }
 
-func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx context.Context, senderId, receiverId int64) (*entity.InvitationFriend, error) {
+func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx context.Context, senderId, receiverId int64, tx *sqlx.Tx) (*entity.InvitationFriend, error) {
 	var invitationFriend entity.InvitationFriend
 	query := `
 		SELECT * 
@@ -55,28 +58,31 @@ func (repo *InvitationFriendRepository) GetBySenderAndReceiverIdQuery(ctx contex
 		WHERE 
 			((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
 	`
-	err := repo.db.GetContext(ctx, &invitationFriend, query, senderId, receiverId, receiverId, senderId)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.GetContext(ctx, &invitationFriend, query, senderId, receiverId, receiverId, senderId)
+		return &invitationFriend, err
 	}
-	return &invitationFriend, nil
+	err := repo.db.GetContext(ctx, &invitationFriend, query, senderId, receiverId, receiverId, senderId)
+	return &invitationFriend, err
 }
 
-func (repo *InvitationFriendRepository) GetOneByIDQuery(ctx context.Context, id int64) (*entity.InvitationFriend, error) {
+func (repo *InvitationFriendRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.InvitationFriend, error) {
 	var invitationFriend entity.InvitationFriend
 	query := "SELECT * FROM invitation_friends WHERE id = ?"
-	err := repo.db.GetContext(ctx, &invitationFriend, query, id)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.GetContext(ctx, &invitationFriend, query, id)
+		return &invitationFriend, err
 	}
-	return &invitationFriend, nil
+	err := repo.db.GetContext(ctx, &invitationFriend, query, id)
+	return &invitationFriend, err
 }
 
-func (repo *InvitationFriendRepository) DeleteByIDCommand(ctx context.Context, id int64) error {
+func (repo *InvitationFriendRepository) DeleteByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error {
 	query := "DELETE FROM invitation_friends WHERE id = ?"
-	_, err := repo.db.ExecContext(ctx, query, id)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, id)
 		return err
 	}
-	return nil
+	_, err := repo.db.ExecContext(ctx, query, id)
+	return err
 }

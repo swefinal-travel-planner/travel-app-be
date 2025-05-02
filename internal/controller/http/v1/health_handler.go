@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/bean"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
+	_ "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 )
 
 type HealthHandler struct {
@@ -20,6 +21,14 @@ func NewHealthHandler(db database.Db, redisClient bean.RedisClient) *HealthHandl
 	}
 }
 
+// @Summary Health Check
+// @Description Checks the health of the application by verifying database and Redis connections
+// @Tags Health
+// @Accept json
+// @Produce json
+// @Router /health [get]
+// @Success 200 {object} map[string]string "Healthy status"
+// @Failure 503 {object} map[string]string "Unhealthy status with error details"
 func (h *HealthHandler) Check(c *gin.Context) {
 	// Check database connection
 	if err := h.db.DB.Ping(); err != nil {

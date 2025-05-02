@@ -25,7 +25,7 @@ func NewFriendService(
 }
 
 func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, string) {
-	friends, err := service.friendRepository.GetByUserIdQuery(ctx, userId)
+	friends, err := service.friendRepository.GetByUserIdQuery(ctx, userId, nil)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return nil, ""
@@ -46,13 +46,13 @@ func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]m
 
 func (service *FriendService) RemoveFriend(ctx *gin.Context, userId int64, friendId int64) string {
 	// Check if the user is a friend
-	isFriend := service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friendId)
+	isFriend := service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friendId, nil)
 	if !isFriend {
 		return error_utils.ErrorCode.REMOVE_FRIEND_NOT_FOUND
 	}
 
 	// Only delete the friend if the user is a friend
-	err := service.friendRepository.DeleteByUserId1AndUserId2Command(ctx, userId, friendId)
+	err := service.friendRepository.DeleteByUserId1AndUserId2Command(ctx, userId, friendId, nil)
 	if err != nil {
 		log.Error("FriendService.RemoveFriend error when remove friend:", err.Error())
 		return error_utils.ErrorCode.DB_DOWN

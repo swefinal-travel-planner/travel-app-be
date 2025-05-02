@@ -1,8 +1,10 @@
 package v1
 
 import (
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
+
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 
 	"github.com/gin-gonic/gin"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
@@ -30,13 +32,15 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *UserHandler) SearchUser(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
 	userEmail := ctx.Query("userEmail")
 	if userEmail == "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "userEmail")
 		ctx.JSON(statusCode, errResponse)
 		return
 	}
-	user, errCode := handler.userService.SearchUser(ctx, userEmail)
+	user, errCode := handler.userService.SearchUser(ctx, userId, userEmail)
 	if errCode != "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
 		ctx.JSON(statusCode, errResponse)

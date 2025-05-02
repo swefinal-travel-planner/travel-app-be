@@ -35,11 +35,13 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	friendService := serviceimplement.NewFriendService(friendRepository, userRepository)
 	friendHandler := v1.NewFriendHandler(friendService)
-	userService := serviceimplement.NewUserService(userRepository)
+	userService := serviceimplement.NewUserService(userRepository, friendRepository, invitationFriendRepository, invitationFriendService)
 	userHandler := v1.NewUserHandler(userService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
 	healthHandler := v1.NewHealthHandler(db, redisClient)
-	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler)
+	notificationService := serviceimplement.NewExpoNotificationService()
+	notificationHandler := v1.NewNotificationHandler(notificationService)
+	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler)
 	apiContainer := controller.NewApiContainer(server)
 	return apiContainer
 }
@@ -52,9 +54,9 @@ var container = wire.NewSet(controller.NewApiContainer)
 var serverSet = wire.NewSet(http.NewServer)
 
 // handler === controller | with service and repository layers to form 3 layers architecture
-var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler)
+var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler, v1.NewNotificationHandler)
 
-var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService)
+var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService, serviceimplement.NewExpoNotificationService)
 
 var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository)
 

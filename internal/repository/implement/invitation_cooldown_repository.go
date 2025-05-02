@@ -17,7 +17,7 @@ func NewInvitationCooldownRepository(db database.Db) repository.InvitationCooldo
 	return &InvitationCooldownRepository{db: db}
 }
 
-func (repo *InvitationCooldownRepository) CreateCommand(ctx context.Context, cooldown *entity.InvitationCooldown) error {
+func (repo *InvitationCooldownRepository) CreateCommand(ctx context.Context, cooldown *entity.InvitationCooldown, tx *sqlx.Tx) error {
 	insertQuery := `
 		INSERT INTO invitation_cooldowns(
 			user_id_1, 
@@ -30,14 +30,15 @@ func (repo *InvitationCooldownRepository) CreateCommand(ctx context.Context, coo
 			:start_cooldown_millis, 
 			:cooldown_duration
 		)`
-	_, err := repo.db.NamedExecContext(ctx, insertQuery, cooldown)
-	if err != nil {
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, insertQuery, cooldown)
 		return err
 	}
-	return nil
+	_, err := repo.db.NamedExecContext(ctx, insertQuery, cooldown)
+	return err
 }
 
-func (repo *InvitationCooldownRepository) GetLatestCooldownBetweenUsersQuery(ctx context.Context, userID1, userID2 int64) (*entity.InvitationCooldown, error) {
+func (repo *InvitationCooldownRepository) GetLatestCooldownBetweenUsersQuery(ctx context.Context, userID1, userID2 int64, tx *sqlx.Tx) (*entity.InvitationCooldown, error) {
 	var cooldown entity.InvitationCooldown
 	query := `
 		SELECT * 
@@ -48,9 +49,10 @@ func (repo *InvitationCooldownRepository) GetLatestCooldownBetweenUsersQuery(ctx
 		ORDER BY created_at DESC
 		LIMIT 1
 	`
-	err := repo.db.GetContext(ctx, &cooldown, query, userID1, userID2, userID2, userID1)
-	if err != nil {
-		return nil, err
+	if tx != nil {
+		err := tx.GetContext(ctx, &cooldown, query, userID1, userID2, userID2, userID1)
+		return &cooldown, err
 	}
-	return &cooldown, nil
+	err := repo.db.GetContext(ctx, &cooldown, query, userID1, userID2, userID2, userID1)
+	return &cooldown, err
 }
