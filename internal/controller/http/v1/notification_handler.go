@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	_ "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"

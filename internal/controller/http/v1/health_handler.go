@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/bean"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
+	_ "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 )
 
 type HealthHandler struct {
