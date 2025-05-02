@@ -22,6 +22,10 @@ func MapRoutes(router *gin.Engine,
 		{
 			health.GET("", healHandler.Check)
 		}
+		notification := v1.Group("/notifications")
+		{
+			notification.POST("/test", notificationHandler.TestNotification)
+		}
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)

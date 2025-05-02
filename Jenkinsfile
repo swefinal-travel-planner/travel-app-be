@@ -9,6 +9,7 @@ pipeline {
         DB_USERNAME = credentials('DB_USERNAME')
         DB_PASSWORD = credentials('DB_PASSWORD') 
         DB_ROOT_PASSWORD = credentials('DB_ROOT_PASSWORD')
+        NOTIFICATION_ACCESS_TOKEN = credentials('NOTIFICATION_ACCESS_TOKEN')
 
         MAIL_HOST = credentials('MAIL_HOST')
         MAIL_PORT = credentials('MAIL_PORT')
@@ -96,6 +97,7 @@ pipeline {
                             -e REDIS_PASSWORD="${env.REDIS_PASSWORD}" \\
                             -e JWT_SECRET="${env.JWT_SECRET}" \\
                             -e ALLOWED_ORIGINS="${env.ALLOWED_ORIGINS}" \\
+                            -e NOTIFICATION_ACCESS_TOKEN="${env.NOTIFICATION_ACCESS_TOKEN}" \\
                             travel-be:${env.DOCKER_TAG}
                     """
                 }
