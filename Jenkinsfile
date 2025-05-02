@@ -1,8 +1,9 @@
 pipeline {
     agent any
     environment {
-        PORT =  credentials('BACKEND_PORT')
-
+        PORT = credentials('BACKEND_PORT')
+        EXPOSE_PORT = credentials('BACKEND_PORT')
+        
         DB_HOST = credentials('DB_HOST')
         DB_PORT = credentials('DB_PORT')
         DB_DATABASE = credentials('DB_DATABASE')
@@ -27,6 +28,18 @@ pipeline {
     }
 
     stages {
+        stage('Set Expose Port') {
+            steps {
+                script {
+                    // Set EXPOSE_PORT to 9091 if the branch is develop
+                    if (env.BRANCH_NAME == 'develop') {
+                        env.EXPOSE_PORT = '9091'
+                        echo "EXPOSE_PORT set to 9091 for develop branch"
+                    }
+                }
+            }
+        }
+
         stage('Remove Old Docker Image') {
             steps {
                 script {
@@ -57,7 +70,7 @@ pipeline {
                         docker run -d \
                             --restart unless-stopped \
                             --name travel-be-container \
-                            -p ${PORT}:${PORT} \
+                            -p ${EXPOSE_PORT}:${PORT} \
                             -e PORT="$PORT" \
                             -e DB_HOST="$DB_HOST" \
                             -e DB_PORT="$DB_PORT" \

@@ -14,6 +14,7 @@ func MapRoutes(router *gin.Engine,
 	userHandler *UserHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	healHandler *HealthHandler,
+	notificationHandler *NotificationHandler,
 ) {
 	v1 := router.Group("/api/v1")
 	{

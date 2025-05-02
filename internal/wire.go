@@ -31,6 +31,7 @@ var handlerSet = wire.NewSet(
 	v1.NewFriendHandler,
 	v1.NewUserHandler,
 	v1.NewHealthHandler,
+	v1.NewNotificationHandler,
 )
 
 var serviceSet = wire.NewSet(
@@ -38,6 +39,7 @@ var serviceSet = wire.NewSet(
 	serviceimplement.NewInvitationFriendService,
 	serviceimplement.NewFriendService,
 	serviceimplement.NewUserService,
+	serviceimplement.NewExpoNotificationService,
 )
 
 var repositorySet = wire.NewSet(
