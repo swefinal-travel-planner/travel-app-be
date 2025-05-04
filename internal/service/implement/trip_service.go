@@ -84,7 +84,7 @@ func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.TripR
 }
 
 func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) ([]*model.TripResponse, string) {
-	trips, err := service.tripRepository.GetAllTripsWithUserRoleByUserIdQuery(ctx, userId, nil)
+	trips, err := service.tripRepository.GetAllWithUserRoleByUserIdQuery(ctx, userId, nil)
 	if err != nil {
 		log.Error("TripService.GetAllTripsByUserID Error: " + err.Error())
 		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
@@ -114,4 +114,46 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 	}
 
 	return tripResponses, ""
+}
+
+func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId int64) (*model.TripResponse, string) {
+	// First check if user is a member of the trip
+	isMember, err := service.tripMemberRepository.IsUserInTripQuery(ctx, tripId, userId, nil)
+	if err != nil {
+		log.Error("TripService.GetTripByID - Check membership Error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isMember {
+		return nil, error_utils.ErrorCode.FORBIDDEN
+	}
+
+	trip, err := service.tripRepository.GetOneWithUserRoleByIDQuery(ctx, tripId, userId, nil)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, error_utils.ErrorCode.FORBIDDEN
+		}
+		log.Error("TripService.GetTripByID Error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	tripResponse := &model.TripResponse{
+		Title:                 trip.Title,
+		City:                  trip.City,
+		StartDate:             trip.StartDate,
+		Days:                  trip.Days,
+		Budget:                trip.Budget,
+		NumMembers:            trip.NumMembers,
+		ViLocationAttributes:  trip.ViLocationAttributes,
+		ViFoodAttributes:      trip.ViFoodAttributes,
+		ViSpecialRequirements: trip.ViSpecialRequirements,
+		ViMedicalConditions:   trip.ViMedicalConditions,
+		EnLocationAttributes:  trip.EnLocationAttributes,
+		EnFoodAttributes:      trip.EnFoodAttributes,
+		EnSpecialRequirements: trip.EnSpecialRequirements,
+		EnMedicalConditions:   trip.EnMedicalConditions,
+		Status:                trip.Status,
+		Role:                  trip.Role,
+	}
+
+	return tripResponse, ""
 }

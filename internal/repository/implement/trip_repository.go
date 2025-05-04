@@ -2,6 +2,7 @@ package repositoryimplement
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
@@ -66,9 +67,8 @@ func (repo *TripRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *s
 func (repo *TripRepository) SelectForUpdateById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error) {
 	var trip entity.Trip
 	query := "SELECT * FROM trips WHERE id = ? FOR UPDATE"
-	if tx != nil {
-		err := tx.GetContext(ctx, &trip, query, id)
-		return &trip, err
+	if tx == nil {
+		return nil, errors.New("must use transactions")
 	}
 	err := tx.GetContext(ctx, &trip, query, id)
 	return &trip, err
@@ -89,7 +89,7 @@ func (repo *TripRepository) GetAllByUserIDQuery(ctx context.Context, userId int6
 	return trips, err
 }
 
-func (repo *TripRepository) GetAllTripsWithUserRoleByUserIdQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.TripWithRole, error) {
+func (repo *TripRepository) GetAllWithUserRoleByUserIdQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.TripWithRole, error) {
 	var trips []*entity.TripWithRole
 	query := `
 		SELECT t.*, tm.role 
@@ -103,4 +103,30 @@ func (repo *TripRepository) GetAllTripsWithUserRoleByUserIdQuery(ctx context.Con
 	}
 	err := repo.db.SelectContext(ctx, &trips, query, userId)
 	return trips, err
+}
+
+func (repo *TripRepository) GetOneWithUserRoleByIDQuery(ctx context.Context, tripId int64, userId int64, tx *sqlx.Tx) (*entity.TripWithRole, error) {
+	var trip entity.TripWithRole
+	query := `
+		SELECT t.*, tm.role 
+		FROM trips t
+		JOIN trip_members tm ON t.id = tm.trip_id
+		WHERE t.id = ? AND tm.user_id = ? AND tm.deleted_at IS NULL
+	`
+	if tx != nil {
+		err := tx.GetContext(ctx, &trip, query, tripId, userId)
+		return &trip, err
+	}
+	err := repo.db.GetContext(ctx, &trip, query, tripId, userId)
+	return &trip, err
+}
+
+func (repo *TripRepository) SelectForShareById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error) {
+	var trip entity.Trip
+	query := "SELECT * FROM trips WHERE id = ? FOR SHARE"
+	if tx == nil {
+		return nil, errors.New("must use transactions")
+	}
+	err := tx.GetContext(ctx, &trip, query, id)
+	return &trip, err
 }
