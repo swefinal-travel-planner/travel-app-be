@@ -7,13 +7,15 @@ import (
 )
 
 type systemErrorMessage struct {
-	SqlxNoRow string
-	RedisNil  string
+	SqlxNoRow       string
+	RedisNil        string
+	NotMemberOfTrip string
 }
 
 var SystemErrorMessage = systemErrorMessage{
-	SqlxNoRow: sql.ErrNoRows.Error(),
-	RedisNil:  redis.Nil.Error(),
+	SqlxNoRow:       sql.ErrNoRows.Error(),
+	RedisNil:        redis.Nil.Error(),
+	NotMemberOfTrip: "not a member of the trip",
 }
 
 type errorCode struct {

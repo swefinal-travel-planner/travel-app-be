@@ -102,3 +102,31 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 
 	return ""
 }
+
+func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId int64, tripId int64) ([]model.TripItemResponse, string) {
+	// Get trip items with membership check
+	tripItems, err := service.tripItemRepository.GetTripItemsByTripIDCommand(ctx, tripId, userId, nil)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.NotMemberOfTrip {
+			return nil, error_utils.ErrorCode.FORBIDDEN
+		}
+		log.Error("TripItemService.GetTripItemsByTripID Error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// Convert to response model
+	var tripItemResponses []model.TripItemResponse
+	for _, item := range tripItems {
+		tripItemResponse := model.TripItemResponse{
+			ID:         item.ID,
+			TripID:     item.TripID,
+			PlaceID:    item.PlaceID,
+			TripDay:    item.TripDay,
+			OrderInDay: item.OrderInDay,
+			TimeInDate: item.TimeInDate,
+		}
+		tripItemResponses = append(tripItemResponses, tripItemResponse)
+	}
+
+	return tripItemResponses, ""
+}

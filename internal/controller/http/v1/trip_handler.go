@@ -159,3 +159,40 @@ func (handler *TripHandler) GetTrip(ctx *gin.Context) {
 
 	ctx.JSON(200, httpcommon.NewSuccessResponse(trip))
 }
+
+// @Summary Get trip items
+// @Description Get trip items by trip ID
+// @Tags Trips
+// @Param tripId path int true "Trip ID"
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce json
+// @Router /trips/{tripId}/trip-items [get]
+// @Success 200 {object} httpcommon.HttpResponse[[]model.TripItemResponse]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *TripHandler) GetTripItems(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	tripId := ctx.Param("tripId")
+	if tripId == "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripIdInt, err := strconv.ParseInt(tripId, 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripItems, errCode := handler.tripItemService.GetTripItemsByTripID(ctx, userId, tripIdInt)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.JSON(200, httpcommon.NewSuccessResponse(&tripItems))
+}

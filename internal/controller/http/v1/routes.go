@@ -66,6 +66,7 @@ func MapRoutes(router *gin.Engine,
 			trip.GET("", authMiddleware.VerifyAccessToken, tripHandler.GetAllTrips)
 			trip.GET("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.GetTrip)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
+			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

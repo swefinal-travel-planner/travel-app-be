@@ -2,11 +2,12 @@ package repositoryimplement
 
 import (
 	"context"
-
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type TripItemRepository struct {
@@ -46,13 +47,50 @@ func (repo *TripItemRepository) DeleteByTripIDCommand(ctx context.Context, tripI
 	return err
 }
 
-func (repo *TripItemRepository) GetTripItemsByTripIDCommand(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripItem, error) {
-	query := "SELECT * FROM trip_items WHERE trip_id = ?"
+// avoid TOCTOU
+func (repo *TripItemRepository) GetTripItemsByTripIDCommand(ctx context.Context, tripID int64, userId int64, tx *sqlx.Tx) ([]entity.TripItem, error) {
+	query := `
+		SELECT tm.user_id as 'userId', ti.*
+		FROM trip_members tm
+		LEFT JOIN trip_items ti ON ti.trip_id = tm.trip_id
+		WHERE tm.trip_id = ? AND tm.user_id = ? AND tm.deleted_at IS NULL
+	`
+
 	var tripItems []entity.TripItem
-	if tx != nil {
-		err := tx.SelectContext(ctx, &tripItems, query, tripID)
-		return tripItems, err
+	var tripItemsWithUserId []struct {
+		UserId int64 `db:"userId"`
+		entity.TripItemTOCTOU
 	}
-	err := repo.db.SelectContext(ctx, &tripItems, query, tripID)
-	return tripItems, err
+
+	var err error
+	if tx != nil {
+		err = tx.SelectContext(ctx, &tripItemsWithUserId, query, tripID, userId)
+	} else {
+		err = repo.db.SelectContext(ctx, &tripItemsWithUserId, query, tripID, userId)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(tripItemsWithUserId) == 0 {
+		return nil, errors.New(error_utils.SystemErrorMessage.NotMemberOfTrip)
+	}
+
+	if tripItemsWithUserId[0].TripID.Int64 == 0 {
+		return make([]entity.TripItem, 0), nil
+	}
+
+	for _, tripItem := range tripItemsWithUserId {
+		tripItems = append(tripItems, entity.TripItem{
+			ID:         tripItem.TripID.Int64,
+			TripID:     tripItem.TripID.Int64,
+			PlaceID:    tripItem.PlaceID.String,
+			TripDay:    tripItem.TripDay.Int64,
+			OrderInDay: tripItem.OrderInDay.Int64,
+			TimeInDate: tripItem.TimeInDate.String,
+			CreatedAt:  tripItem.CreatedAt.Time,
+			UpdatedAt:  tripItem.UpdatedAt.Time,
+			DeletedAt:  tripItem.DeletedAt,
+		})
+	}
+	return tripItems, nil
 }

@@ -10,5 +10,5 @@ import (
 type TripItemRepository interface {
 	CreateCommand(ctx context.Context, tripItem *entity.TripItem, tx *sqlx.Tx) error
 	DeleteByTripIDCommand(ctx context.Context, tripID int64, tx *sqlx.Tx) error
-	GetTripItemsByTripIDCommand(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripItem, error)
+	GetTripItemsByTripIDCommand(ctx context.Context, tripID int64, userId int64, tx *sqlx.Tx) ([]entity.TripItem, error)
 }
