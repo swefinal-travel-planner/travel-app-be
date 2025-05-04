@@ -20,6 +20,7 @@ type Server struct {
 	authMiddleware          *middleware.AuthMiddleware
 	healthHandler           *v1.HealthHandler
 	notificationHandler     *v1.NotificationHandler
+	tripHandler             *v1.TripHandler
 }
 
 func NewServer(authAuthHandler *v1.AuthHandler,
@@ -29,6 +30,8 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	healthHandler *v1.HealthHandler,
 	notificationHandler *v1.NotificationHandler,
+	tripHandler *v1.TripHandler,
+
 ) *Server {
 	return &Server{
 		authAuthHandler:         authAuthHandler,
@@ -38,6 +41,7 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 		authMiddleware:          authMiddleware,
 		healthHandler:           healthHandler,
 		notificationHandler:     notificationHandler,
+		tripHandler:             tripHandler,
 	}
 }
 
@@ -59,6 +63,7 @@ func (s *Server) Run() {
 		s.authMiddleware,
 		s.healthHandler,
 		s.notificationHandler,
+		s.tripHandler,
 	)
 	err := httpServerInstance.ListenAndServe()
 	if err != nil {
