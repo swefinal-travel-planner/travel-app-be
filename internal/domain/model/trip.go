@@ -48,6 +48,7 @@ type TripResponse struct {
 	EnSpecialRequirements stringlistutils.SqlListString `json:"enSpecialRequirements"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
 	Status                string                        `json:"status"`
+	Role                  string                        `json:"role"`
 }
 
 type CreateTripResponse struct {

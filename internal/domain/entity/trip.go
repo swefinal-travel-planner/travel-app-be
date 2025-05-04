@@ -28,3 +28,8 @@ type Trip struct {
 	UpdatedAt             time.Time                     `json:"updatedAt,omitempty" db:"updated_at"`
 	DeletedAt             sql.NullTime                  `json:"deletedAt,omitempty" db:"deleted_at"`
 }
+
+type TripWithRole struct {
+	Trip
+	Role string `json:"role" db:"role"`
+}

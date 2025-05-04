@@ -63,6 +63,7 @@ func MapRoutes(router *gin.Engine,
 		trip := v1.Group("/trips")
 		{
 			trip.POST("", authMiddleware.VerifyAccessToken, tripHandler.CreateTripManually)
+			trip.GET("", authMiddleware.VerifyAccessToken, tripHandler.GetAllTrips)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 		}
 	}

@@ -101,3 +101,24 @@ func (handler *TripHandler) CreateTripItems(ctx *gin.Context) {
 
 	ctx.AbortWithStatus(204)
 }
+
+// @Summary Get all trips for a user
+// @Description Get all trips that the user is a member of
+// @Tags Trips
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce json
+// @Router /trips [get]
+// @Success 200 {object} httpcommon.HttpResponse[[]model.TripResponse]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *TripHandler) GetAllTrips(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	trips, errCode := handler.tripService.GetAllTripsByUserID(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.JSON(200, httpcommon.NewSuccessResponse(&trips))
+}

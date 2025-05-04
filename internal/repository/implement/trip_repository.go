@@ -88,3 +88,19 @@ func (repo *TripRepository) GetAllByUserIDQuery(ctx context.Context, userId int6
 	err := repo.db.SelectContext(ctx, &trips, query, userId)
 	return trips, err
 }
+
+func (repo *TripRepository) GetAllTripsWithUserRoleByUserIdQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.TripWithRole, error) {
+	var trips []*entity.TripWithRole
+	query := `
+		SELECT t.*, tm.role 
+		FROM trips t
+		JOIN trip_members tm ON t.id = tm.trip_id
+		WHERE tm.user_id = ? AND tm.deleted_at IS NULL
+	`
+	if tx != nil {
+		err := tx.SelectContext(ctx, &trips, query, userId)
+		return trips, err
+	}
+	err := repo.db.SelectContext(ctx, &trips, query, userId)
+	return trips, err
+}
