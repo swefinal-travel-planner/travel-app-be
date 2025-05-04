@@ -7,13 +7,15 @@ import (
 )
 
 type systemErrorMessage struct {
-	SqlxNoRow string
-	RedisNil  string
+	SqlxNoRow       string
+	RedisNil        string
+	NotMemberOfTrip string
 }
 
 var SystemErrorMessage = systemErrorMessage{
-	SqlxNoRow: sql.ErrNoRows.Error(),
-	RedisNil:  redis.Nil.Error(),
+	SqlxNoRow:       sql.ErrNoRows.Error(),
+	RedisNil:        redis.Nil.Error(),
+	NotMemberOfTrip: "not a member of the trip",
 }
 
 type errorCode struct {
@@ -48,6 +50,8 @@ type errorCode struct {
 	FRIEND_INVITATION_NOT_FOUND                string
 	FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER  string
 	FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW string
+	TRIP_NOT_FOUND                             string
+	FORBIDDEN                                  string
 
 	INTERNAL_SERVER_ERROR string
 	BAD_REQUEST           string
@@ -79,6 +83,8 @@ var ErrorCode = errorCode{
 	FRIEND_INVITATION_NOT_FOUND:                "FRIEND_INVITATION_NOT_FOUND",
 	FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER:  "FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER",
 	FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW: "FRIEND_INVITATION_CAN_WITHDRAW",
+	TRIP_NOT_FOUND:                             "TRIP_NOT_FOUND",
+	FORBIDDEN:                                  "FORBIDDEN",
 
 	INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
 	BAD_REQUEST:           "BAD_REQUEST",

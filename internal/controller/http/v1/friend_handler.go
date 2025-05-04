@@ -48,7 +48,7 @@ func (handler *FriendHandler) ViewFriends(ctx *gin.Context) {
 // @Accept json
 // @Param friendId path int true "friend ID"
 // @Produce  json
-// @Router /friends/{friendId} [put]
+// @Router /friends/{friendId} [delete]
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
