@@ -6,9 +6,9 @@ import (
 	"log"
 )
 
-type StringList []string
+type SqlListString []string
 
-func (s *StringList) Scan(value interface{}) error {
+func (s *SqlListString) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
 		log.Println("Error: expected []byte for JSON scan")
@@ -16,6 +16,6 @@ func (s *StringList) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, s)
 }
 
-func (s StringList) Value() (driver.Value, error) {
+func (s SqlListString) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }

@@ -9,6 +9,7 @@ type TripItemRequest struct {
 }
 
 type TripItemResponse struct {
+	ID         int64  `json:"id"`
 	TripID     int64  `json:"tripID"`
 	PlaceID    string `json:"placeID"`
 	TripDay    int64  `json:"tripDay"`

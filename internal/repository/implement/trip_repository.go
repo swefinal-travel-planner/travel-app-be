@@ -73,3 +73,18 @@ func (repo *TripRepository) LockTripRowByIDCommand(ctx context.Context, id int64
 	err := tx.GetContext(ctx, &trip, query, id)
 	return &trip, err
 }
+
+func (repo *TripRepository) GetAllByUserIDQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.Trip, error) {
+	var trips []*entity.Trip
+	query := `
+		SELECT t.* FROM trips t
+		JOIN trip_members tm ON t.id = tm.trip_id
+		WHERE tm.user_id = ? AND tm.deleted_at IS NULL
+	`
+	if tx != nil {
+		err := tx.SelectContext(ctx, &trips, query, userId)
+		return trips, err
+	}
+	err := repo.db.SelectContext(ctx, &trips, query, userId)
+	return trips, err
+}

@@ -69,10 +69,15 @@ func (service *AuthService) Register(ctx *gin.Context, registerRequest model.Reg
 
 	// Register if pass OTP validation
 	existsCustomer, err := service.userRepository.GetOneByEmailQuery(ctx, registerRequest.Email, nil)
-	if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
-		log.Error("AuthService.Register DB is down: " + err.Error())
-		return error_utils.ErrorCode.DB_DOWN
+	if err != nil {
+		if err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
+			log.Error("AuthService.Register DB is down: " + err.Error())
+			return error_utils.ErrorCode.DB_DOWN
+		}
+		// beucase repository always return existsCustomer, so we have to explicitly set it to nil when there is an err
+		existsCustomer = nil
 	}
+
 	if existsCustomer != nil {
 		return error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
 	}

@@ -45,3 +45,14 @@ func (repo *TripItemRepository) DeleteByTripIDCommand(ctx context.Context, tripI
 	_, err := repo.db.ExecContext(ctx, query, tripID)
 	return err
 }
+
+func (repo *TripItemRepository) GetTripItemsByTripIDCommand(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripItem, error) {
+	query := "SELECT * FROM trip_items WHERE trip_id = ?"
+	var tripItems []entity.TripItem
+	if tx != nil {
+		err := tx.SelectContext(ctx, &tripItems, query, tripID)
+		return tripItems, err
+	}
+	err := repo.db.SelectContext(ctx, &tripItems, query, tripID)
+	return tripItems, err
+}

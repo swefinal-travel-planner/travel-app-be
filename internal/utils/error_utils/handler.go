@@ -204,6 +204,13 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Field:   field,
 			Code:    ErrorCode.FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW,
 		})
+	case ErrorCode.TRIP_NOT_FOUND:
+		statusCode = http.StatusNotFound
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "The trip you are looking for does not exist",
+			Field:   field,
+			Code:    ErrorCode.TRIP_NOT_FOUND,
+		})
 	default:
 		statusCode = http.StatusInternalServerError
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
