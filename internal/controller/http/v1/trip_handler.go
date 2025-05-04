@@ -33,7 +33,7 @@ func NewTripHandler(tripService service.TripService, tripItemService service.Tri
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Produce  json
 // @Router /trips [post]
-// @Success 200 {object} httpcommon.HttpResponse[int64]
+// @Success 200 {object} httpcommon.HttpResponse[model.CreateTripResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *TripHandler) CreateTripManually(ctx *gin.Context) {
@@ -52,7 +52,10 @@ func (handler *TripHandler) CreateTripManually(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, httpcommon.NewSuccessResponse(&tripID))
+	response := model.CreateTripResponse{
+		ID: tripID,
+	}
+	ctx.JSON(200, httpcommon.NewSuccessResponse(&response))
 }
 
 // @Summary Create/Update trip items
@@ -68,6 +71,8 @@ func (handler *TripHandler) CreateTripManually(ctx *gin.Context) {
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *TripHandler) CreateTripItems(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
 	tripId := ctx.Param("tripId")
 	if tripId == "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "friendId")
@@ -87,11 +92,7 @@ func (handler *TripHandler) CreateTripItems(ctx *gin.Context) {
 		return
 	}
 
-	for i := range tripItemRequests {
-		tripItemRequests[i].TripID = tripIdInt
-	}
-
-	errCode := handler.tripItemService.CreateTripItems(ctx, tripItemRequests)
+	errCode := handler.tripItemService.CreateTripItems(ctx, userId, tripIdInt, tripItemRequests)
 	if errCode != "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
 		ctx.JSON(statusCode, errResponse)

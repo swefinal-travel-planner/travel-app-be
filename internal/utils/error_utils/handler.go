@@ -211,6 +211,13 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Field:   field,
 			Code:    ErrorCode.TRIP_NOT_FOUND,
 		})
+	case ErrorCode.FORBIDDEN:
+		statusCode = http.StatusForbidden
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "You do not have permission to perform this action",
+			Field:   field,
+			Code:    ErrorCode.FORBIDDEN,
+		})
 	default:
 		statusCode = http.StatusInternalServerError
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{

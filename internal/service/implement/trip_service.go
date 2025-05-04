@@ -55,7 +55,7 @@ func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.TripR
 	}
 
 	// create trip
-	tripID, err := service.tripRepository.CreateCommand(ctx, trip, nil)
+	tripID, err := service.tripRepository.CreateCommand(ctx, trip, tx)
 	if err != nil {
 		log.Error("TripService.CreateTrip Error: " + err.Error())
 		return 0, error_utils.ErrorCode.INTERNAL_SERVER_ERROR

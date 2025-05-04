@@ -63,7 +63,7 @@ func (repo *TripRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *s
 	return &trip, err
 }
 
-func (repo *TripRepository) LockTripRowByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error) {
+func (repo *TripRepository) SelectForUpdateById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error) {
 	var trip entity.Trip
 	query := "SELECT * FROM trips WHERE id = ? FOR UPDATE"
 	if tx != nil {

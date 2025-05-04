@@ -35,3 +35,31 @@ func (repo *TripMemberRepository) CreateCommand(ctx context.Context, tripMember 
 	_, err := repo.db.NamedExecContext(ctx, insertQuery, tripMember)
 	return err
 }
+
+func (repo *TripMemberRepository) IsUserInTripQuery(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM trip_members 
+		WHERE trip_id = ? AND user_id = ? AND deleted_at IS NULL
+	`
+	if tx != nil {
+		err := tx.GetContext(ctx, &count, query, tripID, userID)
+		return count > 0, err
+	}
+	err := repo.db.GetContext(ctx, &count, query, tripID, userID)
+	return count > 0, err
+}
+
+func (repo *TripMemberRepository) IsUserTripAdminOrStaffQuery(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM trip_members 
+		WHERE trip_id = ? AND user_id = ? AND role IN ('administrator', 'staff') AND deleted_at IS NULL
+	`
+	if tx != nil {
+		err := tx.GetContext(ctx, &count, query, tripID, userID)
+		return count > 0, err
+	}
+	err := repo.db.GetContext(ctx, &count, query, tripID, userID)
+	return count > 0, err
+}

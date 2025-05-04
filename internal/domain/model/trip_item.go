@@ -1,7 +1,6 @@
 package model
 
 type TripItemRequest struct {
-	TripID     int64  `json:"tripID"`
 	PlaceID    string `json:"placeID" binding:"required"`
 	TripDay    int64  `json:"tripDay" binding:"required,min=1"`
 	OrderInDay int64  `json:"orderInDay" binding:"required,min=1"`

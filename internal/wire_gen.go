@@ -46,7 +46,7 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	tripMemberRepository := repositoryimplement.NewTripMemberRepository(db)
 	tripService := serviceimplement.NewTripService(tripRepository, unitOfWork, tripMemberRepository)
 	tripItemRepository := repositoryimplement.NewTripItemRepository(db)
-	tripItemService := serviceimplement.NewTripItemService(tripItemRepository, tripRepository, unitOfWork)
+	tripItemService := serviceimplement.NewTripItemService(tripItemRepository, tripRepository, tripMemberRepository, unitOfWork)
 	tripHandler := v1.NewTripHandler(tripService, tripItemService)
 	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler, tripHandler)
 	apiContainer := controller.NewApiContainer(server)

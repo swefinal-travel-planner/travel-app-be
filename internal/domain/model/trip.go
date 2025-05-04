@@ -49,3 +49,7 @@ type TripResponse struct {
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
 	Status                string                        `json:"status"`
 }
+
+type CreateTripResponse struct {
+	ID int64 `json:"id"`
+}

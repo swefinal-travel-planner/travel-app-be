@@ -11,5 +11,5 @@ type TripRepository interface {
 	CreateCommand(ctx context.Context, trip *entity.Trip, tx *sqlx.Tx) (int64, error)
 	GetOneByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 	GetAllByUserIDQuery(ctx context.Context, userId int64, tx *sqlx.Tx) ([]*entity.Trip, error)
-	LockTripRowByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
+	SelectForUpdateById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 }

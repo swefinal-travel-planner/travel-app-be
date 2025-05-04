@@ -11,24 +11,27 @@ import (
 )
 
 type TripItemService struct {
-	tripItemRepository repository.TripItemRepository
-	tripRepository     repository.TripRepository
-	unitOfWork         repository.UnitOfWork
+	tripItemRepository   repository.TripItemRepository
+	tripRepository       repository.TripRepository
+	tripMemberRepository repository.TripMemberRepository
+	unitOfWork           repository.UnitOfWork
 }
 
 func NewTripItemService(
 	tripItemRepository repository.TripItemRepository,
 	tripRepository repository.TripRepository,
+	tripMemberRepository repository.TripMemberRepository,
 	unitOfWork repository.UnitOfWork,
 ) service.TripItemService {
 	return &TripItemService{
-		tripItemRepository: tripItemRepository,
-		tripRepository:     tripRepository,
-		unitOfWork:         unitOfWork,
+		tripItemRepository:   tripItemRepository,
+		tripRepository:       tripRepository,
+		tripMemberRepository: tripMemberRepository,
+		unitOfWork:           unitOfWork,
 	}
 }
 
-func (service *TripItemService) CreateTripItems(ctx *gin.Context, tripItemRequests []model.TripItemRequest) string {
+func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, tripId int64, tripItemRequests []model.TripItemRequest) string {
 	// begin transaction
 	tx, err := service.unitOfWork.Begin(ctx)
 	if err != nil {
@@ -37,19 +40,8 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, tripItemReques
 	}
 	defer service.unitOfWork.Rollback(tx)
 
-	// check to see if trip exists
-	_, err = service.tripRepository.GetOneByIDQuery(ctx, tripItemRequests[0].TripID, tx)
-	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.TRIP_NOT_FOUND
-		}
-		log.Error("TripItemService.CreateTripItems GetOneByIDQuery error: " + err.Error())
-		return error_utils.ErrorCode.DB_DOWN
-	}
-
 	// lock trip row before update trip items
-	tripID := tripItemRequests[0].TripID
-	_, err = service.tripRepository.LockTripRowByIDCommand(ctx, tripID, tx)
+	_, err = service.tripRepository.SelectForUpdateById(ctx, tripId, tx)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.TRIP_NOT_FOUND
@@ -58,8 +50,28 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, tripItemReques
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
+	// check to see if trip exists
+	_, err = service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return error_utils.ErrorCode.TRIP_NOT_FOUND
+		}
+		log.Error("TripItemService.CreateTripItems GetOneByIDQuery error: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
+	}
+
+	// check if user is admin or staff
+	isAdminOrStaff, err := service.tripMemberRepository.IsUserTripAdminOrStaffQuery(ctx, tripId, userId, tx)
+	if err != nil {
+		log.Error("TripItemService.CreateTripItems IsUserTripAdminOrStaffQuery error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isAdminOrStaff {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+
 	// delete existing trip items
-	err = service.tripItemRepository.DeleteByTripIDCommand(ctx, tripID, tx)
+	err = service.tripItemRepository.DeleteByTripIDCommand(ctx, tripId, tx)
 	if err != nil {
 		log.Error("TripItemService.CreateTripItems DeleteByTripIDCommand error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
@@ -68,7 +80,7 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, tripItemReques
 	// insert new trip items
 	for _, tripItemRequest := range tripItemRequests {
 		tripItem := &entity.TripItem{
-			TripID:     tripItemRequest.TripID,
+			TripID:     tripId,
 			PlaceID:    tripItemRequest.PlaceID,
 			TripDay:    tripItemRequest.TripDay,
 			OrderInDay: tripItemRequest.OrderInDay,

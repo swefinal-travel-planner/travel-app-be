@@ -6,5 +6,5 @@ import (
 )
 
 type TripItemService interface {
-	CreateTripItems(ctx *gin.Context, tripItemRequests []model.TripItemRequest) string
+	CreateTripItems(ctx *gin.Context, userId int64, tripId int64, tripItemRequests []model.TripItemRequest) string
 }
