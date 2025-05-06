@@ -59,6 +59,7 @@ func MapRoutes(router *gin.Engine,
 		user := v1.Group("/users")
 		{
 			user.GET("/", authMiddleware.VerifyAccessToken, userHandler.SearchUser)
+			user.PUT("/notification-token", authMiddleware.VerifyAccessToken, userHandler.UpdateNotificationToken)
 		}
 		trip := v1.Group("/trips")
 		{
