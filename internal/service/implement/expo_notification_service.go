@@ -102,16 +102,7 @@ func (n *ExpoNotificationService) SendNotification(ctx *gin.Context, notificatio
 	}
 
 	pushNotification := n.GeneratePushNotification(pushToken, notification)
-	response, err := n.expoClient.Publish(pushNotification)
-	if err != nil {
-		log.Error("ExpoNotificationService.SendNotification err: ", err)
-		return err.Error()
-	}
-
-	if response.ValidateResponse() != nil {
-		log.Error("ExpoNotificationService.SendTestNotification failed: ", err)
-		return response.ValidateResponse().Error()
-	}
+	n.expoClient.Publish(pushNotification)
 
 	return ""
 }
