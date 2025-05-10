@@ -2,6 +2,7 @@ package repositoryimplement
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/jmoiron/sqlx"
@@ -34,6 +35,8 @@ func (repo *TripRepository) CreateCommand(ctx context.Context, trip *entity.Trip
 		:status
 	)
 	`
+
+	var result sql.Result
 	if tx != nil {
 		result, err := tx.NamedExecContext(ctx, insertQuery, trip)
 		if err != nil {

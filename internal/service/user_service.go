@@ -7,4 +7,5 @@ import (
 
 type UserService interface {
 	SearchUser(ctx *gin.Context, userId int64, userEmail string) (*model.FriendResponse, string)
+	UpdateNotificationToken(ctx *gin.Context, userId int64, notificationTokenRequest model.UpdateNotificationTokenRequest) string
 }

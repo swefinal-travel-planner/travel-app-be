@@ -1,26 +1,34 @@
 package serviceimplement
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 	expo "github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 	log "github.com/sirupsen/logrus"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
-	"os"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type ExpoNotificationService struct {
-	expoClient *expo.PushClient
+	expoClient             *expo.PushClient
+	notificationRepository repository.NotificationRepository
+	userRepository         repository.UserRepository
 }
 
 // NewNotificationService creates a new instance of NotificationService
-func NewExpoNotificationService() service.NotificationService {
+func NewExpoNotificationService(notificationRepository repository.NotificationRepository, userRepository repository.UserRepository) service.NotificationService {
 	expoConfig := expo.ClientConfig{
 		AccessToken: os.Getenv("NOTIFICATION_ACCESS_TOKEN"),
 	}
 	expoClient := expo.NewPushClient(&expoConfig)
 	return &ExpoNotificationService{
-		expoClient: expoClient,
+		expoClient:             expoClient,
+		notificationRepository: notificationRepository,
+		userRepository:         userRepository,
 	}
 }
 
@@ -51,6 +59,133 @@ func (n *ExpoNotificationService) SendTestNotification(ctx *gin.Context, testNot
 	if response.ValidateResponse() != nil {
 		log.Error("ExpoNotificationService.SendTestNotification failed: ", err)
 		return response.ValidateResponse().Error()
+	}
+
+	return ""
+}
+
+func (n *ExpoNotificationService) GeneratePushNotification(pushToken expo.ExponentPushToken, notification entity.Notification) *expo.PushMessage {
+	var title string
+	var body string
+
+	switch notification.Type {
+	case entity.NotificationType.FriendRequestReceived:
+		title = "You have a new friend invitation"
+		body = notification.TriggerEntityName + " invited you to be friends"
+	case entity.NotificationType.FriendRequestAccepted:
+		title = "Your friend request has been accepted"
+		body = notification.TriggerEntityName + " accepted your friend request"
+	}
+
+	return &expo.PushMessage{
+		To:    []expo.ExponentPushToken{pushToken},
+		Body:  body,
+		Sound: "default",
+		Title: title,
+	}
+}
+
+func (n *ExpoNotificationService) SendNotification(ctx *gin.Context, notification entity.Notification) string {
+	notificationToken, err := n.userRepository.GetNotificationTokenByIDQuery(ctx, notification.UserID, nil)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return ""
+		}
+		log.Error("ExpoNotificationService.SendNotification err: ", err)
+		return err.Error()
+	}
+
+	pushToken, err := expo.NewExponentPushToken(notificationToken)
+	if err != nil {
+		log.Error("ExpoNotificationService.SendNotification NewExponentPushToken err: ", err)
+		return err.Error()
+	}
+
+	pushNotification := n.GeneratePushNotification(pushToken, notification)
+	n.expoClient.Publish(pushNotification)
+
+	return ""
+}
+
+func (n *ExpoNotificationService) SaveAndSendNotification(ctx *gin.Context, notification model.SaveNotificationRequest) string {
+	var notificationEntity entity.Notification
+	if notification.TriggerEntityType == entity.NotificationTriggerType.User {
+		user, err := n.userRepository.GetOneByIDQuery(ctx, *notification.TriggerEntityID, nil)
+		if err != nil {
+			log.Error("ExpoNotificationService.SaveAndSendNotification err: ", err)
+			return err.Error()
+		}
+
+		notificationEntity.UserID = notification.ReceiverUserID
+		notificationEntity.TriggerEntityAvatar = *user.PhotoURL
+		notificationEntity.TriggerEntityName = user.Name
+		notificationEntity.TriggerEntityID = notification.TriggerEntityID
+		notificationEntity.TriggerEntityType = entity.NotificationTriggerType.User
+		notificationEntity.ReferenceEntityType = notification.ReferenceEntityType
+		notificationEntity.ReferenceEntityID = notification.ReferenceEntityID
+		notificationEntity.Type = notification.Type
+	}
+
+	err := n.notificationRepository.CreateCommand(ctx, &notificationEntity, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.SaveAndSendNotification err: ", err)
+		return err.Error()
+	}
+
+	return n.SendNotification(ctx, notificationEntity)
+}
+
+func (n *ExpoNotificationService) GetAllNotification(ctx *gin.Context, userID int64, filters model.GetAllNotificationFilters) ([]model.NotificationResponse, string) {
+	notifications, err := n.notificationRepository.GetAllByUserIDQuery(ctx, userID, filters.Type, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.GetAllNotification err: ", err)
+		return nil, err.Error()
+	}
+
+	var notificationsResponse []model.NotificationResponse
+
+	for _, notification := range notifications {
+		notificationsResponse = append(notificationsResponse, model.NotificationResponse{
+			Type:      notification.Type,
+			IsSeen:    notification.IsSeen,
+			CreatedAt: notification.CreatedAt,
+			TriggerEntity: model.NotificationTriggerEntity{
+				Type:   notification.TriggerEntityType,
+				Avatar: notification.TriggerEntityAvatar,
+				Name:   notification.TriggerEntityName,
+				ID:     notification.TriggerEntityID,
+			},
+			ReferenceEntity: model.NotificationReferenceEntity{
+				Type: notification.ReferenceEntityType,
+				ID:   notification.ReferenceEntityID,
+			},
+		})
+	}
+
+	return notificationsResponse, ""
+}
+
+func (n *ExpoNotificationService) SeenNotification(ctx *gin.Context, userID int64, notificationID int64) string {
+	err := n.notificationRepository.SeenNotificationCommand(ctx, userID, notificationID, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.SeenNotification err: ", err)
+		return err.Error()
+	}
+
+	return ""
+}
+
+func (n *ExpoNotificationService) DeleteNotificationWithTypeAndTriggerEntityID(ctx *gin.Context, typeFilter string, triggerEntityID int64) string {
+	notification, err := n.notificationRepository.GetOneByTypeAndTriggerEntityIDQuery(ctx, typeFilter, triggerEntityID, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		return err.Error()
+	}
+
+	err = n.notificationRepository.DeleteNotificationCommand(ctx, notification.ID, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		return err.Error()
 	}
 
 	return ""
