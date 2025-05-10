@@ -8,7 +8,7 @@ import (
 )
 
 type InvitationFriendRepository interface {
-	CreateCommand(ctx context.Context, user *entity.InvitationFriend, tx *sqlx.Tx) error
+	CreateCommand(ctx context.Context, invitationFriend *entity.InvitationFriend, tx *sqlx.Tx) error
 	GetByReceiverIdQuery(ctx context.Context, receiverId int64, tx *sqlx.Tx) ([]*entity.InvitationFriend, error)
 	GetBySenderIdQuery(ctx context.Context, senderId int64, tx *sqlx.Tx) ([]*entity.InvitationFriend, error)
 	GetBySenderAndReceiverIdQuery(ctx context.Context, senderId, receiverId int64, tx *sqlx.Tx) (*entity.InvitationFriend, error)

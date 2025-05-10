@@ -2,6 +2,7 @@ package repositoryimplement
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
@@ -20,12 +21,26 @@ func NewInvitationFriendRepository(db database.Db) repository.InvitationFriendRe
 func (repo *InvitationFriendRepository) CreateCommand(ctx context.Context, invitation *entity.InvitationFriend, tx *sqlx.Tx) error {
 	// Insert the new invitation
 	insertQuery := `INSERT INTO invitation_friends(sender_id, receiver_id) VALUES (:sender_id, :receiver_id)`
+	var result sql.Result
+	var err error
+
 	if tx != nil {
-		_, err := tx.NamedExecContext(ctx, insertQuery, invitation)
+		result, err = tx.NamedExecContext(ctx, insertQuery, invitation)
+	} else {
+		result, err = repo.db.NamedExecContext(ctx, insertQuery, invitation)
+	}
+
+	if err != nil {
 		return err
 	}
-	_, err := repo.db.NamedExecContext(ctx, insertQuery, invitation)
-	return err
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	invitation.ID = id
+	return nil
 }
 
 func (repo *InvitationFriendRepository) GetByReceiverIdQuery(ctx context.Context, receiverId int64, tx *sqlx.Tx) ([]*entity.InvitationFriend, error) {

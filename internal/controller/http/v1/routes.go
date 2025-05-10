@@ -26,6 +26,8 @@ func MapRoutes(router *gin.Engine,
 		notification := v1.Group("/notifications")
 		{
 			notification.POST("/test", notificationHandler.TestNotification)
+			notification.GET("", authMiddleware.VerifyAccessToken, notificationHandler.GetAllNotification)
+			notification.POST("/:id/seen", authMiddleware.VerifyAccessToken, notificationHandler.SeenNotification)
 		}
 		auth := v1.Group("/auth")
 		{
