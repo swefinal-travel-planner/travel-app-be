@@ -117,7 +117,7 @@ func (n *ExpoNotificationService) SaveAndSendNotification(ctx *gin.Context, noti
 		}
 
 		notificationEntity.UserID = notification.ReceiverUserID
-		notificationEntity.TriggerEntityAvatar = *user.PhotoURL
+		notificationEntity.TriggerEntityAvatar = user.PhotoURL
 		notificationEntity.TriggerEntityName = user.Name
 		notificationEntity.TriggerEntityID = notification.TriggerEntityID
 		notificationEntity.TriggerEntityType = entity.NotificationTriggerType.User

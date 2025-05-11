@@ -13,10 +13,10 @@ type GetAllNotificationFilters struct {
 }
 
 type NotificationTriggerEntity struct {
-	Type   string `json:"type"`
-	Avatar string `json:"avatar"`
-	Name   string `json:"name"`
-	ID     *int64 `json:"id,omitempty"`
+	Type   string  `json:"type"`
+	Avatar *string `json:"avatar"`
+	Name   string  `json:"name"`
+	ID     *int64  `json:"id,omitempty"`
 }
 
 type NotificationReferenceEntity struct {

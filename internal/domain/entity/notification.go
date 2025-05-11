@@ -8,7 +8,7 @@ type Notification struct {
 	Type                string     `json:"type" db:"type"`
 	IsSeen              bool       `json:"isSeen" db:"is_seen"`
 	TriggerEntityType   string     `json:"triggerEntity.type" db:"trigger_entity_type"`
-	TriggerEntityAvatar string     `json:"triggerEntity.avatar" db:"trigger_entity_avatar"`
+	TriggerEntityAvatar *string    `json:"triggerEntity.avatar" db:"trigger_entity_avatar"`
 	TriggerEntityName   string     `json:"triggerEntity.name" db:"trigger_entity_name"`
 	TriggerEntityID     *int64     `json:"triggerEntity.id" db:"trigger_entity_id"`
 	ReferenceEntityType string     `json:"referenceEntity.type" db:"reference_entity_type"`
