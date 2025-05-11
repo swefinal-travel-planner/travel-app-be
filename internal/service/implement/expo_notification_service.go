@@ -169,16 +169,16 @@ func (n *ExpoNotificationService) SeenNotification(ctx *gin.Context, userID int6
 	return ""
 }
 
-func (n *ExpoNotificationService) DeleteNotificationWithTypeAndTriggerEntityID(ctx *gin.Context, typeFilter string, triggerEntityID int64) string {
-	notification, err := n.notificationRepository.GetOneByTypeAndTriggerEntityIDQuery(ctx, typeFilter, triggerEntityID, nil)
+func (n *ExpoNotificationService) DeleteFriendInvitation(ctx *gin.Context, userId int64, typeFilter string, triggerEntityID int64) string {
+	notification, err := n.notificationRepository.GetOneByUserIdAndTypeAndTriggerEntityIDQuery(ctx, userId, typeFilter, triggerEntityID, nil)
 	if err != nil {
-		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		log.Error("ExpoNotificationService.DeleteFriendInvitation err: ", err)
 		return err.Error()
 	}
 
 	err = n.notificationRepository.DeleteNotificationCommand(ctx, notification.ID, nil)
 	if err != nil {
-		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		log.Error("ExpoNotificationService.DeleteFriendInvitation err: ", err)
 		return err.Error()
 	}
 

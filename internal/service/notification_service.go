@@ -14,5 +14,5 @@ type NotificationService interface {
 	GeneratePushNotification(pushToken expo.ExponentPushToken, notification entity.Notification) *expo.PushMessage
 	GetAllNotification(ctx *gin.Context, userID int64, filters model.GetAllNotificationFilters) ([]model.NotificationResponse, string)
 	SeenNotification(ctx *gin.Context, userID int64, notificationID int64) string
-	DeleteNotificationWithTypeAndTriggerEntityID(ctx *gin.Context, typeFilter string, triggerEntityID int64) string
+	DeleteFriendInvitation(ctx *gin.Context, userId int64, typeFilter string, triggerEntityID int64) string
 }

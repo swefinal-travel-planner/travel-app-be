@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -80,7 +81,7 @@ func (handler *NotificationHandler) GetAllNotification(ctx *gin.Context) {
 // @Success 204 "No Content"
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *NotificationHandler) SeenNotification(ctx *gin.Context) {
-	userID := ctx.GetInt64("userID")
+	userID := middleware.GetUserIdHelper(ctx)
 	notificationID := ctx.Param("id")
 
 	notificationIDInt, err := strconv.ParseInt(notificationID, 10, 64)

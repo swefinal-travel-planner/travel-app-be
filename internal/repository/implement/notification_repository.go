@@ -119,18 +119,18 @@ func (r *notificationRepository) SeenNotificationCommand(ctx context.Context, us
 	return err
 }
 
-func (r *notificationRepository) GetOneByTypeAndTriggerEntityIDQuery(ctx context.Context, typeFilter string, triggerEntityID int64, tx *sqlx.Tx) (*entity.Notification, error) {
+func (r *notificationRepository) GetOneByUserIdAndTypeAndTriggerEntityIDQuery(ctx context.Context, userId int64, typeFilter string, triggerEntityID int64, tx *sqlx.Tx) (*entity.Notification, error) {
 	query := `
-		SELECT * FROM notifications WHERE type = ? AND trigger_entity_id = ?
+		SELECT * FROM notifications WHERE type = ? AND trigger_entity_id = ? AND user_id = ?
 	`
 
 	var notification entity.Notification
 
 	var err error
 	if tx != nil {
-		err = tx.GetContext(ctx, &notification, query, typeFilter, triggerEntityID)
+		err = tx.GetContext(ctx, &notification, query, typeFilter, triggerEntityID, userId)
 	} else {
-		err = r.db.GetContext(ctx, &notification, query, typeFilter, triggerEntityID)
+		err = r.db.GetContext(ctx, &notification, query, typeFilter, triggerEntityID, userId)
 	}
 
 	if err != nil {
