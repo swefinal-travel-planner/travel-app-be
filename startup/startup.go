@@ -1,7 +1,10 @@
 package startup
 
 import (
+	"os"
+
 	"github.com/gammazero/workerpool"
+	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
@@ -22,6 +25,9 @@ func registerDependencies() *controller.ApiContainer {
 }
 
 func Execute() {
+	// Configure logrus
+	log.SetOutput(os.Stdout)
+
 	container := registerDependencies()
 
 	wp := workerpool.New(2)
