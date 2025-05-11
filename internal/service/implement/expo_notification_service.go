@@ -10,7 +10,6 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type ExpoNotificationService struct {
@@ -85,26 +84,21 @@ func (n *ExpoNotificationService) GeneratePushNotification(pushToken expo.Expone
 	}
 }
 
-func (n *ExpoNotificationService) SendNotification(ctx *gin.Context, notification entity.Notification) string {
+func (n *ExpoNotificationService) SendNotification(ctx *gin.Context, notification entity.Notification) {
 	notificationToken, err := n.userRepository.GetNotificationTokenByIDQuery(ctx, notification.UserID, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return ""
-		}
 		log.Error("ExpoNotificationService.SendNotification err: ", err)
-		return err.Error()
 	}
 
-	pushToken, err := expo.NewExponentPushToken(notificationToken)
-	if err != nil {
-		log.Error("ExpoNotificationService.SendNotification NewExponentPushToken err: ", err)
-		return err.Error()
+	if notificationToken != nil {
+		pushToken, err := expo.NewExponentPushToken(*notificationToken)
+		if err != nil {
+			log.Error("ExpoNotificationService.SendNotification NewExponentPushToken err: ", err)
+		}
+
+		pushNotification := n.GeneratePushNotification(pushToken, notification)
+		n.expoClient.Publish(pushNotification)
 	}
-
-	pushNotification := n.GeneratePushNotification(pushToken, notification)
-	n.expoClient.Publish(pushNotification)
-
-	return ""
 }
 
 func (n *ExpoNotificationService) SaveAndSendNotification(ctx *gin.Context, notification model.SaveNotificationRequest) string {
@@ -131,8 +125,8 @@ func (n *ExpoNotificationService) SaveAndSendNotification(ctx *gin.Context, noti
 		log.Error("ExpoNotificationService.SaveAndSendNotification err: ", err)
 		return err.Error()
 	}
-
-	return n.SendNotification(ctx, notificationEntity)
+	n.SendNotification(ctx, notificationEntity)
+	return ""
 }
 
 func (n *ExpoNotificationService) GetAllNotification(ctx *gin.Context, userID int64, filters model.GetAllNotificationFilters) ([]model.NotificationResponse, string) {
@@ -175,16 +169,16 @@ func (n *ExpoNotificationService) SeenNotification(ctx *gin.Context, userID int6
 	return ""
 }
 
-func (n *ExpoNotificationService) DeleteNotificationWithTypeAndTriggerEntityID(ctx *gin.Context, typeFilter string, triggerEntityID int64) string {
-	notification, err := n.notificationRepository.GetOneByTypeAndTriggerEntityIDQuery(ctx, typeFilter, triggerEntityID, nil)
+func (n *ExpoNotificationService) DeleteFriendInvitation(ctx *gin.Context, userId int64, typeFilter string, triggerEntityID int64) string {
+	notification, err := n.notificationRepository.GetOneByUserIdAndTypeAndTriggerEntityIDQuery(ctx, userId, typeFilter, triggerEntityID, nil)
 	if err != nil {
-		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		log.Error("ExpoNotificationService.DeleteFriendInvitation err: ", err)
 		return err.Error()
 	}
 
 	err = n.notificationRepository.DeleteNotificationCommand(ctx, notification.ID, nil)
 	if err != nil {
-		log.Error("ExpoNotificationService.DeleteNotificationWithTypeAndTriggerEntityID err: ", err)
+		log.Error("ExpoNotificationService.DeleteFriendInvitation err: ", err)
 		return err.Error()
 	}
 

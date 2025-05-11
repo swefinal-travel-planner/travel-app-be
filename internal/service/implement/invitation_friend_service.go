@@ -190,7 +190,7 @@ func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invit
 		ReferenceEntityID:   &invitationId,
 	})
 
-	service.notificationService.DeleteNotificationWithTypeAndTriggerEntityID(ctx, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
 
 	return errCode
 }
@@ -222,7 +222,7 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
-	service.notificationService.DeleteNotificationWithTypeAndTriggerEntityID(ctx, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
 
 	return ""
 }
@@ -268,7 +268,7 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
-	service.notificationService.DeleteNotificationWithTypeAndTriggerEntityID(ctx, entity.NotificationType.FriendRequestReceived, invitation.ReceiverID)
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
 
 	return ""
 }

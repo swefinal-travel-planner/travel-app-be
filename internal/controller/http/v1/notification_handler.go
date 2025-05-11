@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
+	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -55,7 +58,7 @@ func (handler *NotificationHandler) TestNotification(ctx *gin.Context) {
 // @Success 200 {object} httpcommon.HttpResponse[[]model.NotificationResponse]
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *NotificationHandler) GetAllNotification(ctx *gin.Context) {
-	userID := ctx.GetInt64("userID")
+	userID := middleware.GetUserIdHelper(ctx)
 
 	notifications, errCode := handler.notificationService.GetAllNotification(ctx, userID, model.GetAllNotificationFilters{
 		Type: ctx.Query("type"),
@@ -67,7 +70,7 @@ func (handler *NotificationHandler) GetAllNotification(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, notifications)
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.NotificationResponse](&notifications))
 }
 
 // @Summary Seen Notification Route
@@ -80,7 +83,7 @@ func (handler *NotificationHandler) GetAllNotification(ctx *gin.Context) {
 // @Success 204 "No Content"
 // @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *NotificationHandler) SeenNotification(ctx *gin.Context) {
-	userID := ctx.GetInt64("userID")
+	userID := middleware.GetUserIdHelper(ctx)
 	notificationID := ctx.Param("id")
 
 	notificationIDInt, err := strconv.ParseInt(notificationID, 10, 64)
