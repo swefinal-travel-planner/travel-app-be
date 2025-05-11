@@ -55,6 +55,7 @@ var repositorySet = wire.NewSet(
 	repositoryimplement.NewTripItemRepository,
 	repositoryimplement.NewTripMemberRepository,
 	repositoryimplement.NewUnitOfWork,
+	repositoryimplement.NewNotificationRepository,
 )
 
 var middlewareSet = wire.NewSet(
