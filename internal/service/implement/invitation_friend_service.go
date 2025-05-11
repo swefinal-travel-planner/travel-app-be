@@ -268,7 +268,7 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
-	service.notificationService.DeleteNotificationWithTypeAndTriggerEntityID(ctx, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
+	service.notificationService.DeleteNotificationWithTypeAndTriggerEntityID(ctx, entity.NotificationType.FriendRequestReceived, invitation.ReceiverID)
 
 	return ""
 }
