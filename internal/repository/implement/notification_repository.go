@@ -31,7 +31,7 @@ func (r *notificationRepository) CreateCommand(ctx context.Context, notification
 			trigger_entity_name,
 			trigger_entity_id,
 			reference_entity_type,
-			reference_entity_id,
+			reference_entity_id
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
