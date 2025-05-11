@@ -3,6 +3,7 @@ package repositoryimplement
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	myDatabase "github.com/swefinal-travel-planner/travel-app-be/internal/database"
 
@@ -88,7 +89,7 @@ func (r *notificationRepository) GetAllByUserIDQuery(ctx context.Context, userID
 
 	var err error
 	if typeFilter != "" {
-		query += " AND type IN (?)"
+		query += " AND type IN ('" + strings.Replace(typeFilter, ",", "','", -1) + "')"
 	}
 
 	if tx != nil {
