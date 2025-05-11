@@ -9,7 +9,7 @@ import (
 
 type NotificationService interface {
 	SendTestNotification(ctx *gin.Context, testNotificationRequest model.TestNotification) string
-	SendNotification(ctx *gin.Context, notification entity.Notification) string
+	SendNotification(ctx *gin.Context, notification entity.Notification)
 	SaveAndSendNotification(ctx *gin.Context, notification model.SaveNotificationRequest) string
 	GeneratePushNotification(pushToken expo.ExponentPushToken, notification entity.Notification) *expo.PushMessage
 	GetAllNotification(ctx *gin.Context, userID int64, filters model.GetAllNotificationFilters) ([]model.NotificationResponse, string)
