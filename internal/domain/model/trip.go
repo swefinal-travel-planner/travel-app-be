@@ -54,3 +54,21 @@ type TripResponse struct {
 type CreateTripResponse struct {
 	ID int64 `json:"id"`
 }
+
+type TripPatchRequest struct {
+	Title                 *string                        `json:"title,omitempty"`
+	City                  *string                        `json:"city,omitempty"`
+	StartDate             *time.Time                     `json:"startDate,omitempty"`
+	Days                  *int                           `json:"days,omitempty"`
+	Budget                *float64                       `json:"budget,omitempty"`
+	NumMembers            *int                           `json:"numMembers,omitempty"`
+	ViLocationAttributes  *stringlistutils.SqlListString `json:"viLocationAttributes,omitempty"`
+	ViFoodAttributes      *stringlistutils.SqlListString `json:"viFoodAttributes,omitempty"`
+	ViSpecialRequirements *stringlistutils.SqlListString `json:"viSpecialRequirements,omitempty"`
+	ViMedicalConditions   *stringlistutils.SqlListString `json:"viMedicalConditions,omitempty"`
+	EnLocationAttributes  *stringlistutils.SqlListString `json:"enLocationAttributes,omitempty"`
+	EnFoodAttributes      *stringlistutils.SqlListString `json:"enFoodAttributes,omitempty"`
+	EnSpecialRequirements *stringlistutils.SqlListString `json:"enSpecialRequirements,omitempty"`
+	EnMedicalConditions   *stringlistutils.SqlListString `json:"enMedicalConditions,omitempty"`
+	Status                *string                        `json:"status,omitempty"`
+}

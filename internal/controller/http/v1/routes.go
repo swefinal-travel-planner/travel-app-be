@@ -68,6 +68,7 @@ func MapRoutes(router *gin.Engine,
 			trip.POST("", authMiddleware.VerifyAccessToken, tripHandler.CreateTripManually)
 			trip.GET("", authMiddleware.VerifyAccessToken, tripHandler.GetAllTrips)
 			trip.GET("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.GetTrip)
+			trip.PATCH("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.UpdateTrip)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
 		}

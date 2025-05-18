@@ -133,3 +133,34 @@ func (repo *TripRepository) SelectForShareById(ctx context.Context, id int64, tx
 	err := tx.GetContext(ctx, &trip, query, id)
 	return &trip, err
 }
+
+func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip, tx *sqlx.Tx) error {
+	updateQuery := `
+		UPDATE trips SET
+			title = :title,
+			city = :city,
+			start_date = :start_date,
+			days = :days,
+			budget = :budget,
+			num_members = :num_members,
+			vi_location_attributes = :vi_location_attributes,
+			vi_food_attributes = :vi_food_attributes,
+			vi_special_requirements = :vi_special_requirements,
+			vi_medical_conditions = :vi_medical_conditions,
+			en_location_attributes = :en_location_attributes,
+			en_food_attributes = :en_food_attributes,
+			en_special_requirements = :en_special_requirements,
+			en_medical_conditions = :en_medical_conditions,
+			status = :status,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = :id
+	`
+
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, updateQuery, trip)
+		return err
+	}
+
+	_, err := repo.db.NamedExecContext(ctx, updateQuery, trip)
+	return err
+}
