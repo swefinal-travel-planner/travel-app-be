@@ -73,3 +73,13 @@ func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail
 	}
 	return friendResponse, ""
 }
+
+func (service *UserService) UpdateNotificationToken(ctx *gin.Context, userId int64, notificationTokenRequest model.UpdateNotificationTokenRequest) string {
+	err := service.userRepository.UpdateNotificationTokenCommand(ctx, userId, notificationTokenRequest.NotificationToken, nil)
+	if err != nil {
+		log.Error("UserService.UpdateNotificationToken Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	return ""
+}

@@ -31,7 +31,9 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	invitationFriendRepository := repositoryimplement.NewInvitationFriendRepository(db)
 	friendRepository := repositoryimplement.NewFriendRepository(db)
 	invitationCooldownRepository := repositoryimplement.NewInvitationCooldownRepository(db)
-	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository, friendRepository, invitationCooldownRepository)
+	notificationRepository := repositoryimplement.NewNotificationRepository(db)
+	notificationService := serviceimplement.NewExpoNotificationService(notificationRepository, userRepository)
+	invitationFriendService := serviceimplement.NewInvitationFriendService(invitationFriendRepository, userRepository, friendRepository, invitationCooldownRepository, notificationService)
 	invitationFriendHandler := v1.NewInvitationFriendHandler(invitationFriendService)
 	friendService := serviceimplement.NewFriendService(friendRepository, userRepository)
 	friendHandler := v1.NewFriendHandler(friendService)
@@ -39,7 +41,6 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	userHandler := v1.NewUserHandler(userService)
 	authMiddleware := middleware.NewAuthMiddleware(authService, authenticationRepository, userRepository)
 	healthHandler := v1.NewHealthHandler(db, redisClient)
-	notificationService := serviceimplement.NewExpoNotificationService()
 	notificationHandler := v1.NewNotificationHandler(notificationService)
 	tripRepository := repositoryimplement.NewTripRepository(db)
 	unitOfWork := repositoryimplement.NewUnitOfWork(db)
@@ -65,7 +66,7 @@ var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v
 
 var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService, serviceimplement.NewExpoNotificationService, serviceimplement.NewTripService, serviceimplement.NewTripItemService)
 
-var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository, repositoryimplement.NewTripRepository, repositoryimplement.NewTripItemRepository, repositoryimplement.NewTripMemberRepository, repositoryimplement.NewUnitOfWork)
+var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository, repositoryimplement.NewTripRepository, repositoryimplement.NewTripItemRepository, repositoryimplement.NewTripMemberRepository, repositoryimplement.NewUnitOfWork, repositoryimplement.NewNotificationRepository)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 

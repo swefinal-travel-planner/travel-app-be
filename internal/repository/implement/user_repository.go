@@ -70,3 +70,24 @@ func (repo *UserRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *s
 	err := repo.db.QueryRowxContext(ctx, query, id).StructScan(&customer)
 	return &customer, err
 }
+
+func (repo *UserRepository) UpdateNotificationTokenCommand(ctx context.Context, id int64, token string, tx *sqlx.Tx) error {
+	query := "UPDATE users SET notification_token = ? WHERE id = ?"
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, token, id)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, query, token, id)
+	return err
+}
+
+func (repo *UserRepository) GetNotificationTokenByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*string, error) {
+	var user entity.User
+	query := "SELECT notification_token FROM users WHERE id = ? AND users.deleted_at IS NULL"
+	if tx != nil {
+		err := tx.GetContext(ctx, &user, query, id)
+		return user.NotificationToken, err
+	}
+	err := repo.db.GetContext(ctx, &user, query, id)
+	return user.NotificationToken, err
+}

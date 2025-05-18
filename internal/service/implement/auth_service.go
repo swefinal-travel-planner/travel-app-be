@@ -259,6 +259,8 @@ func (service *AuthService) SendOTPToEmailForRegister(ctx *gin.Context, sendOTPR
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
+	log.Info("AuthService.SendOTPToEmailForRegister OTP is: " + otp)
+
 	return ""
 }
 
@@ -312,6 +314,8 @@ func (service *AuthService) SendOTPToEmailForResetPassword(ctx *gin.Context, sen
 		log.Error("AuthService.SendOTPToEmailForResetPassword Error when send email: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
+
+	log.Info("AuthService.SendOTPToEmailForResetPassword OTP is: " + otp)
 
 	return ""
 }

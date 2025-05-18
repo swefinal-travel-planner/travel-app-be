@@ -19,6 +19,7 @@ type InvitationFriendService struct {
 	userRepository               repository.UserRepository
 	friendRepository             repository.FriendRepository
 	invitationCooldownRepository repository.InvitationCooldownRepository
+	notificationService          service.NotificationService
 }
 
 func NewInvitationFriendService(
@@ -26,12 +27,14 @@ func NewInvitationFriendService(
 	userRepository repository.UserRepository,
 	friendRepository repository.FriendRepository,
 	invitationCooldownRepository repository.InvitationCooldownRepository,
+	notificationService service.NotificationService,
 ) service.InvitationFriendService {
 	return &InvitationFriendService{
 		invitationFriendRepository:   invitationFriendRepository,
 		userRepository:               userRepository,
 		friendRepository:             friendRepository,
 		invitationCooldownRepository: invitationCooldownRepository,
+		notificationService:          notificationService,
 	}
 }
 
@@ -64,15 +67,28 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 		return error_utils.ErrorCode.ADD_FRIEND_ALREADY_FRIEND
 	}
 
-	err = service.invitationFriendRepository.CreateCommand(ctx, &entity.InvitationFriend{
+	invitationEntity := entity.InvitationFriend{
 		SenderID:   userId,
 		ReceiverID: friend.Id,
-	}, nil)
+	}
+
+	err = service.invitationFriendRepository.CreateCommand(ctx, &invitationEntity, nil)
+
 	if err != nil {
 		log.Error("InvitationFriendService.AddFriend CreateCommand error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
-	return ""
+
+	errCode := service.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+		Type:                entity.NotificationType.FriendRequestReceived,
+		ReceiverUserID:      friend.Id,
+		TriggerEntityType:   entity.NotificationTriggerType.User,
+		TriggerEntityID:     &userId,
+		ReferenceEntityType: entity.NotificationReferenceType.FriendInvitation,
+		ReferenceEntityID:   &invitationEntity.ID,
+	})
+
+	return errCode
 }
 
 // PROBLEM: N+1
@@ -163,7 +179,20 @@ func (service *InvitationFriendService) AcceptInvitation(ctx *gin.Context, invit
 		log.Error("InvitationFriendService.AcceptInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
-	return ""
+
+	// PROBLEM: NOT SAFE TRANSACTION
+	service.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+		Type:                entity.NotificationType.FriendRequestAccepted,
+		ReceiverUserID:      invitation.SenderID,
+		TriggerEntityType:   entity.NotificationTriggerType.User,
+		TriggerEntityID:     &userId,
+		ReferenceEntityType: entity.NotificationReferenceType.FriendInvitation,
+		ReferenceEntityID:   &invitationId,
+	})
+
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
+
+	return errCode
 }
 
 func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitationId int64, userId int64) string {
@@ -192,6 +221,9 @@ func (service *InvitationFriendService) DenyInvitation(ctx *gin.Context, invitat
 		log.Error("InvitationFriendService.DenyInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
+
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
+
 	return ""
 }
 
@@ -226,7 +258,7 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 
 	// Check if the current user is the sender
 	if userId != invitation.SenderID {
-		return error_utils.ErrorCode.FRIEND_INVITATION_ONLY_SENDER_CAN_WITHDRAW
+		return error_utils.ErrorCode.FORBIDDEN
 	}
 
 	// Delete the invitation
@@ -235,6 +267,8 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 		log.Error("InvitationFriendService.WithdrawInvitation delete invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
+
+	service.notificationService.DeleteFriendInvitation(ctx, invitation.ReceiverID, entity.NotificationType.FriendRequestReceived, invitation.SenderID)
 
 	return ""
 }
