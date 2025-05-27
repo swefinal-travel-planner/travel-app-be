@@ -27,12 +27,13 @@ func NewFriendService(
 func (service *FriendService) GetAllFriends(ctx *gin.Context, userId int64) ([]model.FriendResponse, string) {
 	friends, err := service.friendRepository.GetByUserIdQuery(ctx, userId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return nil, ""
-		}
 		log.Error("FriendService.GetAllFriends error when get user:", err.Error())
 		return nil, error_utils.ErrorCode.DB_DOWN
 	}
+	if len(friends) == 0 {
+		return nil, ""
+	}
+
 	var friendResponses []model.FriendResponse
 	for _, friend := range friends {
 		friendResponses = append(friendResponses, model.FriendResponse{

@@ -8,6 +8,7 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type InvitationFriendRepository struct {
@@ -86,9 +87,23 @@ func (repo *InvitationFriendRepository) GetOneByIDQuery(ctx context.Context, id 
 	query := "SELECT * FROM invitation_friends WHERE id = ?"
 	if tx != nil {
 		err := tx.GetContext(ctx, &invitationFriend, query, id)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
 		return &invitationFriend, err
 	}
 	err := repo.db.GetContext(ctx, &invitationFriend, query, id)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 	return &invitationFriend, err
 }
 
