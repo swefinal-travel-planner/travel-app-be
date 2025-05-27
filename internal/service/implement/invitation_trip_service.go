@@ -35,6 +35,9 @@ func NewInvitationTripService(
 }
 
 func (s *InvitationTripService) SendInvitation(ctx *gin.Context, invitation model.InvitationTripRequest, senderId int64) string {
+	if senderId == invitation.ReceiverID {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
 	// Start transaction
 	tx, err := s.unitOfWork.Begin(ctx)
 	if err != nil {
@@ -51,6 +54,15 @@ func (s *InvitationTripService) SendInvitation(ctx *gin.Context, invitation mode
 	}
 	if !isMember {
 		return error_utils.ErrorCode.FORBIDDEN
+	}
+
+	isAlreadyInTrip, err := s.tripMemberRepo.IsUserInTripQuery(ctx, invitation.TripID, invitation.ReceiverID, tx)
+	if err != nil {
+		log.Error("InvitationTripService.SendInvitation IsUserInTripQuery error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if isAlreadyInTrip {
+		return error_utils.ErrorCode.TRIP_INVITATION_RECEIVER_ALREADY_MEMBER
 	}
 
 	// Lock the trip for update
@@ -95,11 +107,11 @@ func (s *InvitationTripService) SendInvitation(ctx *gin.Context, invitation mode
 	}
 
 	errCode := s.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
-		Type:                entity.NotificationType.FriendRequestReceived,
+		Type:                entity.NotificationType.TripInvitationReceived,
 		ReceiverUserID:      invitation.ReceiverID,
 		TriggerEntityType:   entity.NotificationTriggerType.User,
 		TriggerEntityID:     &senderId,
-		ReferenceEntityType: entity.NotificationReferenceType.FriendInvitation,
+		ReferenceEntityType: entity.NotificationReferenceType.TripInvitation,
 		ReferenceEntityID:   &newInvitation.ID,
 	})
 
@@ -197,6 +209,7 @@ func (s *InvitationTripService) AcceptInvitation(ctx *gin.Context, invitationId 
 	tripMember := &entity.TripMember{
 		TripID: invitation.TripID,
 		UserID: userId,
+		Role:   entity.TripRole.NormalUser,
 	}
 	err = s.tripMemberRepo.CreateCommand(ctx, tripMember, tx)
 	if err != nil {
@@ -210,6 +223,8 @@ func (s *InvitationTripService) AcceptInvitation(ctx *gin.Context, invitationId 
 		log.Error("InvitationTripService.AcceptInvitation Commit error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
+
+	s.notificationService.DeleteTripInvitation(ctx, invitation.ReceiverID, invitationId, invitation.SenderID)
 
 	return ""
 }
@@ -257,6 +272,8 @@ func (s *InvitationTripService) DenyInvitation(ctx *gin.Context, invitationId in
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
+	s.notificationService.DeleteTripInvitation(ctx, invitation.ReceiverID, invitationId, invitation.SenderID)
+
 	return ""
 }
 
@@ -302,6 +319,8 @@ func (s *InvitationTripService) WithdrawInvitation(ctx *gin.Context, invitationI
 		log.Error("InvitationTripService.WithdrawInvitation Commit error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
+
+	s.notificationService.DeleteTripInvitation(ctx, invitation.ReceiverID, invitationId, invitation.SenderID)
 
 	return ""
 }

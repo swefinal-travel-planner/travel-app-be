@@ -225,6 +225,13 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Field:   field,
 			Code:    ErrorCode.TRIP_INVITATION_ALREADY_EXISTS,
 		})
+	case ErrorCode.TRIP_INVITATION_RECEIVER_ALREADY_MEMBER:
+		statusCode = http.StatusConflict
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "This user is already a member of the trip",
+			Field:   field,
+			Code:    ErrorCode.TRIP_INVITATION_RECEIVER_ALREADY_MEMBER,
+		})
 	default:
 		statusCode = http.StatusInternalServerError
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{

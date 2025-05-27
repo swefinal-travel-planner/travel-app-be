@@ -53,9 +53,10 @@ type errorCode struct {
 	TRIP_NOT_FOUND                             string
 	FORBIDDEN                                  string
 
-	TRIP_INVITATION_ALREADY_EXISTS string
-	INTERNAL_SERVER_ERROR          string
-	BAD_REQUEST                    string
+	TRIP_INVITATION_ALREADY_EXISTS          string
+	TRIP_INVITATION_RECEIVER_ALREADY_MEMBER string
+	INTERNAL_SERVER_ERROR                   string
+	BAD_REQUEST                             string
 }
 
 var ErrorCode = errorCode{
@@ -87,7 +88,8 @@ var ErrorCode = errorCode{
 	TRIP_NOT_FOUND:                             "TRIP_NOT_FOUND",
 	FORBIDDEN:                                  "FORBIDDEN",
 
-	TRIP_INVITATION_ALREADY_EXISTS: "TRIP_INVITATION_ALREADY_EXISTS",
-	INTERNAL_SERVER_ERROR:          "INTERNAL_SERVER_ERROR",
-	BAD_REQUEST:                    "BAD_REQUEST",
+	TRIP_INVITATION_ALREADY_EXISTS:          "TRIP_INVITATION_ALREADY_EXISTS",
+	TRIP_INVITATION_RECEIVER_ALREADY_MEMBER: "TRIP_INVITATION_RECEIVER_ALREADY_MEMBER",
+	INTERNAL_SERVER_ERROR:                   "INTERNAL_SERVER_ERROR",
+	BAD_REQUEST:                             "BAD_REQUEST",
 }
