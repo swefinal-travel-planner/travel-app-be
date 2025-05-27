@@ -218,6 +218,13 @@ func ErrorCodeToHttpResponse(errCode string, field string) (statusCode int, http
 			Field:   field,
 			Code:    ErrorCode.FORBIDDEN,
 		})
+	case ErrorCode.TRIP_INVITATION_ALREADY_EXISTS:
+		statusCode = http.StatusConflict
+		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{
+			Message: "The invitation to this trip already exists",
+			Field:   field,
+			Code:    ErrorCode.TRIP_INVITATION_ALREADY_EXISTS,
+		})
 	default:
 		statusCode = http.StatusInternalServerError
 		httpErrResponse = httpcommon.NewErrorResponse(httpcommon.Error{

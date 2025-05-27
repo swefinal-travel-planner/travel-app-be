@@ -16,6 +16,7 @@ func MapRoutes(router *gin.Engine,
 	healHandler *HealthHandler,
 	notificationHandler *NotificationHandler,
 	tripHandler *TripHandler,
+	invitationTripHandler *InvitationTripHandler,
 ) {
 	v1 := router.Group("/api/v1")
 	{
@@ -71,6 +72,10 @@ func MapRoutes(router *gin.Engine,
 			trip.PATCH("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.UpdateTrip)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
+		}
+		tripInvitation := v1.Group("/invitation-trips")
+		{
+			tripInvitation.POST("", authMiddleware.VerifyAccessToken, invitationTripHandler.SendInvitation)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
