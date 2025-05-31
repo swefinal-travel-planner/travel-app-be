@@ -67,7 +67,7 @@ func (h *InvitationTripHandler) SendInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/{invitationId}/accept [put]
+// @Router /api/v1/trip-invitations/accept/{invitationId} [put]
 func (h *InvitationTripHandler) AcceptInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("invitationId"), 10, 64)
 	if err != nil {
@@ -100,7 +100,7 @@ func (h *InvitationTripHandler) AcceptInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/{invitationId}/deny [put]
+// @Router /api/v1/trip-invitations/deny/{invitationId} [put]
 func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("invitationId"), 10, 64)
 	if err != nil {
@@ -120,7 +120,7 @@ func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 	ctx.AbortWithStatus(http.StatusNoContent)
 }
 
-// @Summary Withdraw trip invitation
+// @Summary Withdraw trip invitation (DISABLED)
 // @Description Withdraw a sent trip invitation
 // @Tags invitation-trips
 // @Accept json
@@ -133,7 +133,7 @@ func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/{invitationId}/withdraw [delete]
+// @Router /api/v1/trip-invitations/withdraw/{invitationId} [delete]
 func (h *InvitationTripHandler) WithdrawInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
