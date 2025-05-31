@@ -15,4 +15,5 @@ type TripRepository interface {
 	GetOneWithUserRoleByIDQuery(ctx context.Context, tripId int64, userId int64, tx *sqlx.Tx) (*entity.TripWithRole, error)
 	SelectForUpdateById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 	SelectForShareById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
+	UpdateCommand(ctx context.Context, trip *entity.Trip, tx *sqlx.Tx) error
 }

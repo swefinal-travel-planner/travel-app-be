@@ -13,4 +13,5 @@ type NotificationRepository interface {
 	SeenNotificationCommand(ctx context.Context, userID int64, notificationID int64, tx *sqlx.Tx) error
 	GetOneByUserIdAndTypeAndTriggerEntityIDQuery(ctx context.Context, userId int64, typeFilter string, triggerEntityID int64, tx *sqlx.Tx) (*entity.Notification, error)
 	DeleteNotificationCommand(ctx context.Context, notificationID int64, tx *sqlx.Tx) error
+	DeleteTripNotificationCommand(ctx context.Context, receiverId, sender, tripId int64, tx *sqlx.Tx) error
 }
