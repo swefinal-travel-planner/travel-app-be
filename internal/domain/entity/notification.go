@@ -19,21 +19,25 @@ type Notification struct {
 }
 
 type notificationType struct {
-	FriendRequestReceived string
-	FriendRequestAccepted string
+	FriendRequestReceived  string
+	FriendRequestAccepted  string
+	TripInvitationReceived string
 }
 
 var NotificationType = notificationType{
-	FriendRequestReceived: "friendRequestReceived",
-	FriendRequestAccepted: "friendRequestAccepted",
+	FriendRequestReceived:  "friendRequestReceived",
+	FriendRequestAccepted:  "friendRequestAccepted",
+	TripInvitationReceived: "tripInvitationReceived",
 }
 
 type notificationReferenceType struct {
 	FriendInvitation string
+	TripInvitation   string
 }
 
 var NotificationReferenceType = notificationReferenceType{
 	FriendInvitation: "friendInvitation",
+	TripInvitation:   "tripInvitation",
 }
 
 type notificationTriggerType struct {

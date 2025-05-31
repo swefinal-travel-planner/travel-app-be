@@ -33,3 +33,15 @@ type TripWithRole struct {
 	Trip
 	Role string `json:"role" db:"role"`
 }
+
+type tripRole struct {
+	Administrator string
+	Staff         string
+	NormalUser    string
+}
+
+var TripRole = tripRole{
+	Administrator: "administrator",
+	Staff:         "staff",
+	NormalUser:    "normal_user",
+}

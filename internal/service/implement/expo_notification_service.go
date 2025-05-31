@@ -184,3 +184,13 @@ func (n *ExpoNotificationService) DeleteFriendInvitation(ctx *gin.Context, userI
 
 	return ""
 }
+
+func (n *ExpoNotificationService) DeleteTripInvitation(ctx *gin.Context, userId int64, tripId int64, triggerEntityID int64) string {
+	err := n.notificationRepository.DeleteTripNotificationCommand(ctx, userId, triggerEntityID, tripId, nil)
+	if err != nil {
+		log.Error("ExpoNotificationService.DeleteFriendInvitation err: ", err)
+		return err.Error()
+	}
+
+	return ""
+}
