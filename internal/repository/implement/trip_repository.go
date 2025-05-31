@@ -9,6 +9,7 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type TripRepository struct {
@@ -61,9 +62,23 @@ func (repo *TripRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *s
 	query := "SELECT * FROM trips WHERE id = ?"
 	if tx != nil {
 		err := tx.GetContext(ctx, &trip, query, id)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
 		return &trip, err
 	}
 	err := repo.db.GetContext(ctx, &trip, query, id)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 	return &trip, err
 }
 
@@ -74,6 +89,13 @@ func (repo *TripRepository) SelectForUpdateById(ctx context.Context, id int64, t
 		return nil, errors.New("must use transactions")
 	}
 	err := tx.GetContext(ctx, &trip, query, id)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 	return &trip, err
 }
 
@@ -118,9 +140,23 @@ func (repo *TripRepository) GetOneWithUserRoleByIDQuery(ctx context.Context, tri
 	`
 	if tx != nil {
 		err := tx.GetContext(ctx, &trip, query, tripId, userId)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
 		return &trip, err
 	}
 	err := repo.db.GetContext(ctx, &trip, query, tripId, userId)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 	return &trip, err
 }
 

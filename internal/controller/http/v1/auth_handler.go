@@ -205,13 +205,13 @@ func (handler *AuthHandler) VerifyOTPForResetPassword(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
-// @Summary Set Password
+// @Summary Reset Password
 // @Description Set a new password after OTP verification
 // @Tags Auths
 // @Accept json
 // @Param request body model.SetPasswordRequest true "Set Password payload"
 // @Produce json
-// @Router /auth/forgot-password [post]
+// @Router /auth/reset-password [post]
 // @Success 204 "No Content"
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 500 {object} httpcommon.HttpResponse[any]

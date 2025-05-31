@@ -41,11 +41,11 @@ func NewInvitationFriendService(
 func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation model.InvitationFriendRequest, userId int64) string {
 	friend, err := service.userRepository.GetOneByEmailQuery(ctx, invitation.ReceiverEmail, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
-		}
 		log.Error("InvitationFriendService.AddFriend GetOneByEmailQuery error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
+	}
+	if friend == nil {
+		return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
 	}
 	if userId == friend.Id {
 		return error_utils.ErrorCode.ADD_FRIEND_RECEIVER_NOT_FOUND
@@ -95,12 +95,13 @@ func (service *InvitationFriendService) AddFriend(ctx *gin.Context, invitation m
 func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendReceivedResponse, string) {
 	invitations, err := service.invitationFriendRepository.GetByReceiverIdQuery(ctx, userId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return make([]model.InvitationFriendReceivedResponse, 0), ""
-		}
 		log.Error("InvitationFriendService.GetAllReceivedInvitations GetByReceiverIdQuery error: " + err.Error())
 		return nil, error_utils.ErrorCode.DB_DOWN
 	}
+	if len(invitations) == 0 {
+		return make([]model.InvitationFriendReceivedResponse, 0), ""
+	}
+
 	var invitationResponses []model.InvitationFriendReceivedResponse
 	for _, invitation := range invitations {
 		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID, nil)
@@ -121,12 +122,13 @@ func (service *InvitationFriendService) GetAllReceivedInvitations(ctx *gin.Conte
 func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Context, userId int64) ([]model.InvitationFriendRequestedResponse, string) {
 	invitations, err := service.invitationFriendRepository.GetBySenderIdQuery(ctx, userId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return make([]model.InvitationFriendRequestedResponse, 0), ""
-		}
 		log.Error("InvitationFriendService.GetAllRequestedInvitations GetBySenderIdQuery error: ", err.Error())
 		return nil, error_utils.ErrorCode.DB_DOWN
 	}
+	if len(invitations) == 0 {
+		return make([]model.InvitationFriendRequestedResponse, 0), ""
+	}
+
 	var invitationResponses []model.InvitationFriendRequestedResponse
 	for _, invitation := range invitations {
 		user, err := service.userRepository.GetOneByIDQuery(ctx, invitation.SenderID, nil)
@@ -146,11 +148,11 @@ func (service *InvitationFriendService) GetAllRequestedInvitations(ctx *gin.Cont
 func (service *InvitationFriendService) validateInvitation(ctx *gin.Context, invitationId int64, userId int64) (*entity.InvitationFriend, string) {
 	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return nil, error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
-		}
 		log.Error("InvitationFriendService.validateInvitation GetOneByIDQuery error: " + err.Error())
 		return nil, error_utils.ErrorCode.DB_DOWN
+	}
+	if invitation == nil {
+		return nil, error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
 	}
 	if userId == invitation.SenderID {
 		return nil, error_utils.ErrorCode.FRIEND_INVITATION_CANNOT_ACCEPT_AS_SENDER
@@ -249,11 +251,11 @@ func (service *InvitationFriendService) WithdrawInvitation(ctx *gin.Context, inv
 	// Get the invitation
 	invitation, err := service.invitationFriendRepository.GetOneByIDQuery(ctx, invitationId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
-		}
 		log.Error("InvitationFriendService.WithdrawInvitation get invitation error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
+	}
+	if invitation == nil {
+		return error_utils.ErrorCode.FRIEND_INVITATION_NOT_FOUND
 	}
 
 	// Check if the current user is the sender

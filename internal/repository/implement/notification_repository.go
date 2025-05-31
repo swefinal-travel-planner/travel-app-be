@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	myDatabase "github.com/swefinal-travel-planner/travel-app-be/internal/database"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
@@ -130,15 +131,24 @@ func (r *notificationRepository) GetOneByUserIdAndTypeAndTriggerEntityIDQuery(ct
 	var err error
 	if tx != nil {
 		err = tx.GetContext(ctx, &notification, query, typeFilter, triggerEntityID, userId)
-	} else {
-		err = r.db.GetContext(ctx, &notification, query, typeFilter, triggerEntityID, userId)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
+		return &notification, err
 	}
-
+	err = r.db.GetContext(ctx, &notification, query, typeFilter, triggerEntityID, userId)
 	if err != nil {
-		return nil, err
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
 	}
-
-	return &notification, nil
+	return &notification, err
 }
 
 func (r *notificationRepository) DeleteNotificationCommand(ctx context.Context, notificationID int64, tx *sqlx.Tx) error {
