@@ -21,15 +21,19 @@ type TripRequest struct {
 	EnFoodAttributes      stringlistutils.SqlListString `json:"enFoodAttributes"`
 	EnSpecialRequirements stringlistutils.SqlListString `json:"enSpecialRequirements"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
+	LocationsPerDay       int                           `json:"locationsPerDay" binding:"required,min=1"`
+	LocationPreference    string                        `json:"locationPreference"`
 }
 
 type TripToCoreRequest struct {
 	City                string                        `json:"city" binding:"required"`
 	Days                int                           `json:"days" binding:"required,min=1"`
-	LocationAttributes  stringlistutils.SqlListString `json:"locationAttributes"`
-	FoodAttributes      stringlistutils.SqlListString `json:"foodAttributes"`
-	SpecialRequirements stringlistutils.SqlListString `json:"specialRequirements"`
-	MedicalConditions   stringlistutils.SqlListString `json:"medicalConditions"`
+	LocationAttributes  stringlistutils.SqlListString `json:"location_attributes"`
+	FoodAttributes      stringlistutils.SqlListString `json:"food_attributes"`
+	SpecialRequirements stringlistutils.SqlListString `json:"special_requirements"`
+	MedicalConditions   stringlistutils.SqlListString `json:"medical_conditions"`
+	LocationsPerDay     int                           `json:"locationsPerDay" binding:"required,min=1"`
+	LocationPreference  string                        `json:"locationPreference"`
 }
 
 type TripResponse struct {
@@ -71,4 +75,19 @@ type TripPatchRequest struct {
 	EnSpecialRequirements *stringlistutils.SqlListString `json:"enSpecialRequirements,omitempty"`
 	EnMedicalConditions   *stringlistutils.SqlListString `json:"enMedicalConditions,omitempty"`
 	Status                *string                        `json:"status,omitempty"`
+}
+
+type TokenRequest struct {
+	SecretKey string `json:"secret_key"`
+}
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
+type TripAIResponseWrapper struct {
+	Data struct {
+		ReferenceID string                   `json:"reference_id"`
+		TripItems   []TripItemFromAIResponse `json:"trip_items"`
+	} `json:"data"`
+	Status int `json:"status"`
 }

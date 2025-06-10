@@ -15,3 +15,11 @@ type TripItemResponse struct {
 	OrderInDay int64  `json:"orderInDay"`
 	TimeInDate string `json:"timeInDate"`
 }
+
+type TripItemFromAIResponse struct {
+	TripID     int64  `json:"trip_id"`
+	TripDay    int64  `json:"trip_day"`
+	OrderInDay int64  `json:"order_in_day"`
+	TimeInDay  string `json:"time_in_day"`
+	PlaceID    string `json:"place_id"`
+}
