@@ -1,0 +1,1 @@
+ALTER TABLE trip_items DROP INDEX place_id;
