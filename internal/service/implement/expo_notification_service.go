@@ -74,6 +74,8 @@ func (n *ExpoNotificationService) GeneratePushNotification(pushToken expo.Expone
 	case entity.NotificationType.FriendRequestAccepted:
 		title = "Your friend request has been accepted"
 		body = notification.TriggerEntityName + " accepted your friend request"
+	case entity.NotificationType.TripGenerated:
+		title = "Your trip has been generated"
 	}
 
 	return &expo.PushMessage{
@@ -115,6 +117,13 @@ func (n *ExpoNotificationService) SaveAndSendNotification(ctx *gin.Context, noti
 		notificationEntity.TriggerEntityName = user.Name
 		notificationEntity.TriggerEntityID = notification.TriggerEntityID
 		notificationEntity.TriggerEntityType = entity.NotificationTriggerType.User
+		notificationEntity.ReferenceEntityType = notification.ReferenceEntityType
+		notificationEntity.ReferenceEntityID = notification.ReferenceEntityID
+		notificationEntity.Type = notification.Type
+	} else {
+		notificationEntity.UserID = notification.ReceiverUserID
+		notificationEntity.TriggerEntityID = notification.TriggerEntityID
+		notificationEntity.TriggerEntityType = entity.NotificationTriggerType.System
 		notificationEntity.ReferenceEntityType = notification.ReferenceEntityType
 		notificationEntity.ReferenceEntityID = notification.ReferenceEntityID
 		notificationEntity.Type = notification.Type
