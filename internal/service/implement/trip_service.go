@@ -1,12 +1,18 @@
 package serviceimplement
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
@@ -14,17 +20,20 @@ type TripService struct {
 	tripRepository       repository.TripRepository
 	unitOfWork           repository.UnitOfWork
 	tripMemberRepository repository.TripMemberRepository
+	tripItemService      service.TripItemService
 }
 
 func NewTripService(
 	tripRepository repository.TripRepository,
 	unitOfWork repository.UnitOfWork,
 	tripMemberRepository repository.TripMemberRepository,
+	tripItemService service.TripItemService,
 ) service.TripService {
 	return &TripService{
 		tripRepository:       tripRepository,
 		unitOfWork:           unitOfWork,
 		tripMemberRepository: tripMemberRepository,
+		tripItemService:      tripItemService,
 	}
 }
 
@@ -248,4 +257,145 @@ func (service *TripService) UpdateTrip(ctx *gin.Context, tripId int64, userId in
 	}
 
 	return ""
+}
+
+func (service *TripService) genToken(secretKey string, genTokenURL string) string {
+	// call gen token URL to get token
+	tokenReq := model.TokenRequest{
+		SecretKey: secretKey,
+	}
+	tokenReqBody, marshalTokenReqBodyErr := json.Marshal(tokenReq)
+	if marshalTokenReqBodyErr != nil {
+		log.Error("TripService.genToken - Marshal token request Error: " + marshalTokenReqBodyErr.Error())
+		return ""
+	}
+	resp, genTokenErr := http.Post(genTokenURL, "application/json", bytes.NewBuffer(tokenReqBody))
+	if genTokenErr != nil {
+		log.Error("TripService.genToken - Generate token Error: " + genTokenErr.Error())
+		return ""
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Error("TripService.genToken - Generate token failed with status: " + resp.Status)
+		return ""
+	}
+	var tokenResp model.TokenResponse
+	decodeTokenRespErr := json.NewDecoder(resp.Body).Decode(&tokenResp)
+	if decodeTokenRespErr != nil {
+		log.Error("TripService.genToken - Decode token response Error: " + decodeTokenRespErr.Error())
+		return ""
+	}
+	return tokenResp.Token
+}
+
+func (service *TripService) createTripItems(createTourURL string, token string, tripToCoreRequest model.TripToCoreRequest) []model.TripItemFromAIResponse {
+	tripReqBody, marshalTripReqBodyErr := json.Marshal(tripToCoreRequest)
+	if marshalTripReqBodyErr != nil {
+		log.Error("TripService.createTripItemsRequest - Marshal trip request Error: " + marshalTripReqBodyErr.Error())
+		return nil
+	}
+
+	req, createRequestErr := http.NewRequest("POST", createTourURL, bytes.NewBuffer(tripReqBody))
+	if createRequestErr != nil {
+		log.Error("TripService.createTripItemsRequest - Create request Error: " + createRequestErr.Error())
+		return nil
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", token)
+
+	client := &http.Client{}
+	resp, sendRequestErr := client.Do(req)
+	if sendRequestErr != nil {
+		log.Error("TripService.createTripItemsRequest - Send request Error: " + sendRequestErr.Error())
+		return nil
+	}
+
+	body, readBodyErr := io.ReadAll(resp.Body)
+	if readBodyErr != nil {
+		log.Error("TripService.createTripItemsRequest - Read response body Error: " + readBodyErr.Error())
+		return nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Error("TripService.createTripItemsRequest - Create trip failed with status: " + resp.Status)
+		return nil
+	}
+
+	var tripItemsResp model.TripAIResponseWrapper
+	if unmarshalTripItemErr := json.Unmarshal(body, &tripItemsResp); unmarshalTripItemErr != nil {
+		log.Error("TripService.createTripItemsRequest - Unmarshal response Error: " + unmarshalTripItemErr.Error())
+		return nil
+	}
+
+	return tripItemsResp.Data.TripItems
+}
+
+func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.TripRequest, userID int64) []model.TripItemFromAIResponse {
+	tripToCoreRequest := model.TripToCoreRequest{
+		City:                tripRequest.City,
+		Days:                tripRequest.Days,
+		LocationAttributes:  tripRequest.EnLocationAttributes,
+		FoodAttributes:      tripRequest.EnFoodAttributes,
+		SpecialRequirements: tripRequest.EnSpecialRequirements,
+		MedicalConditions:   tripRequest.EnMedicalConditions,
+		LocationsPerDay:     tripRequest.LocationsPerDay,
+		LocationPreference:  tripRequest.LocationPreference,
+	}
+
+	// get secret key & generate token URL
+	secretKey, getSecretKeyErr := env.GetEnv("SECRET_KEY")
+	if getSecretKeyErr != nil {
+		log.Error("TripService.CreateTripByAI - Get SECRET_KEY Error: " + getSecretKeyErr.Error())
+		return []model.TripItemFromAIResponse{}
+	}
+	genTokenURL, getGenTokenURLErr := env.GetEnv("GEN_TOKEN_URL")
+	if getGenTokenURLErr != nil {
+		log.Error("TripService.CreateTripByAI - Get GEN_TOKEN_URL Error: " + getGenTokenURLErr.Error())
+		return []model.TripItemFromAIResponse{}
+	}
+
+	// call gen token URL to get token
+	token := service.genToken(secretKey, genTokenURL)
+
+	// get create tour URL
+	createTourURL, createTourURLErr := env.GetEnv("CREATE_TOUR_URL")
+	if createTourURLErr != nil {
+		log.Error("TripService.CreateTripByAI - Get CREATE_TOUR_URL Error: " + createTourURLErr.Error())
+		return []model.TripItemFromAIResponse{}
+	}
+
+	// send trip data to core service to get trip items
+	tripItemsRespFromCore := service.createTripItems(createTourURL, token, tripToCoreRequest)
+
+	// save trip to database
+	tripID, errCode := service.CreateTrip(ctx, tripRequest, userID)
+	if errCode != "" {
+		return []model.TripItemFromAIResponse{}
+	}
+
+	// add tripID to trip items
+	for i := range tripItemsRespFromCore {
+		tripItemsRespFromCore[i].TripID = tripID
+	}
+
+	// convert trip items from core to request model
+	var tripItemsReqs []model.TripItemRequest
+	for _, item := range tripItemsRespFromCore {
+		req := model.TripItemRequest{
+			PlaceID:    item.PlaceID,
+			TripDay:    item.TripDay,
+			OrderInDay: item.OrderInDay,
+			TimeInDate: item.TimeInDay,
+		}
+		tripItemsReqs = append(tripItemsReqs, req)
+	}
+
+	// save trip items to database
+	err := service.tripItemService.CreateTripItems(ctx, userID, tripID, tripItemsReqs)
+	if err != "" {
+		log.Error("TripService.CreateTripByAI Error: " + err)
+		return []model.TripItemFromAIResponse{}
+	}
+
+	// return trip items to noti
+	return tripItemsRespFromCore
 }
