@@ -8,20 +8,23 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/validation"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
 )
 
 type TripHandler struct {
-	tripService     service.TripService
-	tripItemService service.TripItemService
+	tripService         service.TripService
+	tripItemService     service.TripItemService
+	notificationService service.NotificationService
 }
 
-func NewTripHandler(tripService service.TripService, tripItemService service.TripItemService) *TripHandler {
+func NewTripHandler(tripService service.TripService, tripItemService service.TripItemService, notificationService service.NotificationService) *TripHandler {
 	return &TripHandler{
-		tripService:     tripService,
-		tripItemService: tripItemService,
+		tripService:         tripService,
+		tripItemService:     tripItemService,
+		notificationService: notificationService,
 	}
 }
 
@@ -241,4 +244,37 @@ func (handler *TripHandler) UpdateTrip(ctx *gin.Context) {
 	}
 
 	ctx.AbortWithStatus(204)
+}
+
+func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	var tripRequest model.TripRequest
+	if err := validation.BindJsonAndValidate(ctx, &tripRequest); err != nil {
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+
+	// process the remaining tasks in the background
+	go func(tripRequest model.TripRequest, userId int64) {
+		defer func() {
+			recover()
+		}()
+
+		tripItemRespList := handler.tripService.CreateTripByAI(ctx.Copy(), tripRequest, userId)
+
+		// send notification to current user
+		notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+			Type:                entity.NotificationType.TripGenerated,
+			ReceiverUserID:      userId,
+			TriggerEntityType:   entity.NotificationTriggerType.System,
+			TriggerEntityID:     nil,
+			ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+			ReferenceEntityID:   &tripItemRespList[0].TripID,
+		})
+		if notiErr != "" {
+			return
+		}
+	}(tripRequest, userId)
 }
