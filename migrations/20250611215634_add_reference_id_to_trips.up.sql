@@ -1,0 +1,2 @@
+ALTER TABLE trips
+ADD COLUMN reference_id VARCHAR(255);
