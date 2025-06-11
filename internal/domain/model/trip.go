@@ -10,7 +10,7 @@ type TripRequest struct {
 	Title                 string                        `json:"title" binding:"required,min=1"`
 	City                  string                        `json:"city" binding:"required"`
 	StartDate             time.Time                     `json:"startDate" binding:"required"`
-	Days                  int                           `json:"days" binding:"required,min=1"`
+	Days                  int                           `json:"days" binding:"required,min=1,max=7"`
 	Budget                float64                       `json:"budget"`
 	NumMembers            int                           `json:"numMembers"`
 	ViLocationAttributes  stringlistutils.SqlListString `json:"viLocationAttributes"`
@@ -21,15 +21,20 @@ type TripRequest struct {
 	EnFoodAttributes      stringlistutils.SqlListString `json:"enFoodAttributes"`
 	EnSpecialRequirements stringlistutils.SqlListString `json:"enSpecialRequirements"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
+	LocationsPerDay       int                           `json:"locationsPerDay" binding:"required,min=5,max=9"`
+	LocationPreference    string                        `json:"locationPreference"`
+	ReferenceID           string                        `json:"referenceId,omitempty"`
 }
 
 type TripToCoreRequest struct {
 	City                string                        `json:"city" binding:"required"`
 	Days                int                           `json:"days" binding:"required,min=1"`
-	LocationAttributes  stringlistutils.SqlListString `json:"locationAttributes"`
-	FoodAttributes      stringlistutils.SqlListString `json:"foodAttributes"`
-	SpecialRequirements stringlistutils.SqlListString `json:"specialRequirements"`
-	MedicalConditions   stringlistutils.SqlListString `json:"medicalConditions"`
+	LocationAttributes  stringlistutils.SqlListString `json:"location_attributes"`
+	FoodAttributes      stringlistutils.SqlListString `json:"food_attributes"`
+	SpecialRequirements stringlistutils.SqlListString `json:"special_requirements"`
+	MedicalConditions   stringlistutils.SqlListString `json:"medical_conditions"`
+	LocationsPerDay     int                           `json:"locationsPerDay" binding:"required,min=1"`
+	LocationPreference  string                        `json:"locationPreference"`
 }
 
 type TripResponse struct {
@@ -71,4 +76,19 @@ type TripPatchRequest struct {
 	EnSpecialRequirements *stringlistutils.SqlListString `json:"enSpecialRequirements,omitempty"`
 	EnMedicalConditions   *stringlistutils.SqlListString `json:"enMedicalConditions,omitempty"`
 	Status                *string                        `json:"status,omitempty"`
+}
+
+type TokenRequest struct {
+	SecretKey string `json:"secret_key"`
+}
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
+type TripAIResponseWrapper struct {
+	Data struct {
+		ReferenceID string                   `json:"reference_id"`
+		TripItems   []TripItemFromAIResponse `json:"trip_items"`
+	} `json:"data"`
+	Status int `json:"status"`
 }

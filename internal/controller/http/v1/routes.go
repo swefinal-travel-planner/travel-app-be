@@ -72,6 +72,7 @@ func MapRoutes(router *gin.Engine,
 			trip.PATCH("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.UpdateTrip)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
+			trip.POST("/ai", authMiddleware.VerifyAccessToken, tripHandler.CreateTripByAI)
 		}
 		tripInvitation := v1.Group("/invitation-trips")
 		{
