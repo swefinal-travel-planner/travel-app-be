@@ -10,7 +10,7 @@ type TripRequest struct {
 	Title                 string                        `json:"title" binding:"required,min=1"`
 	City                  string                        `json:"city" binding:"required"`
 	StartDate             time.Time                     `json:"startDate" binding:"required"`
-	Days                  int                           `json:"days" binding:"required,min=1"`
+	Days                  int                           `json:"days" binding:"required,min=1,max=7"`
 	Budget                float64                       `json:"budget"`
 	NumMembers            int                           `json:"numMembers"`
 	ViLocationAttributes  stringlistutils.SqlListString `json:"viLocationAttributes"`
@@ -21,8 +21,9 @@ type TripRequest struct {
 	EnFoodAttributes      stringlistutils.SqlListString `json:"enFoodAttributes"`
 	EnSpecialRequirements stringlistutils.SqlListString `json:"enSpecialRequirements"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
-	LocationsPerDay       int                           `json:"locationsPerDay" binding:"required,min=1"`
+	LocationsPerDay       int                           `json:"locationsPerDay" binding:"required,min=5,max=9"`
 	LocationPreference    string                        `json:"locationPreference"`
+	ReferenceID           string                        `json:"referenceId,omitempty"`
 }
 
 type TripToCoreRequest struct {

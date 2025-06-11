@@ -76,6 +76,8 @@ func (n *ExpoNotificationService) GeneratePushNotification(pushToken expo.Expone
 		body = notification.TriggerEntityName + " accepted your friend request"
 	case entity.NotificationType.TripGenerated:
 		title = "Your trip has been generated"
+	case entity.NotificationType.TripGeneratedFailed:
+		title = "Trip generation failed"
 	}
 
 	return &expo.PushMessage{
