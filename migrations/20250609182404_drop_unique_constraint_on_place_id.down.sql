@@ -1,1 +1,0 @@
-ALTER TABLE trip_items ADD UNIQUE INDEX place_id (place_id);
