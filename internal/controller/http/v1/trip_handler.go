@@ -262,19 +262,33 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 			recover()
 		}()
 
-		tripItemRespList := handler.tripService.CreateTripByAI(ctx.Copy(), tripRequest, userId)
-
-		// send notification to current user
-		notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
-			Type:                entity.NotificationType.TripGenerated,
-			ReceiverUserID:      userId,
-			TriggerEntityType:   entity.NotificationTriggerType.System,
-			TriggerEntityID:     nil,
-			ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
-			ReferenceEntityID:   &tripItemRespList[0].TripID,
-		})
-		if notiErr != "" {
-			return
+		tripItemRespList, errCode := handler.tripService.CreateTripByAI(ctx.Copy(), tripRequest, userId)
+		if errCode != "" {
+			// send notification to current user
+			notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+				Type:                entity.NotificationType.TripGeneratedFailed,
+				ReceiverUserID:      userId,
+				TriggerEntityType:   entity.NotificationTriggerType.System,
+				TriggerEntityID:     nil,
+				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityID:   &tripItemRespList[0].TripID,
+			})
+			if notiErr != "" {
+				return
+			}
+		} else {
+			// send notification to current user
+			notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+				Type:                entity.NotificationType.TripGenerated,
+				ReceiverUserID:      userId,
+				TriggerEntityType:   entity.NotificationTriggerType.System,
+				TriggerEntityID:     nil,
+				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityID:   &tripItemRespList[0].TripID,
+			})
+			if notiErr != "" {
+				return
+			}
 		}
 	}(tripRequest, userId)
 }
