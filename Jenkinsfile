@@ -25,6 +25,10 @@ pipeline {
         JWT_SECRET = credentials('JWT_SECRET') 
         
         ALLOWED_ORIGINS = credentials('ALLOWED_ORIGINS')
+
+        GEN_TOKEN_URL = credentials('GEN_TOKEN_URL')
+        CREATE_TOUR_URL= credentials('CREATE_TOUR_URL')
+        CORE_SECRET_KEY= credentials('CORE_SECRET_KEY')
     }
 
     stages {
@@ -97,6 +101,9 @@ pipeline {
                             -e REDIS_PASSWORD="${env.REDIS_PASSWORD}" \\
                             -e JWT_SECRET="${env.JWT_SECRET}" \\
                             -e ALLOWED_ORIGINS="${env.ALLOWED_ORIGINS}" \\
+                            -e GEN_TOKEN_URL="${env.GEN_TOKEN_URL}" \\
+                            -e CREATE_TOUR_URL="${env.CREATE_TOUR_URL}" \\
+                            -e CORE_SECRET_KEY="${env.CORE_SECRET_KEY}" \\
                             -e NOTIFICATION_ACCESS_TOKEN="${env.NOTIFICATION_ACCESS_TOKEN}" \\
                             travel-be:${env.DOCKER_TAG}
                     """
