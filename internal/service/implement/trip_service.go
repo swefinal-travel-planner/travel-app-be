@@ -343,9 +343,9 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.T
 	}
 
 	// get secret key & generate token URL
-	secretKey, getSecretKeyErr := env.GetEnv("SECRET_KEY")
+	secretKey, getSecretKeyErr := env.GetEnv("CORE_SECRET_KEY")
 	if getSecretKeyErr != nil {
-		log.Error("TripService.CreateTripByAI - Get SECRET_KEY Error: " + getSecretKeyErr.Error())
+		log.Error("TripService.CreateTripByAI - Get CORE_SECRET_KEY Error: " + getSecretKeyErr.Error())
 		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 	genTokenURL, getGenTokenURLErr := env.GetEnv("GEN_TOKEN_URL")
