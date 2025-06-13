@@ -246,6 +246,17 @@ func (handler *TripHandler) UpdateTrip(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 }
 
+// @Summary Create trip by AI
+// @Description Create trip by AI
+// @Tags Trips
+// @Accept json
+// @Param request body model.TripRequest true "Trip payload"
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce  json
+// @Router /trips/ai [post]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
 func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
