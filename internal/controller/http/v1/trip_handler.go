@@ -32,7 +32,7 @@ func NewTripHandler(tripService service.TripService, tripItemService service.Tri
 // @Description Create trip manually
 // @Tags Trips
 // @Accept json
-// @Param request body model.TripRequest true "Trip payload"
+// @Param request body model.CreateTripManuallyRequest true "Trip payload"
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Produce  json
 // @Router /trips [post]
@@ -42,7 +42,7 @@ func NewTripHandler(tripService service.TripService, tripItemService service.Tri
 func (handler *TripHandler) CreateTripManually(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	var tripRequest model.TripRequest
+	var tripRequest model.CreateTripManuallyRequest
 
 	if err := validation.BindJsonAndValidate(ctx, &tripRequest); err != nil {
 		return
@@ -250,7 +250,7 @@ func (handler *TripHandler) UpdateTrip(ctx *gin.Context) {
 // @Description Create trip by AI
 // @Tags Trips
 // @Accept json
-// @Param request body model.TripRequest true "Trip payload"
+// @Param request body model.CreateTripByAIRequest true "Trip payload"
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Produce  json
 // @Router /trips/ai [post]
@@ -260,7 +260,7 @@ func (handler *TripHandler) UpdateTrip(ctx *gin.Context) {
 func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	var tripRequest model.TripRequest
+	var tripRequest model.CreateTripByAIRequest
 	if err := validation.BindJsonAndValidate(ctx, &tripRequest); err != nil {
 		return
 	}
@@ -268,7 +268,7 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 	ctx.AbortWithStatus(204)
 
 	// process the remaining tasks in the background
-	go func(tripRequest model.TripRequest, userId int64) {
+	go func(tripRequest model.CreateTripByAIRequest, userId int64) {
 		defer func() {
 			recover()
 		}()
