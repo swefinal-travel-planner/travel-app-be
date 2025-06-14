@@ -37,7 +37,7 @@ func NewTripService(
 	}
 }
 
-func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.TripRequest, userId int64) (int64, string) {
+func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.CreateTripManuallyRequest, userId int64) (int64, string) {
 	tx, err := service.unitOfWork.Begin(ctx)
 	if err != nil {
 		log.Error("TripService.CreateTrip - BeginTx Error: " + err.Error())
@@ -50,8 +50,6 @@ func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.TripR
 		City:                  tripRequest.City,
 		StartDate:             tripRequest.StartDate,
 		Days:                  tripRequest.Days,
-		Budget:                tripRequest.Budget,
-		NumMembers:            tripRequest.NumMembers,
 		ViLocationAttributes:  tripRequest.ViLocationAttributes,
 		ViFoodAttributes:      tripRequest.ViFoodAttributes,
 		ViSpecialRequirements: tripRequest.ViSpecialRequirements,
@@ -330,7 +328,7 @@ func (service *TripService) createTripItems(createTourURL string, token string, 
 	return tripItemsResp.Data.TripItems, tripItemsResp.Data.ReferenceID, ""
 }
 
-func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.TripRequest, userID int64) ([]model.TripItemFromAIResponse, string) {
+func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.CreateTripByAIRequest, userID int64) ([]model.TripItemFromAIResponse, string) {
 	tripToCoreRequest := model.TripToCoreRequest{
 		City:                tripRequest.City,
 		Days:                tripRequest.Days,
@@ -376,8 +374,23 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.T
 	}
 
 	// save trip to database
-	tripRequest.ReferenceID = referenceID
-	tripID, errCode := service.CreateTrip(ctx, tripRequest, userID)
+	createTripManuallyRequest := model.CreateTripManuallyRequest{
+		Title:                 tripRequest.Title,
+		City:                  tripRequest.City,
+		StartDate:             tripRequest.StartDate,
+		Days:                  tripRequest.Days,
+		ViLocationAttributes:  tripRequest.ViLocationAttributes,
+		ViFoodAttributes:      tripRequest.ViFoodAttributes,
+		ViSpecialRequirements: tripRequest.ViSpecialRequirements,
+		ViMedicalConditions:   tripRequest.ViMedicalConditions,
+		EnLocationAttributes:  tripRequest.EnLocationAttributes,
+		EnFoodAttributes:      tripRequest.EnFoodAttributes,
+		EnSpecialRequirements: tripRequest.EnSpecialRequirements,
+		EnMedicalConditions:   tripRequest.EnMedicalConditions,
+		ReferenceID:           referenceID,
+	}
+	createTripManuallyRequest.ReferenceID = referenceID
+	tripID, errCode := service.CreateTrip(ctx, createTripManuallyRequest, userID)
 	if errCode != "" {
 		return []model.TripItemFromAIResponse{}, errCode
 	}

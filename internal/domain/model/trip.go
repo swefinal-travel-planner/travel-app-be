@@ -6,13 +6,27 @@ import (
 	stringlistutils "github.com/swefinal-travel-planner/travel-app-be/internal/utils/string_list_utils"
 )
 
-type TripRequest struct {
+type CreateTripManuallyRequest struct {
 	Title                 string                        `json:"title" binding:"required,min=1"`
 	City                  string                        `json:"city" binding:"required"`
 	StartDate             time.Time                     `json:"startDate" binding:"required"`
 	Days                  int                           `json:"days" binding:"required,min=1,max=7"`
-	Budget                float64                       `json:"budget"`
-	NumMembers            int                           `json:"numMembers"`
+	ViLocationAttributes  stringlistutils.SqlListString `json:"-"`
+	ViFoodAttributes      stringlistutils.SqlListString `json:"-"`
+	ViSpecialRequirements stringlistutils.SqlListString `json:"-"`
+	ViMedicalConditions   stringlistutils.SqlListString `json:"-"`
+	EnLocationAttributes  stringlistutils.SqlListString `json:"-"`
+	EnFoodAttributes      stringlistutils.SqlListString `json:"-"`
+	EnSpecialRequirements stringlistutils.SqlListString `json:"-"`
+	EnMedicalConditions   stringlistutils.SqlListString `json:"-"`
+	ReferenceID           string                        `json:"-"`
+}
+
+type CreateTripByAIRequest struct {
+	Title                 string                        `json:"title" binding:"required,min=1"`
+	City                  string                        `json:"city" binding:"required"`
+	StartDate             time.Time                     `json:"startDate" binding:"required"`
+	Days                  int                           `json:"days" binding:"required,min=1,max=7"`
 	ViLocationAttributes  stringlistutils.SqlListString `json:"viLocationAttributes"`
 	ViFoodAttributes      stringlistutils.SqlListString `json:"viFoodAttributes"`
 	ViSpecialRequirements stringlistutils.SqlListString `json:"viSpecialRequirements"`
