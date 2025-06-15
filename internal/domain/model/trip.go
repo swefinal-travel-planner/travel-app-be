@@ -19,6 +19,7 @@ type CreateTripManuallyRequest struct {
 	EnFoodAttributes      stringlistutils.SqlListString `json:"-"`
 	EnSpecialRequirements stringlistutils.SqlListString `json:"-"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"-"`
+	Status                string                        `json:"-"`
 	ReferenceID           string                        `json:"-"`
 }
 
@@ -90,6 +91,7 @@ type TripPatchRequest struct {
 	EnSpecialRequirements *stringlistutils.SqlListString `json:"enSpecialRequirements,omitempty"`
 	EnMedicalConditions   *stringlistutils.SqlListString `json:"enMedicalConditions,omitempty"`
 	Status                *string                        `json:"status,omitempty"`
+	ReferenceID           *string                        `json:"referenceId,omitempty"`
 }
 
 type TokenRequest struct {
@@ -105,4 +107,22 @@ type TripAIResponseWrapper struct {
 		TripItems   []TripItemFromAIResponse `json:"trip_items"`
 	} `json:"data"`
 	Status int `json:"status"`
+}
+
+type tripStatus struct {
+	NotStarted   string
+	InProgress   string
+	Completed    string
+	Received     string
+	AIGenerating string
+	Failed       string
+}
+
+var TripStatus = tripStatus{
+	NotStarted:   "not_started",
+	InProgress:   "in_progress",
+	Completed:    "completed",
+	Received:     "cancel",
+	AIGenerating: "ai_generating",
+	Failed:       "failed",
 }

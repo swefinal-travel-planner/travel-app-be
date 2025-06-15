@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
@@ -45,6 +46,9 @@ func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.Creat
 	}
 	defer service.unitOfWork.Rollback(tx)
 
+	if tripRequest.Status == "" {
+		tripRequest.Status = model.TripStatus.NotStarted
+	}
 	trip := &entity.Trip{
 		Title:                 tripRequest.Title,
 		City:                  tripRequest.City,
@@ -58,7 +62,7 @@ func (service *TripService) CreateTrip(ctx *gin.Context, tripRequest model.Creat
 		EnFoodAttributes:      tripRequest.EnFoodAttributes,
 		EnSpecialRequirements: tripRequest.EnSpecialRequirements,
 		EnMedicalConditions:   tripRequest.EnMedicalConditions,
-		Status:                "not_started",
+		Status:                tripRequest.Status,
 		ReferenceID:           tripRequest.ReferenceID,
 	}
 
@@ -166,31 +170,14 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 	return tripResponse, ""
 }
 
-func (service *TripService) UpdateTrip(ctx *gin.Context, tripId int64, userId int64, tripRequest model.TripPatchRequest) string {
-	tx, err := service.unitOfWork.Begin(ctx)
-	if err != nil {
-		log.Error("TripService.UpdateTrip - BeginTx Error: " + err.Error())
-		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
-	}
-	defer service.unitOfWork.Rollback(tx)
-
-	// Check if user is admin or staff
-	isAdminOrStaff, err := service.tripMemberRepository.IsUserTripAdminOrStaffQuery(ctx, tripId, userId, tx)
-	if err != nil {
-		log.Error("TripService.UpdateTrip - Check admin/staff Error: " + err.Error())
-		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
-	}
-	if !isAdminOrStaff {
-		return error_utils.ErrorCode.FORBIDDEN
-	}
-
+func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tripRequest model.TripPatchRequest, tx *sqlx.Tx) string {
 	// Get existing trip
 	existingTrip, err := service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
 	if err != nil {
 		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
 			return error_utils.ErrorCode.TRIP_NOT_FOUND
 		}
-		log.Error("TripService.UpdateTrip - Get trip Error: " + err.Error())
+		log.Error("TripService.updatedTripHelper - Get trip Error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
@@ -240,12 +227,41 @@ func (service *TripService) UpdateTrip(ctx *gin.Context, tripId int64, userId in
 	if tripRequest.Status != nil {
 		existingTrip.Status = *tripRequest.Status
 	}
+	if tripRequest.ReferenceID != nil {
+		existingTrip.ReferenceID = *tripRequest.ReferenceID
+	}
 
 	// Update trip
 	err = service.tripRepository.UpdateCommand(ctx, existingTrip, tx)
 	if err != nil {
-		log.Error("TripService.UpdateTrip - Update trip Error: " + err.Error())
+		log.Error("TripService.updatedTripHelper - Update trip Error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	return ""
+}
+
+func (service *TripService) UpdateTrip(ctx *gin.Context, tripId int64, userId int64, tripRequest model.TripPatchRequest) string {
+	tx, err := service.unitOfWork.Begin(ctx)
+	if err != nil {
+		log.Error("TripService.UpdateTrip - BeginTx Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	defer service.unitOfWork.Rollback(tx)
+
+	// Check if user is admin or staff
+	isAdminOrStaff, err := service.tripMemberRepository.IsUserTripAdminOrStaffQuery(ctx, tripId, userId, tx)
+	if err != nil {
+		log.Error("TripService.UpdateTrip - Check admin/staff Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isAdminOrStaff {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+
+	errCode := service.updatedTripHelper(ctx, tripId, tripRequest, tx)
+	if errCode != "" {
+		return errCode
 	}
 
 	// Commit transaction
@@ -314,6 +330,7 @@ func (service *TripService) createTripItems(createTourURL string, token string, 
 		log.Error("TripService.createTripItemsRequest - Read response body Error: " + readBodyErr.Error())
 		return nil, "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		log.Error("TripService.createTripItemsRequest - Create trip failed with status: " + resp.Status)
 		return nil, "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
@@ -340,39 +357,6 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 		LocationPreference:  tripRequest.LocationPreference,
 	}
 
-	// get secret key & generate token URL
-	secretKey, getSecretKeyErr := env.GetEnv("CORE_SECRET_KEY")
-	if getSecretKeyErr != nil {
-		log.Error("TripService.CreateTripByAI - Get CORE_SECRET_KEY Error: " + getSecretKeyErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
-	}
-	genTokenURL, getGenTokenURLErr := env.GetEnv("GEN_TOKEN_URL")
-	if getGenTokenURLErr != nil {
-		log.Error("TripService.CreateTripByAI - Get GEN_TOKEN_URL Error: " + getGenTokenURLErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
-	}
-
-	// call gen token URL to get token
-	token, genTokenErr := service.genToken(secretKey, genTokenURL)
-	if genTokenErr != "" {
-		log.Error("TripService.CreateTripByAI - Generate token Error: " + genTokenErr)
-		return []model.TripItemFromAIResponse{}, genTokenErr
-	}
-
-	// get create tour URL
-	createTourURL, createTourURLErr := env.GetEnv("CREATE_TOUR_URL")
-	if createTourURLErr != nil {
-		log.Error("TripService.CreateTripByAI - Get CREATE_TOUR_URL Error: " + createTourURLErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
-	}
-
-	// send trip data to core service to get trip items
-	tripItemsRespFromCore, referenceID, createTripItemsError := service.createTripItems(createTourURL, token, tripToCoreRequest)
-	if createTripItemsError != "" {
-		log.Error("TripService.CreateTripByAI - Create trip items Error: " + createTripItemsError)
-		return []model.TripItemFromAIResponse{}, createTripItemsError
-	}
-
 	// save trip to database
 	createTripManuallyRequest := model.CreateTripManuallyRequest{
 		Title:                 tripRequest.Title,
@@ -387,13 +371,80 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 		EnFoodAttributes:      tripRequest.EnFoodAttributes,
 		EnSpecialRequirements: tripRequest.EnSpecialRequirements,
 		EnMedicalConditions:   tripRequest.EnMedicalConditions,
-		ReferenceID:           referenceID,
+		Status:                model.TripStatus.AIGenerating,
 	}
-	createTripManuallyRequest.ReferenceID = referenceID
 	tripID, errCode := service.CreateTrip(ctx, createTripManuallyRequest, userID)
 	if errCode != "" {
 		return []model.TripItemFromAIResponse{}, errCode
 	}
+	var tripStatus string
+
+	// get secret key & generate token URL
+	secretKey, getSecretKeyErr := env.GetEnv("CORE_SECRET_KEY")
+	if getSecretKeyErr != nil {
+		tripStatus = model.TripStatus.Failed
+		log.Error("TripService.CreateTripByAI - Get CORE_SECRET_KEY Error: " + getSecretKeyErr.Error())
+		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	genTokenURL, getGenTokenURLErr := env.GetEnv("GEN_TOKEN_URL")
+	if getGenTokenURLErr != nil {
+		tripStatus = model.TripStatus.Failed
+		log.Error("TripService.CreateTripByAI - Get GEN_TOKEN_URL Error: " + getGenTokenURLErr.Error())
+		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// call gen token URL to get token
+	token, genTokenErr := service.genToken(secretKey, genTokenURL)
+	if genTokenErr != "" {
+		tripStatus = model.TripStatus.Failed
+		log.Error("TripService.CreateTripByAI - Generate token Error: " + genTokenErr)
+		return []model.TripItemFromAIResponse{}, genTokenErr
+	}
+
+	// get create tour URL
+	createTourURL, createTourURLErr := env.GetEnv("CREATE_TOUR_URL")
+	if createTourURLErr != nil {
+		tripStatus = model.TripStatus.Failed
+		log.Error("TripService.CreateTripByAI - Get CREATE_TOUR_URL Error: " + createTourURLErr.Error())
+		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// send trip data to core service to get trip items
+	tripItemsRespFromCore, referenceID, createTripItemsError := service.createTripItems(createTourURL, token, tripToCoreRequest)
+	if createTripItemsError != "" {
+		tripStatus = model.TripStatus.Failed
+		log.Error("TripService.CreateTripByAI - Create trip items Error: " + createTripItemsError)
+		return []model.TripItemFromAIResponse{}, createTripItemsError
+	}
+
+	// update reference ID and status
+	defer func() {
+		if tripID != 0 {
+			tx, txErr := service.unitOfWork.Begin(ctx)
+			if txErr != nil {
+				log.Error("TripService.CreateTripByAI - BeginTx Error: " + txErr.Error())
+				return
+			}
+			defer service.unitOfWork.Rollback(tx)
+
+			tripStatus = model.TripStatus.NotStarted
+			tripRequestForUpdate := model.TripPatchRequest{
+				Status:      &tripStatus,
+				ReferenceID: &referenceID,
+			}
+
+			updateErrCode := service.updatedTripHelper(ctx, tripID, tripRequestForUpdate, tx)
+			if updateErrCode != "" {
+				log.Error("TripService.CreateTripByAI - updateTrip Error: " + updateErrCode)
+				return
+			}
+
+			commitErr := service.unitOfWork.Commit(tx)
+			if commitErr != nil {
+				log.Error("TripService.CreateTripByAI - Commit Error: " + commitErr.Error())
+			}
+		}
+	}()
 
 	// add tripID to trip items
 	for i := range tripItemsRespFromCore {
