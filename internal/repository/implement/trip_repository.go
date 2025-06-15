@@ -152,6 +152,7 @@ func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip
 			en_special_requirements = :en_special_requirements,
 			en_medical_conditions = :en_medical_conditions,
 			status = :status,
+			reference_id = :reference_id,
 			updated_at = CURRENT_TIMESTAMP
 		WHERE id = :id
 	`
