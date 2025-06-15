@@ -91,3 +91,21 @@ func (repo *UserRepository) GetNotificationTokenByIDQuery(ctx context.Context, i
 	err := repo.db.GetContext(ctx, &user, query, id)
 	return user.NotificationToken, err
 }
+
+func (repo *UserRepository) UpdateCommand(ctx context.Context, user *entity.User, tx *sqlx.Tx) error {
+	query := `UPDATE users 
+		SET email = :email, 
+			name = :name, 
+			phone_number = :phone_number, 
+			photo_url = :photo_url, 
+			id_token = :id_token, 
+			notification_token = :notification_token
+		WHERE id = :id AND deleted_at IS NULL`
+
+	if tx != nil {
+		_, err := tx.NamedExecContext(ctx, query, user)
+		return err
+	}
+	_, err := repo.db.NamedExecContext(ctx, query, user)
+	return err
+}
