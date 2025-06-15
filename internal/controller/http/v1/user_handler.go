@@ -79,3 +79,33 @@ func (handler *UserHandler) UpdateNotificationToken(ctx *gin.Context) {
 
 	ctx.AbortWithStatus(204)
 }
+
+// @Summary Update user profile
+// @Description Update current user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Router /users/me [patch]
+// @Param request body model.UpdateUserRequest true "Update user profile request"
+// @Param Authorization header string true "Authorization: Bearer"
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 401 {object} httpcommon.HttpResponse[any]
+// @Failure 403 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *UserHandler) UpdateProfile(ctx *gin.Context) {
+	var request model.UpdateUserRequest
+	if err := validation.BindJsonAndValidate(ctx, &request); err != nil {
+		return
+	}
+
+	userId := middleware.GetUserIdHelper(ctx)
+	errCode := handler.userService.UpdateUser(ctx, userId, request)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+}
