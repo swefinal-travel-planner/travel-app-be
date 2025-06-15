@@ -23,7 +23,7 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 
 // @Summary Search 1 friend
 // @Description Search 1 friend by email
-// @Tags User
+// @Tags Users
 // @Accept json
 // @Produce  json
 // @Router /users/{userEmail} [get]
@@ -52,7 +52,7 @@ func (handler *UserHandler) SearchUser(ctx *gin.Context) {
 
 // @Summary Update notification token
 // @Description Update user's notification token
-// @Tags User
+// @Tags Users
 // @Accept json
 // @Produce json
 // @Router /users/notification-token [put]

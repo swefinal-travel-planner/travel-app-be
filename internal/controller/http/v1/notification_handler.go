@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
-	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"net/http"
 	"strconv"
+
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
+	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
@@ -24,7 +25,7 @@ func NewNotificationHandler(notificationService service.NotificationService) *No
 
 // @Summary Test Notification Route
 // @Description Test route to verify NotificationService functionality
-// @Tags Notification
+// @Tags Notifications
 // @Accept json
 // @Produce json
 // @Param request body model.TestNotification true "Test Notification payload"
@@ -50,7 +51,7 @@ func (handler *NotificationHandler) TestNotification(ctx *gin.Context) {
 
 // @Summary Get All Notification Route
 // @Description Get all notification for a user
-// @Tags Notification
+// @Tags Notifications
 // @Accept json
 // @Produce json
 // @Param type query string false "Type"
@@ -75,7 +76,7 @@ func (handler *NotificationHandler) GetAllNotification(ctx *gin.Context) {
 
 // @Summary Seen Notification Route
 // @Description Mark a notification as seen
-// @Tags Notification
+// @Tags Notifications
 // @Accept json
 // @Produce json
 // @Param id path int true "Notification ID"
