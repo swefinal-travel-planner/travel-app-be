@@ -3,7 +3,6 @@ package serviceimplement
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -331,8 +330,6 @@ func (service *TripService) createTripItems(createTourURL string, token string, 
 		log.Error("TripService.createTripItemsRequest - Read response body Error: " + readBodyErr.Error())
 		return nil, "", error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
-
-	fmt.Println("Response body:", string(body))
 
 	if resp.StatusCode != http.StatusOK {
 		log.Error("TripService.createTripItemsRequest - Create trip failed with status: " + resp.Status)
