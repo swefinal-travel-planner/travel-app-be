@@ -115,6 +115,7 @@ type tripStatus struct {
 	Completed    string
 	Received     string
 	AIGenerating string
+	Failed       string
 }
 
 var TripStatus = tripStatus{
@@ -123,4 +124,5 @@ var TripStatus = tripStatus{
 	Completed:    "completed",
 	Received:     "cancel",
 	AIGenerating: "ai_generating",
+	Failed:       "failed",
 }

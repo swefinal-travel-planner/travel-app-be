@@ -4,5 +4,6 @@ MODIFY COLUMN status ENUM(
   'in_progress',
   'completed',
   'cancel',
-  'ai_generating'
+  'ai_generating',
+  'failed'
 ) NOT NULL DEFAULT 'not_started';
