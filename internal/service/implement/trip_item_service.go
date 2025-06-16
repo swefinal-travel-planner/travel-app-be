@@ -110,6 +110,8 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 }
 
 func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId int64, tripId int64) ([]model.TripItemResponse, string) {
+	lang := ctx.DefaultQuery("language", "vi")
+
 	// Get trip items with membership check
 	tripItems, err := service.tripItemRepository.GetTripItemsByTripIDCommand(ctx, tripId, userId, nil)
 	if err != nil {
@@ -133,7 +135,7 @@ func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId in
 		}
 
 		// Fetch place info from external API
-		placeInfo, err := fetchPlaceInfo(item.PlaceID)
+		placeInfo, err := fetchPlaceInfo(item.PlaceID, lang)
 		if err == nil {
 			tripItemResponse.PlaceInfo = placeInfo
 		} else {
@@ -147,8 +149,13 @@ func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId in
 }
 
 // fetchPlaceInfo calls the external API and returns *model.PlaceInfo or error
-func fetchPlaceInfo(placeID string) (*model.PlaceInfo, error) {
-	url := fmt.Sprintf("http://103.72.97.222:8081/api/places/%s?language=vi", placeID)
+func fetchPlaceInfo(placeID string, lang string) (*model.PlaceInfo, error) {
+	apiRoute, err := env.GetEnv("PLACE_INFO_URL")
+	if err != nil {
+		log.Error("fetchPlaceInfo - Get PLACE_INFO_URL Error: " + err.Error())
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/%s?language=%s", apiRoute, placeID, lang)
 
 	secretKey, err := env.GetEnv("CORE_SECRET_KEY")
 	if err != nil {
