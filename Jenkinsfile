@@ -29,6 +29,7 @@ pipeline {
         GEN_TOKEN_URL = credentials('GEN_TOKEN_URL')
         CREATE_TOUR_URL= credentials('CREATE_TOUR_URL')
         CORE_SECRET_KEY= credentials('CORE_SECRET_KEY')
+        PLACE_INFO_URL = credentials('PLACE_INFO_URL')
     }
 
     stages {
@@ -104,6 +105,7 @@ pipeline {
                             -e GEN_TOKEN_URL="${env.GEN_TOKEN_URL}" \\
                             -e CREATE_TOUR_URL="${env.CREATE_TOUR_URL}" \\
                             -e CORE_SECRET_KEY="${env.CORE_SECRET_KEY}" \\
+                            -e PLACE_INFO_URL="${env.PLACE_INFO_URL}" \\
                             -e NOTIFICATION_ACCESS_TOKEN="${env.NOTIFICATION_ACCESS_TOKEN}" \\
                             travel-be:${env.DOCKER_TAG}
                     """
