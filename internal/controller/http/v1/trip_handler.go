@@ -168,6 +168,7 @@ func (handler *TripHandler) GetTrip(ctx *gin.Context) {
 // @Tags Trips
 // @Param tripId path int true "Trip ID"
 // @Param  Authorization header string true "Authorization: Bearer"
+// @Param language query string false "Language for place info (vi or en)" Enums(vi,en) default(vi)
 // @Produce json
 // @Router /trips/{tripId}/trip-items [get]
 // @Success 200 {object} httpcommon.HttpResponse[[]model.TripItemResponse]
@@ -188,6 +189,12 @@ func (handler *TripHandler) GetTripItems(ctx *gin.Context) {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
 		ctx.JSON(statusCode, errResponse)
 		return
+	}
+
+	// Get language from query, only allow 'vi' and 'en', default to 'vi'
+	lang := ctx.DefaultQuery("language", "vi")
+	if lang != "vi" && lang != "en" {
+		lang = "vi"
 	}
 
 	tripItems, errCode := handler.tripItemService.GetTripItemsByTripID(ctx, userId, tripIdInt)
