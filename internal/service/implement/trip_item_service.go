@@ -67,12 +67,12 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 	}
 
 	// check if user is admin or staff
-	isAdminOrStaff, err := service.tripMemberRepository.IsUserTripAdminOrStaffQuery(ctx, tripId, userId, tx)
+	isAdmin, err := service.tripMemberRepository.IsUserTripAdminQuery(ctx, tripId, userId, tx)
 	if err != nil {
-		log.Error("TripItemService.CreateTripItems IsUserTripAdminOrStaffQuery error: " + err.Error())
+		log.Error("TripItemService.CreateTripItems IsUserTripAdminQuery error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
-	if !isAdminOrStaff {
+	if !isAdmin {
 		return error_utils.ErrorCode.FORBIDDEN
 	}
 
