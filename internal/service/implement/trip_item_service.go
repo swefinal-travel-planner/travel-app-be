@@ -1,12 +1,18 @@
 package serviceimplement
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/env"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
@@ -104,6 +110,8 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 }
 
 func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId int64, tripId int64) ([]model.TripItemResponse, string) {
+	lang := ctx.DefaultQuery("language", "vi")
+
 	// Get trip items with membership check
 	tripItems, err := service.tripItemRepository.GetTripItemsByTripIDCommand(ctx, tripId, userId, nil)
 	if err != nil {
@@ -125,8 +133,60 @@ func (service *TripItemService) GetTripItemsByTripID(ctx *gin.Context, userId in
 			OrderInDay: item.OrderInDay,
 			TimeInDate: item.TimeInDate,
 		}
+
+		// Fetch place info from external API
+		placeInfo, err := fetchPlaceInfo(item.PlaceID, lang)
+		if err == nil {
+			tripItemResponse.PlaceInfo = placeInfo
+		} else {
+			tripItemResponse.PlaceInfo = nil
+		}
+
 		tripItemResponses = append(tripItemResponses, tripItemResponse)
 	}
 
 	return tripItemResponses, ""
+}
+
+// fetchPlaceInfo calls the external API and returns *model.PlaceInfo or error
+func fetchPlaceInfo(placeID string, lang string) (*model.PlaceInfo, error) {
+	apiRoute, err := env.GetEnv("PLACE_INFO_URL")
+	if err != nil {
+		log.Error("fetchPlaceInfo - Get PLACE_INFO_URL Error: " + err.Error())
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/%s?language=%s", apiRoute, placeID, lang)
+
+	secretKey, err := env.GetEnv("CORE_SECRET_KEY")
+	if err != nil {
+		log.Error("fetchPlaceInfo - Get CORE_SECRET_KEY Error: " + err.Error())
+		return nil, err
+	}
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Authorization", "Bearer "+secretKey)
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code: %d", resp.StatusCode)
+	}
+
+	var apiResp struct {
+		Data   model.PlaceInfo `json:"data"`
+		Status int             `json:"status"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return nil, err
+	}
+
+	return &apiResp.Data, nil
 }

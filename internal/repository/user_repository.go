@@ -15,4 +15,5 @@ type UserRepository interface {
 	GetOneByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.User, error)
 	UpdateNotificationTokenCommand(ctx context.Context, id int64, token string, tx *sqlx.Tx) error
 	GetNotificationTokenByIDQuery(ctx context.Context, id int64, tx *sqlx.Tx) (*string, error)
+	UpdateCommand(ctx context.Context, user *entity.User, tx *sqlx.Tx) error
 }

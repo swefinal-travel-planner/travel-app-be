@@ -25,7 +25,7 @@ func NewInvitationTripHandler(invitationTripService service.InvitationTripServic
 
 // @Summary Send trip invitation
 // @Description Send an invitation to join a trip
-// @Tags invitation-trips
+// @Tags InvitationTrips
 // @Accept json
 // @Produce json
 // @Param request body model.InvitationTripRequest true "Send Invitation Request"
@@ -36,7 +36,7 @@ func NewInvitationTripHandler(invitationTripService service.InvitationTripServic
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations [post]
+// @Router /trip-invitations [post]
 func (h *InvitationTripHandler) SendInvitation(ctx *gin.Context) {
 	var request model.InvitationTripRequest
 	if err := validation.BindJsonAndValidate(ctx, &request); err != nil {
@@ -56,7 +56,7 @@ func (h *InvitationTripHandler) SendInvitation(ctx *gin.Context) {
 
 // @Summary Accept trip invitation
 // @Description Accept an invitation to join a trip
-// @Tags invitation-trips
+// @Tags InvitationTrips
 // @Accept json
 // @Produce json
 // @Param invitationId path int true "Invitation ID"
@@ -67,7 +67,7 @@ func (h *InvitationTripHandler) SendInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/accept/{invitationId} [put]
+// @Router /trip-invitations/accept/{invitationId} [put]
 func (h *InvitationTripHandler) AcceptInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("invitationId"), 10, 64)
 	if err != nil {
@@ -89,7 +89,7 @@ func (h *InvitationTripHandler) AcceptInvitation(ctx *gin.Context) {
 
 // @Summary Deny trip invitation
 // @Description Deny an invitation to join a trip
-// @Tags invitation-trips
+// @Tags InvitationTrips
 // @Accept json
 // @Produce json
 // @Param invitationId path int true "Invitation ID"
@@ -100,7 +100,7 @@ func (h *InvitationTripHandler) AcceptInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/deny/{invitationId} [put]
+// @Router /trip-invitations/deny/{invitationId} [put]
 func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("invitationId"), 10, 64)
 	if err != nil {
@@ -122,7 +122,7 @@ func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 
 // @Summary Withdraw trip invitation (DISABLED)
 // @Description Withdraw a sent trip invitation
-// @Tags invitation-trips
+// @Tags InvitationTrips
 // @Accept json
 // @Produce json
 // @Param invitationId path int true "Invitation ID"
@@ -133,7 +133,7 @@ func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 // @Failure 403 {object} model.ErrorResponse
 // @Failure 404 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/v1/trip-invitations/withdraw/{invitationId} [delete]
+// @Router /trip-invitations/withdraw/{invitationId} [delete]
 func (h *InvitationTripHandler) WithdrawInvitation(ctx *gin.Context) {
 	invitationId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
