@@ -473,3 +473,38 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	// return trip items to noti
 	return tripItemsRespFromCore, ""
 }
+
+func (service *TripService) DeleteTrip(ctx *gin.Context, tripId int64, userId int64) string {
+	tx, err := service.unitOfWork.Begin(ctx)
+	if err != nil {
+		log.Error("TripService.DeleteTrip - BeginTx Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	defer service.unitOfWork.Rollback(tx)
+
+	// Check if user is admin
+	isAdmin, err := service.tripMemberRepository.IsUserTripAdminQuery(ctx, tripId, userId, tx)
+	if err != nil {
+		log.Error("TripService.DeleteTrip - Check admin Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isAdmin {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+
+	// Delete trip
+	err = service.tripRepository.DeleteByIDCommand(ctx, tripId, tx)
+	if err != nil {
+		log.Error("TripService.DeleteTrip - Delete Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// Commit transaction
+	err = service.unitOfWork.Commit(tx)
+	if err != nil {
+		log.Error("TripService.DeleteTrip - Commit Error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	return ""
+}

@@ -77,6 +77,7 @@ func MapRoutes(router *gin.Engine,
 			trip.POST("/ai", authMiddleware.VerifyAccessToken, tripHandler.CreateTripByAI)
 			trip.GET("/:tripId/members", authMiddleware.VerifyAccessToken, tripMemberHandler.GetTripMembers)
 			trip.DELETE("/:tripId/members/:memberId", authMiddleware.VerifyAccessToken, tripMemberHandler.DeleteTripMember)
+			trip.DELETE("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.DeleteTrip)
 		}
 		tripInvitation := v1.Group("/invitation-trips")
 		{
