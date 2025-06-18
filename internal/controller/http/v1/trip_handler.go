@@ -310,3 +310,42 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 		}
 	}(tripRequest, userId)
 }
+
+// @Summary Delete trip
+// @Description Delete a trip (admin only)
+// @Tags Trips
+// @Param tripId path int true "Trip ID"
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce json
+// @Router /trips/{tripId} [delete]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 403 {object} httpcommon.HttpResponse[any]
+// @Failure 404 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *TripHandler) DeleteTrip(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	tripId := ctx.Param("tripId")
+	if tripId == "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripIdInt, err := strconv.ParseInt(tripId, 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	errCode := handler.tripService.DeleteTrip(ctx, tripIdInt, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+}

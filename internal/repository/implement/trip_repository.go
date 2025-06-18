@@ -165,3 +165,13 @@ func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip
 	_, err := repo.db.NamedExecContext(ctx, updateQuery, trip)
 	return err
 }
+
+func (repo *TripRepository) DeleteByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error {
+	deleteQuery := "DELETE FROM trips WHERE id = ?"
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, deleteQuery, id)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, deleteQuery, id)
+	return err
+}
