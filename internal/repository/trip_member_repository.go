@@ -12,4 +12,5 @@ type TripMemberRepository interface {
 	IsUserInTripQuery(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) (bool, error)
 	IsUserTripAdminQuery(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) (bool, error)
 	GetTripMembersQuery(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripMemberWithUser, error)
+	DeleteMemberCommand(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) error
 }

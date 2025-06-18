@@ -80,3 +80,16 @@ func (repo *TripMemberRepository) GetTripMembersQuery(ctx context.Context, tripI
 	err := repo.db.SelectContext(ctx, &members, query, tripID)
 	return members, err
 }
+
+func (repo *TripMemberRepository) DeleteMemberCommand(ctx context.Context, tripID int64, userID int64, tx *sqlx.Tx) error {
+	query := `
+		DELETE FROM trip_members 
+		WHERE trip_id = ? AND user_id = ?
+	`
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, tripID, userID)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, query, tripID, userID)
+	return err
+}

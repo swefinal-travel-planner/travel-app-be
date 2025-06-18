@@ -51,3 +51,35 @@ func (s *TripMemberService) GetTripMembersIfUserInTrip(ctx context.Context, trip
 
 	return responses, ""
 }
+
+func (s *TripMemberService) DeleteMemberFromTrip(ctx context.Context, tripID int64, memberID int64, deleterID int64) string {
+	if deleterID == memberID {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+	// Check deleter is admin
+	isAdmin, err := s.tripMemberRepo.IsUserTripAdminQuery(ctx, tripID, deleterID, nil)
+	if err != nil {
+		log.Error("TripMemberService.DeleteMemberFromTrip IsUserTripAdminQuery error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isAdmin {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+
+	// Check member is in trip
+	isMember, err := s.tripMemberRepo.IsUserInTripQuery(ctx, tripID, memberID, nil)
+	if err != nil {
+		log.Error("TripMemberService.DeleteMemberFromTrip IsUserInTripQuery error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isMember {
+		return error_utils.ErrorCode.FORBIDDEN
+	}
+
+	err = s.tripMemberRepo.DeleteMemberCommand(ctx, tripID, memberID, nil)
+	if err != nil {
+		log.Error("TripMemberService.DeleteMemberFromTrip DeleteMemberCommand error: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	return ""
+}

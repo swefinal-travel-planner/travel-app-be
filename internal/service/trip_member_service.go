@@ -8,4 +8,5 @@ import (
 
 type TripMemberService interface {
 	GetTripMembersIfUserInTrip(ctx context.Context, tripID int64, userID int64) ([]model.TripMemberResponse, string)
+	DeleteMemberFromTrip(ctx context.Context, tripID int64, memberID int64, deleterID int64) string
 }
