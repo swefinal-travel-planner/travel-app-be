@@ -66,7 +66,7 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 		return error_utils.ErrorCode.DB_DOWN
 	}
 
-	// check if user is admin or staff
+	// check if user is admin
 	isAdmin, err := service.tripMemberRepository.IsUserTripAdminQuery(ctx, tripId, userId, tx)
 	if err != nil {
 		log.Error("TripItemService.CreateTripItems IsUserTripAdminQuery error: " + err.Error())

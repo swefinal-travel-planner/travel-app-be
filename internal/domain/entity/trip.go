@@ -37,12 +37,10 @@ type TripWithRole struct {
 
 type tripRole struct {
 	Administrator string
-	Staff         string
-	NormalUser    string
+	Member        string
 }
 
 var TripRole = tripRole{
 	Administrator: "administrator",
-	Staff:         "staff",
-	NormalUser:    "normal_user",
+	Member:        "member",
 }

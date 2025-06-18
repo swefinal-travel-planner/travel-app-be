@@ -2,14 +2,12 @@ package model
 
 type tripMemberRole struct {
 	Administrator string
-	Staff         string
-	NormalUser    string
+	Member        string
 }
 
 var TripMemberRole = tripMemberRole{
 	Administrator: "administrator",
-	Staff:         "staff",
-	NormalUser:    "normal_user",
+	Member:        "member",
 }
 
 type TripMemberRequest struct {
