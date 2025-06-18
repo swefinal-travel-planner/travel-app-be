@@ -209,7 +209,7 @@ func (s *InvitationTripService) AcceptInvitation(ctx *gin.Context, invitationId 
 	tripMember := &entity.TripMember{
 		TripID: invitation.TripID,
 		UserID: userId,
-		Role:   entity.TripRole.NormalUser,
+		Role:   entity.TripRole.Member,
 	}
 	err = s.tripMemberRepo.CreateCommand(ctx, tripMember, tx)
 	if err != nil {

@@ -34,6 +34,7 @@ var handlerSet = wire.NewSet(
 	v1.NewNotificationHandler,
 	v1.NewTripHandler,
 	v1.NewInvitationTripHandler,
+	v1.NewTripMemberHandler,
 )
 
 var serviceSet = wire.NewSet(
@@ -45,6 +46,7 @@ var serviceSet = wire.NewSet(
 	serviceimplement.NewTripService,
 	serviceimplement.NewTripItemService,
 	serviceimplement.NewInvitationTripService,
+	serviceimplement.NewTripMemberService,
 )
 
 var repositorySet = wire.NewSet(

@@ -22,6 +22,7 @@ type Server struct {
 	notificationHandler     *v1.NotificationHandler
 	tripHandler             *v1.TripHandler
 	invitationTripHandler   *v1.InvitationTripHandler
+	tripMemberHandler       *v1.TripMemberHandler
 }
 
 func NewServer(authAuthHandler *v1.AuthHandler,
@@ -33,6 +34,7 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 	notificationHandler *v1.NotificationHandler,
 	tripHandler *v1.TripHandler,
 	invitationTripHandler *v1.InvitationTripHandler,
+	tripMemberHandler *v1.TripMemberHandler,
 ) *Server {
 	return &Server{
 		authAuthHandler:         authAuthHandler,
@@ -44,6 +46,7 @@ func NewServer(authAuthHandler *v1.AuthHandler,
 		notificationHandler:     notificationHandler,
 		tripHandler:             tripHandler,
 		invitationTripHandler:   invitationTripHandler,
+		tripMemberHandler:       tripMemberHandler,
 	}
 }
 
@@ -67,6 +70,7 @@ func (s *Server) Run() {
 		s.notificationHandler,
 		s.tripHandler,
 		s.invitationTripHandler,
+		s.tripMemberHandler,
 	)
 	err := httpServerInstance.ListenAndServe()
 	if err != nil {

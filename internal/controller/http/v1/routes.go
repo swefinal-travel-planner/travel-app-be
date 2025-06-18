@@ -17,6 +17,7 @@ func MapRoutes(router *gin.Engine,
 	notificationHandler *NotificationHandler,
 	tripHandler *TripHandler,
 	invitationTripHandler *InvitationTripHandler,
+	tripMemberHandler *TripMemberHandler,
 ) {
 	v1 := router.Group("/api/v1")
 	{
@@ -74,6 +75,8 @@ func MapRoutes(router *gin.Engine,
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
 			trip.POST("/ai", authMiddleware.VerifyAccessToken, tripHandler.CreateTripByAI)
+			trip.GET("/:tripId/members", authMiddleware.VerifyAccessToken, tripMemberHandler.GetTripMembers)
+			trip.DELETE("/:tripId/members/:memberId", authMiddleware.VerifyAccessToken, tripMemberHandler.DeleteTripMember)
 		}
 		tripInvitation := v1.Group("/invitation-trips")
 		{
