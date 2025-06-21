@@ -165,3 +165,18 @@ func (r *notificationRepository) DeleteNotificationCommand(ctx context.Context, 
 
 	return err
 }
+
+func (r *notificationRepository) DeleteTripNotificationCommand(ctx context.Context, receiverId, senderId, tripId int64, tx *sqlx.Tx) error {
+	query := `
+		DELETE FROM notifications WHERE type = 'tripInvitationReceived' AND trigger_entity_id = ? AND user_id = ? AND reference_entity_id = ?
+	`
+
+	var err error
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, query, senderId, receiverId, tripId)
+	} else {
+		_, err = r.db.ExecContext(ctx, query, senderId, receiverId, tripId)
+	}
+
+	return err
+}

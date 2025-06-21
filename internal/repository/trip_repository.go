@@ -16,4 +16,5 @@ type TripRepository interface {
 	SelectForUpdateById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 	SelectForShareById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 	UpdateCommand(ctx context.Context, trip *entity.Trip, tx *sqlx.Tx) error
+	DeleteByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error
 }

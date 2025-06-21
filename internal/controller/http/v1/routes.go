@@ -16,6 +16,8 @@ func MapRoutes(router *gin.Engine,
 	healHandler *HealthHandler,
 	notificationHandler *NotificationHandler,
 	tripHandler *TripHandler,
+	invitationTripHandler *InvitationTripHandler,
+	tripMemberHandler *TripMemberHandler,
 ) {
 	v1 := router.Group("/api/v1")
 	{
@@ -62,6 +64,7 @@ func MapRoutes(router *gin.Engine,
 		{
 			user.GET("/", authMiddleware.VerifyAccessToken, userHandler.SearchUser)
 			user.PUT("/notification-token", authMiddleware.VerifyAccessToken, userHandler.UpdateNotificationToken)
+			user.PATCH("/me", authMiddleware.VerifyAccessToken, userHandler.UpdateProfile)
 		}
 		trip := v1.Group("/trips")
 		{
@@ -71,6 +74,16 @@ func MapRoutes(router *gin.Engine,
 			trip.PATCH("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.UpdateTrip)
 			trip.POST("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.CreateTripItems)
 			trip.GET("/:tripId/trip-items", authMiddleware.VerifyAccessToken, tripHandler.GetTripItems)
+			trip.POST("/ai", authMiddleware.VerifyAccessToken, tripHandler.CreateTripByAI)
+			trip.GET("/:tripId/members", authMiddleware.VerifyAccessToken, tripMemberHandler.GetTripMembers)
+			trip.DELETE("/:tripId/members/:memberId", authMiddleware.VerifyAccessToken, tripMemberHandler.DeleteTripMember)
+			trip.DELETE("/:tripId", authMiddleware.VerifyAccessToken, tripHandler.DeleteTrip)
+		}
+		tripInvitation := v1.Group("/invitation-trips")
+		{
+			tripInvitation.POST("", authMiddleware.VerifyAccessToken, invitationTripHandler.SendInvitation)
+			tripInvitation.PUT("/accept/:invitationId", authMiddleware.VerifyAccessToken, invitationTripHandler.AcceptInvitation)
+			tripInvitation.PUT("/deny/:invitationId", authMiddleware.VerifyAccessToken, invitationTripHandler.DenyInvitation)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

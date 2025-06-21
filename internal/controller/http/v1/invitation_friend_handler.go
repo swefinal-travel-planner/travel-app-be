@@ -1,9 +1,10 @@
 package v1
 
 import (
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 	"strconv"
+
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
@@ -23,7 +24,7 @@ func NewInvitationFriendHandler(invitationFriendService service.InvitationFriend
 
 // @Summary Add friend
 // @Description Add friend
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Param request body model.InvitationFriendRequest true "InvitationFriend payload"
 // @Produce  json
@@ -52,7 +53,7 @@ func (handler *InvitationFriendHandler) AddFriend(ctx *gin.Context) {
 
 // @Summary Get all received invitations
 // @Description Get all received invitations of current user
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Produce  json
 // @Router /invitation-friends/received [get]
@@ -74,7 +75,7 @@ func (handler *InvitationFriendHandler) GetAllReceivedInvitations(ctx *gin.Conte
 
 // @Summary Get all requested invitations
 // @Description Get all requested invitations of current user
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Produce  json
 // @Router /invitation-friends/requested [get]
@@ -96,7 +97,7 @@ func (handler *InvitationFriendHandler) GetAllRequestedInvitations(ctx *gin.Cont
 
 // @Summary Accept friend invitation
 // @Description Accept friend invitation
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Param invitationId path int true "Invitation ID"
 // @Produce  json
@@ -133,7 +134,7 @@ func (handler *InvitationFriendHandler) AcceptInvitation(ctx *gin.Context) {
 
 // @Summary Deny friend invitation
 // @Description Deny friend invitation
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Param invitationId path int true "Invitation ID"
 // @Produce  json
@@ -170,7 +171,7 @@ func (handler *InvitationFriendHandler) DenyInvitation(ctx *gin.Context) {
 
 // @Summary Withdraw friend invitation
 // @Description Withdraw friend invitation (only allowed for the sender)
-// @Tags InvitationFriend
+// @Tags InvitationFriends
 // @Accept json
 // @Param invitationId path int true "Invitation ID"
 // @Produce  json

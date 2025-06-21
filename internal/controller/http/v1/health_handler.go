@@ -23,7 +23,7 @@ func NewHealthHandler(db database.Db, redisClient bean.RedisClient) *HealthHandl
 
 // @Summary Health Check
 // @Description Checks the health of the application by verifying database and Redis connections
-// @Tags Health
+// @Tags Healths
 // @Accept json
 // @Produce json
 // @Router /health [get]

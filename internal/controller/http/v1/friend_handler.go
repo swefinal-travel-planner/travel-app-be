@@ -1,9 +1,10 @@
 package v1
 
 import (
-	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 	"net/http"
 	"strconv"
+
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
@@ -22,7 +23,7 @@ func NewFriendHandler(friendService service.FriendService) *FriendHandler {
 
 // @Summary View friends
 // @Description View friends
-// @Tags Friend
+// @Tags Friends
 // @Accept json
 // @Produce  json
 // @Router /friends [get]
@@ -44,7 +45,7 @@ func (handler *FriendHandler) ViewFriends(ctx *gin.Context) {
 
 // @Summary Remove friend
 // @Description Remove friend
-// @Tags Friend
+// @Tags Friends
 // @Accept json
 // @Param friendId path int true "friend ID"
 // @Produce  json

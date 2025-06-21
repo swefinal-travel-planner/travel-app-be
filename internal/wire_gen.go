@@ -45,11 +45,16 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	tripRepository := repositoryimplement.NewTripRepository(db)
 	unitOfWork := repositoryimplement.NewUnitOfWork(db)
 	tripMemberRepository := repositoryimplement.NewTripMemberRepository(db)
-	tripService := serviceimplement.NewTripService(tripRepository, unitOfWork, tripMemberRepository)
 	tripItemRepository := repositoryimplement.NewTripItemRepository(db)
 	tripItemService := serviceimplement.NewTripItemService(tripItemRepository, tripRepository, tripMemberRepository, unitOfWork)
-	tripHandler := v1.NewTripHandler(tripService, tripItemService)
-	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler, tripHandler)
+	tripService := serviceimplement.NewTripService(tripRepository, unitOfWork, tripMemberRepository, tripItemService)
+	tripHandler := v1.NewTripHandler(tripService, tripItemService, notificationService)
+	invitationTripRepository := repositoryimplement.NewInvitationTripRepository(db)
+	invitationTripService := serviceimplement.NewInvitationTripService(invitationTripRepository, tripRepository, tripMemberRepository, unitOfWork, notificationService)
+	invitationTripHandler := v1.NewInvitationTripHandler(invitationTripService)
+	tripMemberService := serviceimplement.NewTripMemberService(tripMemberRepository)
+	tripMemberHandler := v1.NewTripMemberHandler(tripMemberService)
+	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler, tripHandler, invitationTripHandler, tripMemberHandler)
 	apiContainer := controller.NewApiContainer(server)
 	return apiContainer
 }
@@ -62,11 +67,11 @@ var container = wire.NewSet(controller.NewApiContainer)
 var serverSet = wire.NewSet(http.NewServer)
 
 // handler === controller | with service and repository layers to form 3 layers architecture
-var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler, v1.NewNotificationHandler, v1.NewTripHandler)
+var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler, v1.NewNotificationHandler, v1.NewTripHandler, v1.NewInvitationTripHandler, v1.NewTripMemberHandler)
 
-var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService, serviceimplement.NewExpoNotificationService, serviceimplement.NewTripService, serviceimplement.NewTripItemService)
+var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService, serviceimplement.NewExpoNotificationService, serviceimplement.NewTripService, serviceimplement.NewTripItemService, serviceimplement.NewInvitationTripService, serviceimplement.NewTripMemberService)
 
-var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository, repositoryimplement.NewTripRepository, repositoryimplement.NewTripItemRepository, repositoryimplement.NewTripMemberRepository, repositoryimplement.NewUnitOfWork, repositoryimplement.NewNotificationRepository)
+var repositorySet = wire.NewSet(repositoryimplement.NewUserRepository, repositoryimplement.NewAuthenticationRepository, repositoryimplement.NewInvitationFriendRepository, repositoryimplement.NewFriendRepository, repositoryimplement.NewInvitationCooldownRepository, repositoryimplement.NewTripRepository, repositoryimplement.NewTripItemRepository, repositoryimplement.NewTripMemberRepository, repositoryimplement.NewUnitOfWork, repositoryimplement.NewNotificationRepository, repositoryimplement.NewInvitationTripRepository)
 
 var middlewareSet = wire.NewSet(middleware.NewAuthMiddleware)
 

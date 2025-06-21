@@ -27,13 +27,13 @@ func (repo *TripRepository) CreateCommand(ctx context.Context, trip *entity.Trip
 		title, city, start_date, days, budget, num_members, 
 		vi_location_attributes, vi_food_attributes, vi_special_requirements, vi_medical_conditions,
 		en_location_attributes, en_food_attributes, en_special_requirements, en_medical_conditions,
-		status
+		status, reference_id
 	) 
 	VALUES (
 		:title, :city, :start_date, :days, :budget, :num_members, 
 		:vi_location_attributes, :vi_food_attributes, :vi_special_requirements, :vi_medical_conditions,
 		:en_location_attributes, :en_food_attributes, :en_special_requirements, :en_medical_conditions,
-		:status
+		:status, :reference_id
 	)
 	`
 
@@ -188,6 +188,7 @@ func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip
 			en_special_requirements = :en_special_requirements,
 			en_medical_conditions = :en_medical_conditions,
 			status = :status,
+			reference_id = :reference_id,
 			updated_at = CURRENT_TIMESTAMP
 		WHERE id = :id
 	`
@@ -198,5 +199,15 @@ func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip
 	}
 
 	_, err := repo.db.NamedExecContext(ctx, updateQuery, trip)
+	return err
+}
+
+func (repo *TripRepository) DeleteByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error {
+	deleteQuery := "DELETE FROM trips WHERE id = ?"
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, deleteQuery, id)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, deleteQuery, id)
 	return err
 }

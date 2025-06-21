@@ -8,20 +8,23 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/validation"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
 )
 
 type TripHandler struct {
-	tripService     service.TripService
-	tripItemService service.TripItemService
+	tripService         service.TripService
+	tripItemService     service.TripItemService
+	notificationService service.NotificationService
 }
 
-func NewTripHandler(tripService service.TripService, tripItemService service.TripItemService) *TripHandler {
+func NewTripHandler(tripService service.TripService, tripItemService service.TripItemService, notificationService service.NotificationService) *TripHandler {
 	return &TripHandler{
-		tripService:     tripService,
-		tripItemService: tripItemService,
+		tripService:         tripService,
+		tripItemService:     tripItemService,
+		notificationService: notificationService,
 	}
 }
 
@@ -29,7 +32,7 @@ func NewTripHandler(tripService service.TripService, tripItemService service.Tri
 // @Description Create trip manually
 // @Tags Trips
 // @Accept json
-// @Param request body model.TripRequest true "Trip payload"
+// @Param request body model.CreateTripManuallyRequest true "Trip payload"
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Produce  json
 // @Router /trips [post]
@@ -39,7 +42,7 @@ func NewTripHandler(tripService service.TripService, tripItemService service.Tri
 func (handler *TripHandler) CreateTripManually(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	var tripRequest model.TripRequest
+	var tripRequest model.CreateTripManuallyRequest
 
 	if err := validation.BindJsonAndValidate(ctx, &tripRequest); err != nil {
 		return
@@ -165,6 +168,7 @@ func (handler *TripHandler) GetTrip(ctx *gin.Context) {
 // @Tags Trips
 // @Param tripId path int true "Trip ID"
 // @Param  Authorization header string true "Authorization: Bearer"
+// @Param language query string false "Language for place info (vi or en)" Enums(vi,en) default(vi)
 // @Produce json
 // @Router /trips/{tripId}/trip-items [get]
 // @Success 200 {object} httpcommon.HttpResponse[[]model.TripItemResponse]
@@ -185,6 +189,12 @@ func (handler *TripHandler) GetTripItems(ctx *gin.Context) {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
 		ctx.JSON(statusCode, errResponse)
 		return
+	}
+
+	// Get language from query, only allow 'vi' and 'en', default to 'vi'
+	lang := ctx.DefaultQuery("language", "vi")
+	if lang != "vi" && lang != "en" {
+		lang = "vi"
 	}
 
 	tripItems, errCode := handler.tripItemService.GetTripItemsByTripID(ctx, userId, tripIdInt)
@@ -234,6 +244,103 @@ func (handler *TripHandler) UpdateTrip(ctx *gin.Context) {
 	}
 
 	errCode := handler.tripService.UpdateTrip(ctx, tripIdInt, userId, tripRequest)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+}
+
+// @Summary Create trip by AI
+// @Description Create trip by AI
+// @Tags Trips
+// @Accept json
+// @Param request body model.CreateTripByAIRequest true "Trip payload"
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce  json
+// @Router /trips/ai [post]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	var tripRequest model.CreateTripByAIRequest
+	if err := validation.BindJsonAndValidate(ctx, &tripRequest); err != nil {
+		return
+	}
+
+	ctx.AbortWithStatus(204)
+
+	// process the remaining tasks in the background
+	go func(tripRequest model.CreateTripByAIRequest, userId int64) {
+		defer func() {
+			recover()
+		}()
+
+		tripItemRespList, errCode := handler.tripService.CreateTripByAI(ctx.Copy(), tripRequest, userId)
+		if errCode != "" {
+			// send notification to current user
+			notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+				Type:                entity.NotificationType.TripGeneratedFailed,
+				ReceiverUserID:      userId,
+				TriggerEntityType:   entity.NotificationTriggerType.System,
+				TriggerEntityID:     nil,
+				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityID:   &tripItemRespList[0].TripID,
+			})
+			if notiErr != "" {
+				return
+			}
+		} else {
+			// send notification to current user
+			notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+				Type:                entity.NotificationType.TripGenerated,
+				ReceiverUserID:      userId,
+				TriggerEntityType:   entity.NotificationTriggerType.System,
+				TriggerEntityID:     nil,
+				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityID:   &tripItemRespList[0].TripID,
+			})
+			if notiErr != "" {
+				return
+			}
+		}
+	}(tripRequest, userId)
+}
+
+// @Summary Delete trip
+// @Description Delete a trip (admin only)
+// @Tags Trips
+// @Param tripId path int true "Trip ID"
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Produce json
+// @Router /trips/{tripId} [delete]
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 403 {object} httpcommon.HttpResponse[any]
+// @Failure 404 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *TripHandler) DeleteTrip(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+
+	tripId := ctx.Param("tripId")
+	if tripId == "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripIdInt, err := strconv.ParseInt(tripId, 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	errCode := handler.tripService.DeleteTrip(ctx, tripIdInt, userId)
 	if errCode != "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
 		ctx.JSON(statusCode, errResponse)

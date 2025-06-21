@@ -24,6 +24,7 @@ type Trip struct {
 	EnSpecialRequirements stringlistutils.SqlListString `json:"enSpecialRequirements,omitempty" db:"en_special_requirements"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions,omitempty" db:"en_medical_conditions"`
 	Status                string                        `json:"status,omitempty" db:"status"`
+	ReferenceID           string                        `json:"referenceId" db:"reference_id"`
 	CreatedAt             time.Time                     `json:"createdAt,omitempty" db:"created_at"`
 	UpdatedAt             time.Time                     `json:"updatedAt,omitempty" db:"updated_at"`
 	DeletedAt             sql.NullTime                  `json:"deletedAt,omitempty" db:"deleted_at"`
@@ -32,4 +33,14 @@ type Trip struct {
 type TripWithRole struct {
 	Trip
 	Role string `json:"role" db:"role"`
+}
+
+type tripRole struct {
+	Administrator string
+	Member        string
+}
+
+var TripRole = tripRole{
+	Administrator: "administrator",
+	Member:        "member",
 }

@@ -83,3 +83,51 @@ func (service *UserService) UpdateNotificationToken(ctx *gin.Context, userId int
 
 	return ""
 }
+
+func (service *UserService) UpdateUser(ctx *gin.Context, userId int64, request model.UpdateUserRequest) string {
+	// Get existing user
+	user, err := service.userRepository.GetOneByIDQuery(ctx, userId, nil)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return error_utils.ErrorCode.FORBIDDEN
+		}
+		log.Error("UserService.UpdateUser Error getting user: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
+	}
+
+	// If email is being updated, check if it's already in use
+	if request.Email != "" && request.Email != user.Email {
+		existingUser, err := service.userRepository.GetOneByEmailQuery(ctx, request.Email, nil)
+		if err == nil && existingUser.Id != userId {
+			return error_utils.ErrorCode.REGISTER_EMAIL_EXISTED
+		}
+		if err != nil && err.Error() != error_utils.SystemErrorMessage.SqlxNoRow {
+			log.Error("UserService.UpdateUser Error checking email: " + err.Error())
+			return error_utils.ErrorCode.DB_DOWN
+		}
+		user.Email = request.Email
+	}
+
+	// Update other fields if provided
+	if request.Name != "" {
+		user.Name = request.Name
+	}
+	if request.PhoneNumber != "" {
+		user.PhoneNumber = request.PhoneNumber
+	}
+	if request.PhotoURL != nil {
+		user.PhotoURL = request.PhotoURL
+	}
+	if request.NotificationToken != nil {
+		user.NotificationToken = request.NotificationToken
+	}
+
+	// Save the updated user
+	err = service.userRepository.UpdateCommand(ctx, user, nil)
+	if err != nil {
+		log.Error("UserService.UpdateUser Error updating user: " + err.Error())
+		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	return ""
+}
