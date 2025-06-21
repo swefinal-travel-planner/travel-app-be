@@ -141,11 +141,11 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 
 	trip, err := service.tripRepository.GetOneWithUserRoleByIDQuery(ctx, tripId, userId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return nil, error_utils.ErrorCode.FORBIDDEN
-		}
 		log.Error("TripService.GetTripByID Error: " + err.Error())
 		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if trip == nil {
+		return nil, error_utils.ErrorCode.FORBIDDEN
 	}
 
 	tripResponse := &model.TripResponse{
@@ -174,11 +174,11 @@ func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tr
 	// Get existing trip
 	existingTrip, err := service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.TRIP_NOT_FOUND
-		}
-		log.Error("TripService.updatedTripHelper - Get trip Error: " + err.Error())
+		log.Error("TripService.UpdateTrip - Get trip Error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if existingTrip == nil {
+		return error_utils.ErrorCode.TRIP_NOT_FOUND
 	}
 
 	// Update fields if provided

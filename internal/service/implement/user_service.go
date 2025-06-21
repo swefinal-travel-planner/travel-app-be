@@ -33,11 +33,11 @@ func NewUserService(
 func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail string) (*model.FriendResponse, string) {
 	friend, err := service.userRepository.GetOneByEmailQuery(ctx, userEmail, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return nil, ""
-		}
 		log.Error("UserService.SearchUser Error: " + err.Error())
 		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if friend == nil {
+		return nil, ""
 	}
 
 	// check to see if the user is a friend or not
