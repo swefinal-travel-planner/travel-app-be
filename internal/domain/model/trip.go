@@ -20,7 +20,7 @@ type CreateTripManuallyRequest struct {
 	EnSpecialRequirements stringlistutils.SqlListString `json:"-"`
 	EnMedicalConditions   stringlistutils.SqlListString `json:"-"`
 	Status                string                        `json:"-"`
-	ReferenceID           string                        `json:"-"`
+	ReferenceID           *string                       `json:"-"`
 }
 
 type CreateTripByAIRequest struct {
@@ -53,6 +53,7 @@ type TripToCoreRequest struct {
 }
 
 type TripResponse struct {
+	ID                    int64                         `json:"id"`
 	Title                 string                        `json:"title" binding:"required,min=1"`
 	City                  string                        `json:"city" binding:"required"`
 	StartDate             time.Time                     `json:"startDate" binding:"required"`

@@ -47,23 +47,23 @@ func (service *TripItemService) CreateTripItems(ctx *gin.Context, userId int64, 
 	defer service.unitOfWork.Rollback(tx)
 
 	// lock trip row before update trip items
-	_, err = service.tripRepository.SelectForUpdateById(ctx, tripId, tx)
+	trip, err := service.tripRepository.SelectForUpdateById(ctx, tripId, tx)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.TRIP_NOT_FOUND
-		}
 		log.Error("TripItemService.CreateTripItems LockTripRowByIDCommand error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
 	}
+	if trip == nil {
+		return error_utils.ErrorCode.TRIP_NOT_FOUND
+	}
 
 	// check to see if trip exists
-	_, err = service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
+	trip, err = service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.TRIP_NOT_FOUND
-		}
 		log.Error("TripItemService.CreateTripItems GetOneByIDQuery error: " + err.Error())
 		return error_utils.ErrorCode.DB_DOWN
+	}
+	if trip == nil {
+		return error_utils.ErrorCode.TRIP_NOT_FOUND
 	}
 
 	// check if user is admin

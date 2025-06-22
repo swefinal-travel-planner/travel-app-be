@@ -7,6 +7,7 @@ import (
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/repository"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
 )
 
 type AuthenticationRepository struct {
@@ -54,9 +55,23 @@ func (repo *AuthenticationRepository) GetOneByUserIdQuery(ctx context.Context, u
 	`
 	if tx != nil {
 		err := tx.GetContext(ctx, &authentication, query, userId)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
 		return &authentication, err
 	}
 	err := repo.db.GetContext(ctx, &authentication, query, userId)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 	return &authentication, err
 }
 
@@ -67,5 +82,15 @@ func (repo *AuthenticationRepository) DeleteByRefreshToken(ctx context.Context, 
 		return err
 	}
 	_, err := repo.db.ExecContext(ctx, query, refreshToken)
+	return err
+}
+
+func (repo *AuthenticationRepository) DeleteByUserId(ctx context.Context, userId int64, tx *sqlx.Tx) error {
+	query := `DELETE FROM authentications WHERE user_id = ?`
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, userId)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, query, userId)
 	return err
 }

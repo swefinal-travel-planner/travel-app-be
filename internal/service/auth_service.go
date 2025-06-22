@@ -10,6 +10,7 @@ type AuthService interface {
 	RefreshToken(ctx *gin.Context, refreshRequest model.RefreshTokenRequest) (newAccessToken string, errCode string)
 	Login(ctx *gin.Context, userRequest model.LoginRequest) (*model.LoginResponse, string)
 	GoogleLogin(ctx *gin.Context, userRequest model.GoogleLoginRequest) (*model.LoginResponse, string)
+	Logout(ctx *gin.Context, userId int64) string
 
 	SendOTPToEmailForRegister(ctx *gin.Context, sendOTPRequest model.SendOTPRequest) string
 	VerifyOTPForRegister(ctx *gin.Context, verifyOTPRequest model.VerifyOTPRequest) string

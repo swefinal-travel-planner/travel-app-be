@@ -105,6 +105,7 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 	var tripResponses []*model.TripResponse
 	for _, trip := range trips {
 		tripResponse := &model.TripResponse{
+			ID:                    trip.ID,
 			Title:                 trip.Title,
 			City:                  trip.City,
 			StartDate:             trip.StartDate,
@@ -141,14 +142,15 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 
 	trip, err := service.tripRepository.GetOneWithUserRoleByIDQuery(ctx, tripId, userId, nil)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return nil, error_utils.ErrorCode.FORBIDDEN
-		}
 		log.Error("TripService.GetTripByID Error: " + err.Error())
 		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
+	if trip == nil {
+		return nil, error_utils.ErrorCode.FORBIDDEN
+	}
 
 	tripResponse := &model.TripResponse{
+		ID:                    trip.ID,
 		Title:                 trip.Title,
 		City:                  trip.City,
 		StartDate:             trip.StartDate,
@@ -174,11 +176,11 @@ func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tr
 	// Get existing trip
 	existingTrip, err := service.tripRepository.GetOneByIDQuery(ctx, tripId, tx)
 	if err != nil {
-		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
-			return error_utils.ErrorCode.TRIP_NOT_FOUND
-		}
-		log.Error("TripService.updatedTripHelper - Get trip Error: " + err.Error())
+		log.Error("TripService.UpdateTrip - Get trip Error: " + err.Error())
 		return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if existingTrip == nil {
+		return error_utils.ErrorCode.TRIP_NOT_FOUND
 	}
 
 	// Update fields if provided
@@ -228,7 +230,7 @@ func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tr
 		existingTrip.Status = *tripRequest.Status
 	}
 	if tripRequest.ReferenceID != nil {
-		existingTrip.ReferenceID = *tripRequest.ReferenceID
+		existingTrip.ReferenceID = tripRequest.ReferenceID
 	}
 
 	// Update trip
