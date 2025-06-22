@@ -173,6 +173,8 @@ func (service *AuthService) Login(ctx *gin.Context, loginRequest model.LoginRequ
 		Name:         existsUser.Name,
 		Email:        existsUser.Email,
 		UserId:       existsUser.Id,
+		PhoneNumber:  existsUser.PhoneNumber,
+		PhotoURL:     existsUser.PhotoURL,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, ""
