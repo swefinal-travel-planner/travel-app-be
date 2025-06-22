@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/model"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/service"
@@ -263,4 +264,33 @@ func (handler *AuthHandler) FirebaseLogin(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, httpcommon.NewSuccessResponse(user))
+}
+
+// @Summary Logout
+// @Description Logout user and invalidate tokens
+// @Tags Auths
+// @Accept json
+// @Produce json
+// @Router /auth/logout [post]
+// @Param  Authorization header string true "Authorization: Bearer"
+// @Success 204 "No Content"
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+func (handler *AuthHandler) Logout(ctx *gin.Context) {
+	// Get userId from context (set by auth middleware)
+	userId := middleware.GetUserIdHelper(ctx)
+	if userId == 0 {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.FORBIDDEN, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	errCode := handler.authService.Logout(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.AbortWithStatus(204)
 }

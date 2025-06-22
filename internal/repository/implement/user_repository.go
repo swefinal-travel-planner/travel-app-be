@@ -114,7 +114,7 @@ func (repo *UserRepository) GetOneByIDQuery(ctx context.Context, id int64, tx *s
 	return &customer, err
 }
 
-func (repo *UserRepository) UpdateNotificationTokenCommand(ctx context.Context, id int64, token string, tx *sqlx.Tx) error {
+func (repo *UserRepository) UpdateNotificationTokenCommand(ctx context.Context, id int64, token *string, tx *sqlx.Tx) error {
 	query := "UPDATE users SET notification_token = ? WHERE id = ?"
 	if tx != nil {
 		_, err := tx.ExecContext(ctx, query, token, id)

@@ -84,3 +84,13 @@ func (repo *AuthenticationRepository) DeleteByRefreshToken(ctx context.Context, 
 	_, err := repo.db.ExecContext(ctx, query, refreshToken)
 	return err
 }
+
+func (repo *AuthenticationRepository) DeleteByUserId(ctx context.Context, userId int64, tx *sqlx.Tx) error {
+	query := `DELETE FROM authentications WHERE user_id = ?`
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, userId)
+		return err
+	}
+	_, err := repo.db.ExecContext(ctx, query, userId)
+	return err
+}

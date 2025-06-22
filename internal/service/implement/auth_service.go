@@ -440,3 +440,21 @@ func (service *AuthService) RefreshToken(ctx *gin.Context, refreshTokenRequest m
 	}
 	return newAccessToken, ""
 }
+
+func (service *AuthService) Logout(ctx *gin.Context, userId int64) string {
+	// Delete authentication record by userId
+	err := service.authenticationRepository.DeleteByUserId(ctx, userId, nil)
+	if err != nil {
+		log.Error("AuthService.Logout Error when delete authentication: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
+	}
+
+	// Update notification token to nil
+	err = service.userRepository.UpdateNotificationTokenCommand(ctx, userId, nil, nil)
+	if err != nil {
+		log.Error("AuthService.Logout Error when update notification token: " + err.Error())
+		return error_utils.ErrorCode.DB_DOWN
+	}
+
+	return ""
+}
