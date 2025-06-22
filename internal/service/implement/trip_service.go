@@ -230,7 +230,7 @@ func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tr
 		existingTrip.Status = *tripRequest.Status
 	}
 	if tripRequest.ReferenceID != nil {
-		existingTrip.ReferenceID = *tripRequest.ReferenceID
+		existingTrip.ReferenceID = tripRequest.ReferenceID
 	}
 
 	// Update trip
