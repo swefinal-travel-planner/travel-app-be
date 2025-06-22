@@ -105,6 +105,7 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 	var tripResponses []*model.TripResponse
 	for _, trip := range trips {
 		tripResponse := &model.TripResponse{
+			ID:                    trip.ID,
 			Title:                 trip.Title,
 			City:                  trip.City,
 			StartDate:             trip.StartDate,
