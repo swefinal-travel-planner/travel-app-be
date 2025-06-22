@@ -150,6 +150,7 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 	}
 
 	tripResponse := &model.TripResponse{
+		ID:                    trip.ID,
 		Title:                 trip.Title,
 		City:                  trip.City,
 		StartDate:             trip.StartDate,
