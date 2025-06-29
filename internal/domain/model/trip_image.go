@@ -12,3 +12,17 @@ type TripImageResponse struct {
 	ImageURL  string    `json:"imageUrl"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type TripImageWithUserInfoResponse struct {
+	ID        int64     `json:"id"`
+	TripID    int64     `json:"tripId"`
+	ImageURL  string    `json:"imageUrl"`
+	Author    UserInfo  `json:"author"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type UserInfo struct {
+	ID       int64   `json:"id"`
+	Name     string  `json:"name"`
+	PhotoURL *string `json:"photoURL"`
+}

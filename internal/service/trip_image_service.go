@@ -8,5 +8,6 @@ import (
 type TripImageService interface {
 	CreateTripImage(ctx *gin.Context, userId int64, tripId int64, tripImageRequest model.TripImageRequest) string
 	GetTripImages(ctx *gin.Context, userId int64, tripId int64) ([]model.TripImageResponse, string)
+	GetTripImagesWithUserInfo(ctx *gin.Context, userId int64, tripId int64) ([]model.TripImageWithUserInfoResponse, string)
 	DeleteTripImage(ctx *gin.Context, userId int64, tripId int64, imageId int64) string
 }

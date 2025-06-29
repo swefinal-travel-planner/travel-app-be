@@ -63,13 +63,13 @@ func (h *TripImageHandler) CreateTripImage(c *gin.Context) {
 }
 
 // @Summary Get trip images
-// @Description Get all images for a trip
+// @Description Get all images for a trip with author information
 // @Tags TripImages
 // @Accept json
 // @Produce json
 // @Param tripId path int true "Trip ID"
 // @Param Authorization header string true "Authorization: Bearer"
-// @Success 200 {object} httpcommon.HttpResponse[[]model.TripImageResponse]
+// @Success 200 {object} httpcommon.HttpResponse[[]model.TripImageWithUserInfoResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
 // @Failure 403 {object} httpcommon.HttpResponse[any]
 // @Failure 404 {object} httpcommon.HttpResponse[any]
@@ -85,14 +85,14 @@ func (h *TripImageHandler) GetTripImages(c *gin.Context) {
 		return
 	}
 
-	tripImages, errCode := h.tripImageService.GetTripImages(c, userID, tripID)
+	tripImagesWithUserInfo, errCode := h.tripImageService.GetTripImagesWithUserInfo(c, userID, tripID)
 	if errCode != "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
 		c.JSON(statusCode, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, httpcommon.NewSuccessResponse(&tripImages))
+	c.JSON(http.StatusOK, httpcommon.NewSuccessResponse(&tripImagesWithUserInfo))
 }
 
 // @Summary Delete trip image

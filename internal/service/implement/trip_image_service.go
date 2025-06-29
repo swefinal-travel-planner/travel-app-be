@@ -64,6 +64,7 @@ func (service *TripImageService) CreateTripImage(ctx *gin.Context, userId int64,
 	tripImage := &entity.TripImage{
 		TripID:   tripId,
 		ImageURL: tripImageRequest.ImageURL,
+		UserID:   userId,
 	}
 	err = service.tripImageRepository.CreateCommand(ctx, tripImage, tx)
 	if err != nil {
@@ -168,4 +169,52 @@ func (service *TripImageService) DeleteTripImage(ctx *gin.Context, userId int64,
 	}
 
 	return ""
+}
+
+func (service *TripImageService) GetTripImagesWithUserInfo(ctx *gin.Context, userId int64, tripId int64) ([]model.TripImageWithUserInfoResponse, string) {
+	// check if trip exists
+	trip, err := service.tripRepository.GetOneByIDQuery(ctx, tripId, nil)
+	if err != nil {
+		log.Error("TripImageService.GetTripImagesWithUserInfo GetOneByIDQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.DB_DOWN
+	}
+	if trip == nil {
+		return nil, error_utils.ErrorCode.TRIP_NOT_FOUND
+	}
+
+	// check if user is member of the trip
+	isMember, err := service.tripMemberRepository.IsUserInTripQuery(ctx, tripId, userId, nil)
+	if err != nil {
+		log.Error("TripImageService.GetTripImagesWithUserInfo IsUserInTripQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isMember {
+		return nil, error_utils.ErrorCode.FORBIDDEN
+	}
+
+	// get trip images with user info
+	tripImagesWithUserInfo, err := service.tripImageRepository.GetAllWithUserInfoQuery(ctx, tripId, nil)
+	if err != nil {
+		log.Error("TripImageService.GetTripImagesWithUserInfo GetAllWithUserInfoQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// convert to response model
+	var tripImageResponses []model.TripImageWithUserInfoResponse
+	for _, image := range tripImagesWithUserInfo {
+		tripImageResponse := model.TripImageWithUserInfoResponse{
+			ID:        image.ID,
+			TripID:    image.TripID,
+			ImageURL:  image.ImageURL,
+			CreatedAt: image.CreatedAt,
+			Author: model.UserInfo{
+				ID:       image.UserID,
+				Name:     *image.UserName,
+				PhotoURL: image.UserPhotoUrl,
+			},
+		}
+		tripImageResponses = append(tripImageResponses, tripImageResponse)
+	}
+
+	return tripImageResponses, ""
 }
