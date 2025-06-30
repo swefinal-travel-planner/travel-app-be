@@ -10,6 +10,6 @@ type TripService interface {
 	GetAllTripsByUserID(ctx *gin.Context, userId int64) ([]*model.TripResponse, string)
 	GetTripByID(ctx *gin.Context, tripId int64, userId int64) (*model.TripResponse, string)
 	UpdateTrip(ctx *gin.Context, tripId int64, userId int64, tripRequest model.TripPatchRequest) string
-	CreateTripByAI(ctx *gin.Context, tripRequest model.CreateTripByAIRequest, userID int64) ([]model.TripItemFromAIResponse, string)
+	CreateTripByAI(ctx *gin.Context, tripRequest model.CreateTripByAIRequest, userID int64) ([]model.TripItemFromAIResponse, int64, string)
 	DeleteTrip(ctx *gin.Context, tripId int64, userId int64) string
 }

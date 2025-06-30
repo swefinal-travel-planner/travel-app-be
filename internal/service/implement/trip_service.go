@@ -347,7 +347,7 @@ func (service *TripService) createTripItems(createTourURL string, token string, 
 	return tripItemsResp.Data.TripItems, tripItemsResp.Data.ReferenceID, ""
 }
 
-func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.CreateTripByAIRequest, userID int64) ([]model.TripItemFromAIResponse, string) {
+func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.CreateTripByAIRequest, userID int64) ([]model.TripItemFromAIResponse, int64, string) {
 	tripToCoreRequest := model.TripToCoreRequest{
 		City:                tripRequest.City,
 		Days:                tripRequest.Days,
@@ -377,7 +377,7 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	}
 	tripID, errCode := service.CreateTrip(ctx, createTripManuallyRequest, userID)
 	if errCode != "" {
-		return []model.TripItemFromAIResponse{}, errCode
+		return []model.TripItemFromAIResponse{}, tripID, errCode
 	}
 	var tripStatus string
 
@@ -386,13 +386,13 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	if getSecretKeyErr != nil {
 		tripStatus = model.TripStatus.Failed
 		log.Error("TripService.CreateTripByAI - Get CORE_SECRET_KEY Error: " + getSecretKeyErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+		return []model.TripItemFromAIResponse{}, tripID, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 	genTokenURL, getGenTokenURLErr := env.GetEnv("GEN_TOKEN_URL")
 	if getGenTokenURLErr != nil {
 		tripStatus = model.TripStatus.Failed
 		log.Error("TripService.CreateTripByAI - Get GEN_TOKEN_URL Error: " + getGenTokenURLErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+		return []model.TripItemFromAIResponse{}, tripID, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	// call gen token URL to get token
@@ -400,7 +400,7 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	if genTokenErr != "" {
 		tripStatus = model.TripStatus.Failed
 		log.Error("TripService.CreateTripByAI - Generate token Error: " + genTokenErr)
-		return []model.TripItemFromAIResponse{}, genTokenErr
+		return []model.TripItemFromAIResponse{}, tripID, genTokenErr
 	}
 
 	// get create tour URL
@@ -408,7 +408,7 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	if createTourURLErr != nil {
 		tripStatus = model.TripStatus.Failed
 		log.Error("TripService.CreateTripByAI - Get CREATE_TOUR_URL Error: " + createTourURLErr.Error())
-		return []model.TripItemFromAIResponse{}, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+		return []model.TripItemFromAIResponse{}, tripID, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
 
 	// send trip data to core service to get trip items
@@ -416,7 +416,7 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	if createTripItemsError != "" {
 		tripStatus = model.TripStatus.Failed
 		log.Error("TripService.CreateTripByAI - Create trip items Error: " + createTripItemsError)
-		return []model.TripItemFromAIResponse{}, createTripItemsError
+		return []model.TripItemFromAIResponse{}, tripID, createTripItemsError
 	}
 
 	// update reference ID and status
@@ -469,11 +469,11 @@ func (service *TripService) CreateTripByAI(ctx *gin.Context, tripRequest model.C
 	err := service.tripItemService.CreateTripItems(ctx, userID, tripID, tripItemsReqs)
 	if err != "" {
 		log.Error("TripService.CreateTripByAI Error: " + err)
-		return []model.TripItemFromAIResponse{}, err
+		return []model.TripItemFromAIResponse{}, tripID, err
 	}
 
 	// return trip items to noti
-	return tripItemsRespFromCore, ""
+	return tripItemsRespFromCore, tripID, ""
 }
 
 func (service *TripService) DeleteTrip(ctx *gin.Context, tripId int64, userId int64) string {

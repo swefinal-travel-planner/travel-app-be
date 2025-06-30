@@ -280,8 +280,13 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 			recover()
 		}()
 
-		tripItemRespList, errCode := handler.tripService.CreateTripByAI(ctx.Copy(), tripRequest, userId)
+		routineCtx := ctx.Copy()
+
+		tripItemRespList, tripId, errCode := handler.tripService.CreateTripByAI(routineCtx, tripRequest, userId)
 		if errCode != "" {
+			handler.tripService.UpdateTrip(routineCtx, tripId, userId, model.TripPatchRequest{
+				Status: &model.TripStatus.Failed,
+			})
 			// send notification to current user
 			notiErr := handler.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
 				Type:                entity.NotificationType.TripGeneratedFailed,
