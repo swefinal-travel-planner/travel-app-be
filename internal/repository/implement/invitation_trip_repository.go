@@ -58,6 +58,21 @@ func (repo *InvitationTripRepository) GetByTripIDQuery(ctx context.Context, trip
 	return invitations, err
 }
 
+func (repo *InvitationTripRepository) GetPendingByTripIDQuery(ctx context.Context, tripId int64, tx *sqlx.Tx) ([]entity.InvitationTrip, error) {
+	var invitations []entity.InvitationTrip
+	query := "SELECT * FROM invitation_trips WHERE trip_id = ? AND status = 'pending'"
+	var err error
+	if tx != nil {
+		err = tx.SelectContext(ctx, &invitations, query, tripId)
+	} else {
+		err = repo.db.SelectContext(ctx, &invitations, query, tripId)
+	}
+	if err != nil && err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+		return make([]entity.InvitationTrip, 0), nil
+	}
+	return invitations, err
+}
+
 func (repo *InvitationTripRepository) GetByReceiverIDQuery(ctx context.Context, receiverId int64, tx *sqlx.Tx) ([]entity.InvitationTrip, error) {
 	var invitations []entity.InvitationTrip
 	query := "SELECT * FROM invitation_trips WHERE receiver_id = ?"

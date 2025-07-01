@@ -1,6 +1,7 @@
 package v1
 
 import (
+	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"net/http"
 	"strconv"
 
@@ -151,4 +152,37 @@ func (h *InvitationTripHandler) WithdrawInvitation(ctx *gin.Context) {
 	}
 
 	ctx.AbortWithStatus(http.StatusNoContent)
+}
+
+// @Summary Get pending trip invitations
+// @Description Get all pending invitations for a specific trip
+// @Tags InvitationTrips
+// @Accept json
+// @Produce json
+// @Param tripId path int true "Trip ID"
+// @Security BearerAuth
+// @Success 200 {array} model.InvitationTripPendingResponse
+// @Failure 400 {object} model.ErrorResponse
+// @Failure 401 {object} model.ErrorResponse
+// @Failure 403 {object} model.ErrorResponse
+// @Failure 404 {object} model.ErrorResponse
+// @Failure 500 {object} model.ErrorResponse
+// @Router /trips/{tripId}/pending-invitations [get]
+func (h *InvitationTripHandler) GetPendingInvitationsByTripID(ctx *gin.Context) {
+	tripId, err := strconv.ParseInt(ctx.Param("tripId"), 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	userId := middleware.GetUserIdHelper(ctx)
+	invitations, errCode := h.invitationTripService.GetPendingInvitationsByTripID(ctx, tripId, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse(&invitations))
 }

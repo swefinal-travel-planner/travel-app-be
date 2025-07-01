@@ -26,3 +26,13 @@ type InvitationTripSentResponse struct {
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
 }
+
+type InvitationTripPendingResponse struct {
+	ID         int64     `json:"id"`
+	TripID     int64     `json:"tripId"`
+	SenderID   int64     `json:"senderId"`
+	ReceiverID int64     `json:"receiverId"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}

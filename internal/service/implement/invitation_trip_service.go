@@ -170,6 +170,43 @@ func (s *InvitationTripService) GetAllSentInvitations(ctx *gin.Context, userId i
 	return response, ""
 }
 
+func (s *InvitationTripService) GetPendingInvitationsByTripID(ctx *gin.Context, tripId int64, userId int64) ([]model.InvitationTripPendingResponse, string) {
+	// Check if user is a member of the trip to authorize the request
+	isMember, err := s.tripMemberRepo.IsUserInTripQuery(ctx, tripId, userId, nil)
+	if err != nil {
+		log.Error("InvitationTripService.GetPendingInvitationsByTripID IsUserInTripQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isMember {
+		return nil, error_utils.ErrorCode.FORBIDDEN
+	}
+
+	// Get pending invitations for the trip
+	invitations, err := s.invitationTripRepo.GetPendingByTripIDQuery(ctx, tripId, nil)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return make([]model.InvitationTripPendingResponse, 0), ""
+		}
+		log.Error("InvitationTripService.GetPendingInvitationsByTripID GetPendingByTripIDQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.DB_DOWN
+	}
+
+	response := make([]model.InvitationTripPendingResponse, len(invitations))
+	for i, inv := range invitations {
+		response[i] = model.InvitationTripPendingResponse{
+			ID:         inv.ID,
+			TripID:     inv.TripID,
+			SenderID:   inv.SenderID,
+			ReceiverID: inv.ReceiverID,
+			Status:     inv.Status,
+			CreatedAt:  inv.CreatedAt,
+			UpdatedAt:  inv.UpdatedAt,
+		}
+	}
+
+	return response, ""
+}
+
 func (s *InvitationTripService) AcceptInvitation(ctx *gin.Context, invitationId int64, userId int64) string {
 	// Start transaction
 	tx, err := s.unitOfWork.Begin(ctx)
