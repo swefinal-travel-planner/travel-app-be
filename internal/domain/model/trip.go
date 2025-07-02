@@ -70,6 +70,7 @@ type TripResponse struct {
 	EnMedicalConditions   stringlistutils.SqlListString `json:"enMedicalConditions"`
 	Status                string                        `json:"status"`
 	Role                  string                        `json:"role"`
+	MemberCount           int                           `json:"memberCount"`
 }
 
 type CreateTripResponse struct {

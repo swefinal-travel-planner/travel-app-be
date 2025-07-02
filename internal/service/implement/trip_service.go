@@ -104,6 +104,12 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 
 	var tripResponses []*model.TripResponse
 	for _, trip := range trips {
+		members, err := service.tripMemberRepository.GetTripMembersQuery(ctx, trip.ID, nil)
+		if err != nil {
+			log.Error("TripService.GetAllTripsByUserID - Get trip members Error: " + err.Error())
+			return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+		}
+		memberCount := len(members)
 		tripResponse := &model.TripResponse{
 			ID:                    trip.ID,
 			Title:                 trip.Title,
@@ -111,7 +117,6 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 			StartDate:             trip.StartDate,
 			Days:                  trip.Days,
 			Budget:                trip.Budget,
-			NumMembers:            trip.NumMembers,
 			ViLocationAttributes:  trip.ViLocationAttributes,
 			ViFoodAttributes:      trip.ViFoodAttributes,
 			ViSpecialRequirements: trip.ViSpecialRequirements,
@@ -122,6 +127,7 @@ func (service *TripService) GetAllTripsByUserID(ctx *gin.Context, userId int64) 
 			EnMedicalConditions:   trip.EnMedicalConditions,
 			Status:                trip.Status,
 			Role:                  trip.Role,
+			MemberCount:           memberCount,
 		}
 		tripResponses = append(tripResponses, tripResponse)
 	}
@@ -156,7 +162,6 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 		StartDate:             trip.StartDate,
 		Days:                  trip.Days,
 		Budget:                trip.Budget,
-		NumMembers:            trip.NumMembers,
 		ViLocationAttributes:  trip.ViLocationAttributes,
 		ViFoodAttributes:      trip.ViFoodAttributes,
 		ViSpecialRequirements: trip.ViSpecialRequirements,
@@ -198,9 +203,6 @@ func (service *TripService) updatedTripHelper(ctx *gin.Context, tripId int64, tr
 	}
 	if tripRequest.Budget != nil {
 		existingTrip.Budget = *tripRequest.Budget
-	}
-	if tripRequest.NumMembers != nil {
-		existingTrip.NumMembers = *tripRequest.NumMembers
 	}
 	if tripRequest.ViLocationAttributes != nil {
 		existingTrip.ViLocationAttributes = *tripRequest.ViLocationAttributes

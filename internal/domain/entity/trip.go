@@ -14,7 +14,6 @@ type Trip struct {
 	StartDate             time.Time                     `json:"startDate,omitempty" db:"start_date"`
 	Days                  int                           `json:"days,omitempty" db:"days"`
 	Budget                float64                       `json:"budget,omitempty" db:"budget"`
-	NumMembers            int                           `json:"numMembers,omitempty" db:"num_members"`
 	ViLocationAttributes  stringlistutils.SqlListString `json:"viLocationAttributes,omitempty" db:"vi_location_attributes"`
 	ViFoodAttributes      stringlistutils.SqlListString `json:"viFoodAttributes,omitempty" db:"vi_food_attributes"`
 	ViSpecialRequirements stringlistutils.SqlListString `json:"viSpecialRequirements,omitempty" db:"vi_special_requirements"`

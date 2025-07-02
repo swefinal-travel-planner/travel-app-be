@@ -24,13 +24,13 @@ func (repo *TripRepository) CreateCommand(ctx context.Context, trip *entity.Trip
 	// Insert the new trip
 	insertQuery := `
 	INSERT INTO trips(
-		title, city, start_date, days, budget, num_members, 
+		title, city, start_date, days, budget, 
 		vi_location_attributes, vi_food_attributes, vi_special_requirements, vi_medical_conditions,
 		en_location_attributes, en_food_attributes, en_special_requirements, en_medical_conditions,
 		status, reference_id
 	) 
 	VALUES (
-		:title, :city, :start_date, :days, :budget, :num_members, 
+		:title, :city, :start_date, :days, :budget, 
 		:vi_location_attributes, :vi_food_attributes, :vi_special_requirements, :vi_medical_conditions,
 		:en_location_attributes, :en_food_attributes, :en_special_requirements, :en_medical_conditions,
 		:status, :reference_id
@@ -178,7 +178,6 @@ func (repo *TripRepository) UpdateCommand(ctx context.Context, trip *entity.Trip
 			start_date = :start_date,
 			days = :days,
 			budget = :budget,
-			num_members = :num_members,
 			vi_location_attributes = :vi_location_attributes,
 			vi_food_attributes = :vi_food_attributes,
 			vi_special_requirements = :vi_special_requirements,
