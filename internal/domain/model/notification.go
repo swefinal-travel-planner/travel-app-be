@@ -25,6 +25,7 @@ type NotificationReferenceEntity struct {
 }
 
 type NotificationResponse struct {
+	ID              int64                       `json:"id"`
 	Type            string                      `json:"type"`
 	IsSeen          bool                        `json:"isSeen"`
 	CreatedAt       time.Time                   `json:"createdAt"`

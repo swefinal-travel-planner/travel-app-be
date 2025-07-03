@@ -151,6 +151,7 @@ func (n *ExpoNotificationService) GetAllNotification(ctx *gin.Context, userID in
 
 	for _, notification := range notifications {
 		notificationsResponse = append(notificationsResponse, model.NotificationResponse{
+			ID:        notification.ID,
 			Type:      notification.Type,
 			IsSeen:    notification.IsSeen,
 			CreatedAt: notification.CreatedAt,
