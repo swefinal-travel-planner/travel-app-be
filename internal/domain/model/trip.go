@@ -59,7 +59,6 @@ type TripResponse struct {
 	StartDate             time.Time                     `json:"startDate" binding:"required"`
 	Days                  int                           `json:"days" binding:"required,min=1"`
 	Budget                float64                       `json:"budget"`
-	NumMembers            int                           `json:"numMembers"`
 	ViLocationAttributes  stringlistutils.SqlListString `json:"viLocationAttributes"`
 	ViFoodAttributes      stringlistutils.SqlListString `json:"viFoodAttributes"`
 	ViSpecialRequirements stringlistutils.SqlListString `json:"viSpecialRequirements"`
@@ -83,7 +82,6 @@ type TripPatchRequest struct {
 	StartDate             *time.Time                     `json:"startDate,omitempty"`
 	Days                  *int                           `json:"days,omitempty"`
 	Budget                *float64                       `json:"budget,omitempty"`
-	NumMembers            *int                           `json:"numMembers,omitempty"`
 	ViLocationAttributes  *stringlistutils.SqlListString `json:"viLocationAttributes,omitempty"`
 	ViFoodAttributes      *stringlistutils.SqlListString `json:"viFoodAttributes,omitempty"`
 	ViSpecialRequirements *stringlistutils.SqlListString `json:"viSpecialRequirements,omitempty"`
