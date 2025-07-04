@@ -32,6 +32,7 @@ func Execute() {
 
 	wp := workerpool.New(2)
 
+	wp.Submit(container.CronJobRegister.Start)
 	wp.Submit(container.HttpServer.Run)
 
 	wp.StopWait()
