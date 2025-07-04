@@ -24,6 +24,7 @@ type notificationType struct {
 	TripInvitationReceived string
 	TripGenerated          string
 	TripGeneratedFailed    string
+	TripStartingSoon       string
 }
 
 var NotificationType = notificationType{
@@ -32,18 +33,21 @@ var NotificationType = notificationType{
 	TripInvitationReceived: "tripInvitationReceived",
 	TripGenerated:          "tripGenerated",
 	TripGeneratedFailed:    "tripGeneratedFailed",
+	TripStartingSoon:       "tripStartingSoon",
 }
 
 type notificationReferenceType struct {
 	FriendInvitation string
 	TripInvitation   string
 	TripGeneration   string
+	TripReminder     string
 }
 
 var NotificationReferenceType = notificationReferenceType{
 	FriendInvitation: "friendInvitation",
 	TripInvitation:   "tripInvitation",
 	TripGeneration:   "tripGeneration",
+	TripReminder:     "tripReminder",
 }
 
 type notificationTriggerType struct {
