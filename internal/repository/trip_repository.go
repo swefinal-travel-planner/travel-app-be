@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
@@ -17,4 +18,7 @@ type TripRepository interface {
 	SelectForShareById(ctx context.Context, id int64, tx *sqlx.Tx) (*entity.Trip, error)
 	UpdateCommand(ctx context.Context, trip *entity.Trip, tx *sqlx.Tx) error
 	DeleteByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error
+	GetAllNotStartedByStartDateQuery(ctx context.Context, today time.Time, tx *sqlx.Tx) ([]*entity.Trip, error)
+	GetAllInProgressEndedBeforeQuery(ctx context.Context, today time.Time, tx *sqlx.Tx) ([]*entity.Trip, error)
+	GetAllByStartDateQuery(ctx context.Context, date time.Time, tx *sqlx.Tx) ([]*entity.Trip, error)
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -22,6 +23,7 @@ type TripService struct {
 	unitOfWork           repository.UnitOfWork
 	tripMemberRepository repository.TripMemberRepository
 	tripItemService      service.TripItemService
+	notificationService  service.NotificationService
 }
 
 func NewTripService(
@@ -29,12 +31,14 @@ func NewTripService(
 	unitOfWork repository.UnitOfWork,
 	tripMemberRepository repository.TripMemberRepository,
 	tripItemService service.TripItemService,
+	notificationService service.NotificationService,
 ) service.TripService {
 	return &TripService{
 		tripRepository:       tripRepository,
 		unitOfWork:           unitOfWork,
 		tripMemberRepository: tripMemberRepository,
 		tripItemService:      tripItemService,
+		notificationService:  notificationService,
 	}
 }
 
@@ -511,4 +515,72 @@ func (service *TripService) DeleteTrip(ctx *gin.Context, tripId int64, userId in
 	}
 
 	return ""
+}
+
+func (service *TripService) UpdateStatusTripStart(ctx *gin.Context) error {
+	trips, err := service.tripRepository.GetAllNotStartedByStartDateQuery(ctx, time.Now(), nil)
+	if err != nil {
+		log.Error("TripService.UpdateStatusTripStart - Get trips Error: " + err.Error())
+		return err
+	}
+
+	for _, trip := range trips {
+		trip.Status = model.TripStatus.InProgress
+		err = service.tripRepository.UpdateCommand(ctx, trip, nil)
+		if err != nil {
+			log.Error("TripService.UpdateStatusTripStart - Update trip Error: " + err.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (service *TripService) UpdateStatusTripEnd(ctx *gin.Context) error {
+	trips, err := service.tripRepository.GetAllInProgressEndedBeforeQuery(ctx, time.Now(), nil)
+	if err != nil {
+		log.Error("TripService.UpdateStatusTripEnd - Get trips Error: " + err.Error())
+		return err
+	}
+
+	for _, trip := range trips {
+		trip.Status = model.TripStatus.Completed
+		err = service.tripRepository.UpdateCommand(ctx, trip, nil)
+		if err != nil {
+			log.Error("TripService.UpdateStatusTripEnd - Update trip Error: " + err.Error())
+			return err
+		}
+	}
+	return nil
+}
+
+func (service *TripService) SendTripStartReminders(ctx *gin.Context) error {
+	targetDate := time.Now().AddDate(0, 0, 3).Truncate(24 * time.Hour)
+	trips, err := service.tripRepository.GetAllByStartDateQuery(ctx, targetDate, nil)
+	if err != nil {
+		log.Error("TripService.SendTripStartReminders - GetAllByStartDateQuery Error: " + err.Error())
+		return err
+	}
+
+	for _, trip := range trips {
+		members, err := service.tripMemberRepository.GetTripMembersQuery(ctx, trip.ID, nil)
+		if err != nil {
+			log.Error("TripService.SendTripStartReminders - GetTripMembersQuery Error: " + err.Error())
+			continue
+		}
+		for _, member := range members {
+			errCode := service.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
+				ReceiverUserID:      member.UserID,
+				TriggerEntityType:   entity.NotificationTriggerType.System,
+				ReferenceEntityType: entity.NotificationReferenceType.TripReminder,
+				ReferenceEntityID:   &trip.ID,
+				Type:                entity.NotificationType.TripStartingSoon,
+			})
+			if errCode != "" {
+				log.Error("TripService.SendTripStartReminders - SaveAndSendNotification Error: " + errCode)
+				continue
+			}
+		}
+	}
+	return nil
 }

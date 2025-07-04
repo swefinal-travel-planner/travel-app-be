@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
@@ -209,4 +210,37 @@ func (repo *TripRepository) DeleteByIDCommand(ctx context.Context, id int64, tx 
 	}
 	_, err := repo.db.ExecContext(ctx, deleteQuery, id)
 	return err
+}
+
+func (repo *TripRepository) GetAllNotStartedByStartDateQuery(ctx context.Context, today time.Time, tx *sqlx.Tx) ([]*entity.Trip, error) {
+	var trips []*entity.Trip
+	query := "SELECT * FROM trips WHERE DATE(start_date) = DATE(?) AND status = 'not_started'"
+	if tx != nil {
+		err := tx.SelectContext(ctx, &trips, query, today)
+		return trips, err
+	}
+	err := repo.db.SelectContext(ctx, &trips, query, today)
+	return trips, err
+}
+
+func (repo *TripRepository) GetAllInProgressEndedBeforeQuery(ctx context.Context, today time.Time, tx *sqlx.Tx) ([]*entity.Trip, error) {
+	var trips []*entity.Trip
+	query := "SELECT * FROM trips WHERE status = 'in_progress' AND DATE(DATE_ADD(start_date, INTERVAL days-1 DAY)) < DATE(?)"
+	if tx != nil {
+		err := tx.SelectContext(ctx, &trips, query, today)
+		return trips, err
+	}
+	err := repo.db.SelectContext(ctx, &trips, query, today)
+	return trips, err
+}
+
+func (repo *TripRepository) GetAllByStartDateQuery(ctx context.Context, date time.Time, tx *sqlx.Tx) ([]*entity.Trip, error) {
+	var trips []*entity.Trip
+	query := "SELECT * FROM trips WHERE DATE(start_date) = DATE(?) AND deleted_at IS NULL"
+	if tx != nil {
+		err := tx.SelectContext(ctx, &trips, query, date)
+		return trips, err
+	}
+	err := repo.db.SelectContext(ctx, &trips, query, date)
+	return trips, err
 }
