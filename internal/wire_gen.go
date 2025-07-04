@@ -10,6 +10,7 @@ import (
 	"github.com/google/wire"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/bean/implement"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/cronjob"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/v1"
@@ -47,7 +48,7 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	tripMemberRepository := repositoryimplement.NewTripMemberRepository(db)
 	tripItemRepository := repositoryimplement.NewTripItemRepository(db)
 	tripItemService := serviceimplement.NewTripItemService(tripItemRepository, tripRepository, tripMemberRepository, unitOfWork)
-	tripService := serviceimplement.NewTripService(tripRepository, unitOfWork, tripMemberRepository, tripItemService)
+	tripService := serviceimplement.NewTripService(tripRepository, unitOfWork, tripMemberRepository, tripItemService, notificationService)
 	tripHandler := v1.NewTripHandler(tripService, tripItemService, notificationService)
 	invitationTripRepository := repositoryimplement.NewInvitationTripRepository(db)
 	invitationTripService := serviceimplement.NewInvitationTripService(invitationTripRepository, tripRepository, tripMemberRepository, unitOfWork, notificationService)
@@ -58,7 +59,8 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	tripImageService := serviceimplement.NewTripImageService(tripImageRepository, tripRepository, tripMemberRepository, unitOfWork)
 	tripImageHandler := v1.NewTripImageHandler(tripImageService)
 	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler, tripHandler, invitationTripHandler, tripMemberHandler, tripImageHandler)
-	apiContainer := controller.NewApiContainer(server)
+	cronJobRegister := cronjob.NewCronJobRegister(tripService)
+	apiContainer := controller.NewApiContainer(server, cronJobRegister)
 	return apiContainer
 }
 
@@ -71,6 +73,8 @@ var serverSet = wire.NewSet(http.NewServer)
 
 // handler === controller | with service and repository layers to form 3 layers architecture
 var handlerSet = wire.NewSet(v1.NewAuthHandler, v1.NewInvitationFriendHandler, v1.NewFriendHandler, v1.NewUserHandler, v1.NewHealthHandler, v1.NewNotificationHandler, v1.NewTripHandler, v1.NewInvitationTripHandler, v1.NewTripMemberHandler, v1.NewTripImageHandler)
+
+var cronjobSet = wire.NewSet(cronjob.NewCronJobRegister)
 
 var serviceSet = wire.NewSet(serviceimplement.NewAuthService, serviceimplement.NewInvitationFriendService, serviceimplement.NewFriendService, serviceimplement.NewUserService, serviceimplement.NewExpoNotificationService, serviceimplement.NewTripService, serviceimplement.NewTripItemService, serviceimplement.NewInvitationTripService, serviceimplement.NewTripMemberService, serviceimplement.NewTripImageService)
 

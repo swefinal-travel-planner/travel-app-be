@@ -7,6 +7,7 @@ import (
 	"github.com/google/wire"
 	beanimplement "github.com/swefinal-travel-planner/travel-app-be/internal/bean/implement"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller"
+	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/cronjob"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	v1 "github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/v1"
@@ -36,6 +37,10 @@ var handlerSet = wire.NewSet(
 	v1.NewInvitationTripHandler,
 	v1.NewTripMemberHandler,
 	v1.NewTripImageHandler,
+)
+
+var cronjobSet = wire.NewSet(
+	cronjob.NewCronJobRegister,
 )
 
 var serviceSet = wire.NewSet(
@@ -79,6 +84,6 @@ var beanSet = wire.NewSet(
 func InitializeContainer(
 	db database.Db,
 ) *controller.ApiContainer {
-	wire.Build(serverSet, handlerSet, serviceSet, repositorySet, middlewareSet, beanSet, container)
+	wire.Build(serverSet, handlerSet, serviceSet, repositorySet, middlewareSet, beanSet, cronjobSet, container)
 	return &controller.ApiContainer{}
 }
