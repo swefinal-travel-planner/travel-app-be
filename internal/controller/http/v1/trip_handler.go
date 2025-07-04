@@ -354,27 +354,3 @@ func (handler *TripHandler) DeleteTrip(ctx *gin.Context) {
 
 	ctx.AbortWithStatus(204)
 }
-
-func (handler *TripHandler) TriggerUpdateTripStatusStartDate(ctx *gin.Context) {
-	err := handler.tripService.UpdateStatusTripStart(ctx)
-
-	if err != nil {
-		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.INTERNAL_SERVER_ERROR, "")
-		ctx.JSON(statusCode, errResponse)
-		return
-	}
-
-	ctx.AbortWithStatus(204)
-}
-
-func (handler *TripHandler) TriggerUpdateTripStatusEndDate(ctx *gin.Context) {
-	err := handler.tripService.UpdateStatusTripEnd(ctx)
-
-	if err != nil {
-		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.INTERNAL_SERVER_ERROR, "")
-		ctx.JSON(statusCode, errResponse)
-		return
-	}
-
-	ctx.AbortWithStatus(204)
-}

@@ -84,9 +84,6 @@ func MapRoutes(router *gin.Engine,
 			trip.GET("/:tripId/images", authMiddleware.VerifyAccessToken, tripImageHandler.GetTripImages)
 			trip.DELETE("/:tripId/images/:imageId", authMiddleware.VerifyAccessToken, tripImageHandler.DeleteTripImage)
 			trip.GET("/:tripId/pending-invitations", authMiddleware.VerifyAccessToken, invitationTripHandler.GetPendingInvitationsByTripID)
-
-			trip.PUT("/trigger-update-status-start-date", tripHandler.TriggerUpdateTripStatusStartDate)
-			trip.PUT("/trigger-update-status-end-date", tripHandler.TriggerUpdateTripStatusEndDate)
 		}
 		tripInvitation := v1.Group("/invitation-trips")
 		{

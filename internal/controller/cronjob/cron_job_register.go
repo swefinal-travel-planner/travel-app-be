@@ -21,21 +21,21 @@ func NewCronJobRegister(tripService service.TripService) *CronJobRegister {
 }
 
 func (c *CronJobRegister) RegisterJobs() {
-	c.cron.AddFunc("59 21 * * *", func() {
+	c.cron.AddFunc("0 0 * * *", func() {
 		ctx := &gin.Context{}
 		err := c.tripService.UpdateStatusTripStart(ctx)
 		if err != nil {
 			log.Error("CronJobRegister.RegisterJobs - UpdateStatusTripStart Error: " + err.Error())
 		}
 	})
-	c.cron.AddFunc("59 21 * * *", func() {
+	c.cron.AddFunc("0 0 * * *", func() {
 		ctx := &gin.Context{}
 		err := c.tripService.UpdateStatusTripEnd(ctx)
 		if err != nil {
 			log.Error("CronJobRegister.RegisterJobs - UpdateStatusTripEnd Error: " + err.Error())
 		}
 	})
-	c.cron.AddFunc("48 14 * * *", func() {
+	c.cron.AddFunc("0 0 * * *", func() {
 		ctx := &gin.Context{}
 		err := c.tripService.SendTripStartReminders(ctx)
 		if err != nil {
