@@ -12,5 +12,5 @@ MODIFY COLUMN reference_entity_type ENUM(
     'friendInvitation',
     'tripInvitation',
     'tripGeneration',
-    'tripReminder'
+    'trip'
 ) NOT NULL;
