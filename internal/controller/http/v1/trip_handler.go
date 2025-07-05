@@ -293,7 +293,7 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 				ReceiverUserID:      userId,
 				TriggerEntityType:   entity.NotificationTriggerType.System,
 				TriggerEntityID:     nil,
-				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityType: entity.NotificationReferenceType.Trip,
 				ReferenceEntityID:   &tripItemRespList[0].TripID,
 			})
 			if notiErr != "" {
@@ -306,7 +306,7 @@ func (handler *TripHandler) CreateTripByAI(ctx *gin.Context) {
 				ReceiverUserID:      userId,
 				TriggerEntityType:   entity.NotificationTriggerType.System,
 				TriggerEntityID:     nil,
-				ReferenceEntityType: entity.NotificationReferenceType.TripGeneration,
+				ReferenceEntityType: entity.NotificationReferenceType.Trip,
 				ReferenceEntityID:   &tripItemRespList[0].TripID,
 			})
 			if notiErr != "" {

@@ -39,15 +39,13 @@ var NotificationType = notificationType{
 type notificationReferenceType struct {
 	FriendInvitation string
 	TripInvitation   string
-	TripGeneration   string
-	TripReminder     string
+	Trip             string
 }
 
 var NotificationReferenceType = notificationReferenceType{
 	FriendInvitation: "friendInvitation",
 	TripInvitation:   "tripInvitation",
-	TripGeneration:   "tripGeneration",
-	TripReminder:     "tripReminder",
+	Trip:             "trip",
 }
 
 type notificationTriggerType struct {
