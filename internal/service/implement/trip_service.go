@@ -572,7 +572,7 @@ func (service *TripService) SendTripStartReminders(ctx *gin.Context) error {
 			errCode := service.notificationService.SaveAndSendNotification(ctx, model.SaveNotificationRequest{
 				ReceiverUserID:      member.UserID,
 				TriggerEntityType:   entity.NotificationTriggerType.System,
-				ReferenceEntityType: entity.NotificationReferenceType.TripReminder,
+				ReferenceEntityType: entity.NotificationReferenceType.Trip,
 				ReferenceEntityID:   &trip.ID,
 				Type:                entity.NotificationType.TripStartingSoon,
 			})
