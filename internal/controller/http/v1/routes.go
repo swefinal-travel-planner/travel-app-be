@@ -22,6 +22,10 @@ func MapRoutes(router *gin.Engine,
 ) {
 	v1 := router.Group("/api/v1")
 	{
+		whoami := v1.Group("/whoami")
+		{
+			whoami.GET("", authMiddleware.VerifyAccessToken, userHandler.WhoAmI)
+		}
 		health := v1.Group("/health")
 		{
 			health.GET("", healHandler.Check)

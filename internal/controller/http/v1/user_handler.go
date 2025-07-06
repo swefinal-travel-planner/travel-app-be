@@ -109,3 +109,22 @@ func (handler *UserHandler) UpdateProfile(ctx *gin.Context) {
 
 	ctx.AbortWithStatus(204)
 }
+
+// @Summary Get user info
+// @Description Get current user's info
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Router /whoami [get]
+// @Param Authorization header string true "Authorization: Bearer"
+func (handler *UserHandler) WhoAmI(ctx *gin.Context) {
+	userId := middleware.GetUserIdHelper(ctx)
+	user, errCode := handler.userService.GetUserInfo(ctx, userId)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		ctx.JSON(statusCode, errResponse)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[model.UserInfoResponse](user))
+}

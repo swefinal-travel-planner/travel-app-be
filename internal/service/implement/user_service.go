@@ -131,3 +131,22 @@ func (service *UserService) UpdateUser(ctx *gin.Context, userId int64, request m
 
 	return ""
 }
+
+func (service *UserService) GetUserInfo(ctx *gin.Context, userId int64) (*model.UserInfoResponse, string) {
+	user, err := service.userRepository.GetOneByIDQuery(ctx, userId, nil)
+	if err != nil {
+		log.Error("UserService.GetUserInfo Error getting user: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	userInfoResponse := &model.UserInfoResponse{
+		ID:                user.Id,
+		Email:             user.Email,
+		Name:              user.Name,
+		PhotoURL:          user.PhotoURL,
+		PhoneNumber:       user.PhoneNumber,
+		IDToken:           user.IDToken,
+		NotificationToken: user.NotificationToken,
+	}
+	return userInfoResponse, ""
+}

@@ -11,3 +11,13 @@ type UpdateUserRequest struct {
 	PhotoURL          *string `json:"photoURL,omitempty"`
 	NotificationToken *string `json:"notificationToken,omitempty"`
 }
+
+type UserInfoResponse struct {
+	ID                int64   `json:"id"`
+	Email             string  `json:"email"`
+	Name              string  `json:"name"`
+	PhotoURL          *string `json:"photoURL"`
+	PhoneNumber       string  `json:"phoneNumber"`
+	IDToken           *string `json:"idToken"`
+	NotificationToken *string `json:"notificationToken"`
+}
