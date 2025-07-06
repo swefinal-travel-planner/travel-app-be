@@ -159,6 +159,13 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 		return nil, error_utils.ErrorCode.FORBIDDEN
 	}
 
+	members, err := service.tripMemberRepository.GetTripMembersQuery(ctx, trip.ID, nil)
+	if err != nil {
+		log.Error("TripService.GetAllTripsByUserID - Get trip members Error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	memberCount := len(members)
+
 	tripResponse := &model.TripResponse{
 		ID:                    trip.ID,
 		Title:                 trip.Title,
@@ -176,6 +183,7 @@ func (service *TripService) GetTripByID(ctx *gin.Context, tripId int64, userId i
 		EnMedicalConditions:   trip.EnMedicalConditions,
 		Status:                trip.Status,
 		Role:                  trip.Role,
+		MemberCount:           memberCount,
 	}
 
 	return tripResponse, ""
