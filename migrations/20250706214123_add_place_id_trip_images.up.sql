@@ -1,0 +1,1 @@
+ALTER TABLE trip_images ADD COLUMN place_id VARCHAR(255) NULL;

@@ -65,6 +65,7 @@ func (service *TripImageService) CreateTripImage(ctx *gin.Context, userId int64,
 		TripID:   tripId,
 		ImageURL: tripImageRequest.ImageURL,
 		UserID:   userId,
+		PlaceID:  tripImageRequest.PlaceID,
 	}
 	err = service.tripImageRepository.CreateCommand(ctx, tripImage, tx)
 	if err != nil {
@@ -116,6 +117,7 @@ func (service *TripImageService) GetTripImages(ctx *gin.Context, userId int64, t
 		tripImageResponse := model.TripImageResponse{
 			ID:        image.ID,
 			TripID:    image.TripID,
+			PlaceID:   image.PlaceID,
 			ImageURL:  image.ImageURL,
 			CreatedAt: image.CreatedAt,
 		}
@@ -205,6 +207,7 @@ func (service *TripImageService) GetTripImagesWithUserInfo(ctx *gin.Context, use
 		tripImageResponse := model.TripImageWithUserInfoResponse{
 			ID:        image.ID,
 			TripID:    image.TripID,
+			PlaceID:   image.PlaceID,
 			ImageURL:  image.ImageURL,
 			CreatedAt: image.CreatedAt,
 			Author: model.UserInfo{
