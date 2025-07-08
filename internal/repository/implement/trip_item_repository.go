@@ -3,6 +3,7 @@ package repositoryimplement
 import (
 	"context"
 	"errors"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/database"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/domain/entity"
@@ -81,7 +82,7 @@ func (repo *TripItemRepository) GetTripItemsByTripIDCommand(ctx context.Context,
 
 	for _, tripItem := range tripItemsWithUserId {
 		tripItems = append(tripItems, entity.TripItem{
-			ID:         tripItem.TripID.Int64,
+			ID:         tripItem.ID.Int64,
 			TripID:     tripItem.TripID.Int64,
 			PlaceID:    tripItem.PlaceID.String,
 			TripDay:    tripItem.TripDay.Int64,
