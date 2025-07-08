@@ -87,6 +87,7 @@ func MapRoutes(router *gin.Engine,
 			trip.POST("/:tripId/images", authMiddleware.VerifyAccessToken, tripImageHandler.CreateTripImage)
 			trip.GET("/:tripId/images", authMiddleware.VerifyAccessToken, tripImageHandler.GetTripImages)
 			trip.DELETE("/:tripId/images/:imageId", authMiddleware.VerifyAccessToken, tripImageHandler.DeleteTripImage)
+			trip.GET("/:tripId/trip-items/:tripItemId/images", authMiddleware.VerifyAccessToken, tripImageHandler.GetAllByTripIDAndTripItemID)
 			trip.GET("/:tripId/pending-invitations", authMiddleware.VerifyAccessToken, invitationTripHandler.GetPendingInvitationsByTripID)
 		}
 		tripInvitation := v1.Group("/invitation-trips")

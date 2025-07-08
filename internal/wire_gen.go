@@ -56,7 +56,7 @@ func InitializeContainer(db database.Db) *controller.ApiContainer {
 	tripMemberService := serviceimplement.NewTripMemberService(tripMemberRepository)
 	tripMemberHandler := v1.NewTripMemberHandler(tripMemberService)
 	tripImageRepository := repositoryimplement.NewTripImageRepository(db)
-	tripImageService := serviceimplement.NewTripImageService(tripImageRepository, tripRepository, tripMemberRepository, unitOfWork)
+	tripImageService := serviceimplement.NewTripImageService(tripImageRepository, tripRepository, tripMemberRepository, tripItemRepository, unitOfWork)
 	tripImageHandler := v1.NewTripImageHandler(tripImageService)
 	server := http.NewServer(authHandler, invitationFriendHandler, friendHandler, userHandler, authMiddleware, healthHandler, notificationHandler, tripHandler, invitationTripHandler, tripMemberHandler, tripImageHandler)
 	cronJobRegister := cronjob.NewCronJobRegister(tripService)

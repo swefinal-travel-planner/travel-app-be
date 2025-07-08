@@ -10,4 +10,5 @@ type TripImageService interface {
 	GetTripImages(ctx *gin.Context, userId int64, tripId int64) ([]model.TripImageResponse, string)
 	GetTripImagesWithUserInfo(ctx *gin.Context, userId int64, tripId int64) ([]model.TripImageWithUserInfoResponse, string)
 	DeleteTripImage(ctx *gin.Context, userId int64, tripId int64, imageId int64) string
+	GetAllByTripIDAndTripItemID(ctx *gin.Context, userId int64, tripID int64, tripItemID int64) ([]model.TripImageResponse, string)
 }

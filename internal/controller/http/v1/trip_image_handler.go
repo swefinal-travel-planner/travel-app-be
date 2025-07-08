@@ -135,3 +135,44 @@ func (h *TripImageHandler) DeleteTripImage(c *gin.Context) {
 
 	c.AbortWithStatus(http.StatusNoContent)
 }
+
+// @Summary Get all trip images by trip ID and trip item ID
+// @Description Get all images for a trip item
+// @Tags TripImages
+// @Accept json
+// @Produce json
+// @Param tripId path int true "Trip ID"
+// @Param tripItemId path int true "Trip Item ID"
+// @Param Authorization header string true "Authorization: Bearer"
+// @Success 200 {object} httpcommon.HttpResponse[[]model.TripImageResponse]
+// @Failure 400 {object} httpcommon.HttpResponse[any]
+// @Failure 403 {object} httpcommon.HttpResponse[any]
+// @Failure 404 {object} httpcommon.HttpResponse[any]
+// @Failure 500 {object} httpcommon.HttpResponse[any]
+// @Router /trips/{tripId}/trip-items/{tripItemId}/images [get]
+func (h *TripImageHandler) GetAllByTripIDAndTripItemID(c *gin.Context) {
+	userID := middleware.GetUserIdHelper(c)
+
+	tripID, err := strconv.ParseInt(c.Param("tripId"), 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripId")
+		c.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripItemID, err := strconv.ParseInt(c.Param("tripItemId"), 10, 64)
+	if err != nil {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "tripItemId")
+		c.JSON(statusCode, errResponse)
+		return
+	}
+
+	tripImages, errCode := h.tripImageService.GetAllByTripIDAndTripItemID(c, userID, tripID, tripItemID)
+	if errCode != "" {
+		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
+		c.JSON(statusCode, errResponse)
+		return
+	}
+
+	c.JSON(http.StatusOK, httpcommon.NewSuccessResponse(&tripImages))
+}

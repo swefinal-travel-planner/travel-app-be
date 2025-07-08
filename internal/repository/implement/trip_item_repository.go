@@ -23,10 +23,10 @@ func (repo *TripItemRepository) CreateCommand(ctx context.Context, tripItem *ent
 	// Insert the new trip item
 	insertQuery := `
 	INSERT INTO trip_items(
-		id, trip_id, place_id, trip_day, order_in_day, time_in_date
+		id, trip_id, trip_item_id, trip_day, order_in_day, time_in_date
 	) 
 	VALUES (
-		:id, :trip_id, :place_id, :trip_day, :order_in_day, :time_in_date
+		:id, :trip_id, :trip_item_id, :trip_day, :order_in_day, :time_in_date
 	)
 	`
 	if tx != nil {
@@ -94,4 +94,16 @@ func (repo *TripItemRepository) GetTripItemsByTripIDCommand(ctx context.Context,
 		})
 	}
 	return tripItems, nil
+}
+
+func (repo *TripItemRepository) ExistsByTripIDAndTripItemIDCommand(ctx context.Context, tripID int64, tripItemID int64, tx *sqlx.Tx) (bool, error) {
+	query := "SELECT EXISTS(SELECT 1 FROM trip_items WHERE trip_id = ? AND id = ?)"
+	var exists bool
+
+	if tx != nil {
+		err := tx.GetContext(ctx, &exists, query, tripID, tripItemID)
+		return exists, err
+	}
+	err := repo.db.GetContext(ctx, &exists, query, tripID, tripItemID)
+	return exists, err
 }

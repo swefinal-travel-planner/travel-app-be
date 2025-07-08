@@ -20,10 +20,10 @@ func NewTripImageRepository(db database.Db) repository.TripImageRepository {
 func (repo *TripImageRepository) CreateCommand(ctx context.Context, tripImage *entity.TripImage, tx *sqlx.Tx) error {
 	insertQuery := `
 	INSERT INTO trip_images(
-		trip_id, image_url, user_id, place_id
+		trip_id, image_url, user_id, trip_item_id
 	) 
 	VALUES (
-		:trip_id, :image_url, :user_id, :place_id
+		:trip_id, :image_url, :user_id, :trip_item_id
 	)
 	`
 	if tx != nil {
@@ -54,7 +54,7 @@ func (repo *TripImageRepository) GetAllWithUserInfoQuery(ctx context.Context, tr
 	SELECT 
 		ti.id,
 		ti.trip_id,
-		ti.place_id,
+		ti.trip_item_id,
 		ti.image_url,
 		ti.created_at,
 		u.id as "user_id",
@@ -83,4 +83,16 @@ func (repo *TripImageRepository) DeleteOneByIDCommand(ctx context.Context, id in
 	}
 	_, err := repo.db.ExecContext(ctx, deleteQuery, id)
 	return err
+}
+
+func (repo *TripImageRepository) GetAllByTripIDAndTripItemIDQuery(ctx context.Context, tripID int64, tripItemID int64, tx *sqlx.Tx) ([]entity.TripImage, error) {
+	var tripImages []entity.TripImage
+	query := "SELECT * FROM trip_images WHERE trip_id = ? AND trip_item_id = ? AND deleted_at IS NULL ORDER BY created_at ASC"
+
+	if tx != nil {
+		err := tx.SelectContext(ctx, &tripImages, query, tripID, tripItemID)
+		return tripImages, err
+	}
+	err := repo.db.SelectContext(ctx, &tripImages, query, tripID, tripItemID)
+	return tripImages, err
 }

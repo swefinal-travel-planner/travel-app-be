@@ -12,4 +12,5 @@ type TripImageRepository interface {
 	GetAllQuery(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripImage, error)
 	GetAllWithUserInfoQuery(ctx context.Context, tripID int64, tx *sqlx.Tx) ([]entity.TripImageWithUserInfo, error)
 	DeleteOneByIDCommand(ctx context.Context, id int64, tx *sqlx.Tx) error
+	GetAllByTripIDAndTripItemIDQuery(ctx context.Context, tripID int64, tripItemID int64, tx *sqlx.Tx) ([]entity.TripImage, error)
 }

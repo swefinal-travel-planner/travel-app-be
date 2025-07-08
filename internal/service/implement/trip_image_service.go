@@ -14,6 +14,7 @@ type TripImageService struct {
 	tripImageRepository  repository.TripImageRepository
 	tripRepository       repository.TripRepository
 	tripMemberRepository repository.TripMemberRepository
+	tripItemRepository   repository.TripItemRepository
 	unitOfWork           repository.UnitOfWork
 }
 
@@ -21,12 +22,14 @@ func NewTripImageService(
 	tripImageRepository repository.TripImageRepository,
 	tripRepository repository.TripRepository,
 	tripMemberRepository repository.TripMemberRepository,
+	tripItemRepository repository.TripItemRepository,
 	unitOfWork repository.UnitOfWork,
 ) service.TripImageService {
 	return &TripImageService{
 		tripImageRepository:  tripImageRepository,
 		tripRepository:       tripRepository,
 		tripMemberRepository: tripMemberRepository,
+		tripItemRepository:   tripItemRepository,
 		unitOfWork:           unitOfWork,
 	}
 }
@@ -60,12 +63,23 @@ func (service *TripImageService) CreateTripImage(ctx *gin.Context, userId int64,
 		return error_utils.ErrorCode.FORBIDDEN
 	}
 
+	if tripImageRequest.TripItemID != nil {
+		isTripItemExists, err := service.tripItemRepository.ExistsByTripIDAndTripItemIDCommand(ctx, tripId, *tripImageRequest.TripItemID, tx)
+		if err != nil {
+			log.Error("TripImageService.CreateTripImage GetOneByIDQuery error: " + err.Error())
+			return error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+		}
+		if !isTripItemExists {
+			return error_utils.ErrorCode.BAD_REQUEST
+		}
+	}
+
 	// create trip image
 	tripImage := &entity.TripImage{
-		TripID:   tripId,
-		ImageURL: tripImageRequest.ImageURL,
-		UserID:   userId,
-		PlaceID:  tripImageRequest.PlaceID,
+		TripID:     tripId,
+		ImageURL:   tripImageRequest.ImageURL,
+		UserID:     userId,
+		TripItemID: tripImageRequest.TripItemID,
 	}
 	err = service.tripImageRepository.CreateCommand(ctx, tripImage, tx)
 	if err != nil {
@@ -115,11 +129,11 @@ func (service *TripImageService) GetTripImages(ctx *gin.Context, userId int64, t
 	var tripImageResponses []model.TripImageResponse
 	for _, image := range tripImages {
 		tripImageResponse := model.TripImageResponse{
-			ID:        image.ID,
-			TripID:    image.TripID,
-			PlaceID:   image.PlaceID,
-			ImageURL:  image.ImageURL,
-			CreatedAt: image.CreatedAt,
+			ID:         image.ID,
+			TripID:     image.TripID,
+			TripItemID: image.TripItemID,
+			ImageURL:   image.ImageURL,
+			CreatedAt:  image.CreatedAt,
 		}
 		tripImageResponses = append(tripImageResponses, tripImageResponse)
 	}
@@ -205,16 +219,69 @@ func (service *TripImageService) GetTripImagesWithUserInfo(ctx *gin.Context, use
 	var tripImageResponses []model.TripImageWithUserInfoResponse
 	for _, image := range tripImagesWithUserInfo {
 		tripImageResponse := model.TripImageWithUserInfoResponse{
-			ID:        image.ID,
-			TripID:    image.TripID,
-			PlaceID:   image.PlaceID,
-			ImageURL:  image.ImageURL,
-			CreatedAt: image.CreatedAt,
+			ID:         image.ID,
+			TripID:     image.TripID,
+			TripItemID: image.TripItemID,
+			ImageURL:   image.ImageURL,
+			CreatedAt:  image.CreatedAt,
 			Author: model.UserInfo{
 				ID:       image.UserID,
 				Name:     *image.UserName,
 				PhotoURL: image.UserPhotoUrl,
 			},
+		}
+		tripImageResponses = append(tripImageResponses, tripImageResponse)
+	}
+
+	return tripImageResponses, ""
+}
+
+func (service *TripImageService) GetAllByTripIDAndTripItemID(ctx *gin.Context, userId int64, tripID int64, tripItemID int64) ([]model.TripImageResponse, string) {
+	// check if trip exists
+	trip, err := service.tripRepository.GetOneByIDQuery(ctx, tripID, nil)
+	if err != nil {
+		log.Error("TripImageService.GetAllByTripIDAndTripItemID GetOneByIDQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.DB_DOWN
+	}
+	if trip == nil {
+		return nil, error_utils.ErrorCode.TRIP_NOT_FOUND
+	}
+
+	// check if user is member of the trip
+	isMember, err := service.tripMemberRepository.IsUserInTripQuery(ctx, tripID, userId, nil)
+	if err != nil {
+		log.Error("TripImageService.GetAllByTripIDAndTripItemID IsUserInTripQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isMember {
+		return nil, error_utils.ErrorCode.FORBIDDEN
+	}
+
+	isTripItemExists, err := service.tripItemRepository.ExistsByTripIDAndTripItemIDCommand(ctx, tripID, tripItemID, nil)
+	if err != nil {
+		log.Error("TripImageService.GetAllByTripIDAndTripItemID ExistsByTripIDAndTripItemIDCommand error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+	if !isTripItemExists {
+		return nil, error_utils.ErrorCode.BAD_REQUEST
+	}
+
+	// get trip images
+	tripImages, err := service.tripImageRepository.GetAllByTripIDAndTripItemIDQuery(ctx, tripID, tripItemID, nil)
+	if err != nil {
+		log.Error("TripImageService.GetAllByTripIDAndTripItemID GetAllByTripIDAndTripItemIDQuery error: " + err.Error())
+		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
+	}
+
+	// convert to response model
+	var tripImageResponses []model.TripImageResponse
+	for _, image := range tripImages {
+		tripImageResponse := model.TripImageResponse{
+			ID:         image.ID,
+			TripID:     image.TripID,
+			TripItemID: image.TripItemID,
+			ImageURL:   image.ImageURL,
+			CreatedAt:  image.CreatedAt,
 		}
 		tripImageResponses = append(tripImageResponses, tripImageResponse)
 	}
