@@ -23,10 +23,10 @@ func (repo *TripItemRepository) CreateCommand(ctx context.Context, tripItem *ent
 	// Insert the new trip item
 	insertQuery := `
 	INSERT INTO trip_items(
-		id, trip_id, trip_item_id, trip_day, order_in_day, time_in_date
+		id, trip_id, place_id, trip_day, order_in_day, time_in_date
 	) 
 	VALUES (
-		:id, :trip_id, :trip_item_id, :trip_day, :order_in_day, :time_in_date
+		:id, :trip_id, :place_id, :trip_day, :order_in_day, :time_in_date  
 	)
 	`
 	if tx != nil {
