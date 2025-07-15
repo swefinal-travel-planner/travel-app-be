@@ -95,6 +95,7 @@ func MapRoutes(router *gin.Engine,
 			tripInvitation.POST("", authMiddleware.VerifyAccessToken, invitationTripHandler.SendInvitation)
 			tripInvitation.PUT("/accept/:invitationId", authMiddleware.VerifyAccessToken, invitationTripHandler.AcceptInvitation)
 			tripInvitation.PUT("/deny/:invitationId", authMiddleware.VerifyAccessToken, invitationTripHandler.DenyInvitation)
+			tripInvitation.DELETE("/withdraw/:invitationId", authMiddleware.VerifyAccessToken, invitationTripHandler.WithdrawInvitation)
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

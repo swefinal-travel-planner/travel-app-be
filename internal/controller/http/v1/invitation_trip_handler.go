@@ -1,9 +1,10 @@
 package v1
 
 import (
-	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 	"net/http"
 	"strconv"
+
+	httpcommon "github.com/swefinal-travel-planner/travel-app-be/internal/domain/http_common"
 
 	"github.com/swefinal-travel-planner/travel-app-be/internal/controller/http/middleware"
 	"github.com/swefinal-travel-planner/travel-app-be/internal/utils/error_utils"
@@ -121,7 +122,7 @@ func (h *InvitationTripHandler) DenyInvitation(ctx *gin.Context) {
 	ctx.AbortWithStatus(http.StatusNoContent)
 }
 
-// @Summary Withdraw trip invitation (DISABLED)
+// @Summary Withdraw trip invitation
 // @Description Withdraw a sent trip invitation
 // @Tags InvitationTrips
 // @Accept json
