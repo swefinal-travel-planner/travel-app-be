@@ -30,48 +30,47 @@ func NewUserService(
 	}
 }
 
-func (service *UserService) SearchUser(ctx *gin.Context, userId int64, userEmail string) (*model.FriendResponse, string) {
-	friend, err := service.userRepository.GetOneByEmailQuery(ctx, userEmail, nil)
+func (service *UserService) SearchUser(ctx *gin.Context, userId int64, searchTerm string) ([]model.FriendResponse, string) {
+	users, err := service.userRepository.GetByEmailSearchTermQuery(ctx, searchTerm, nil)
 	if err != nil {
 		log.Error("UserService.SearchUser Error: " + err.Error())
 		return nil, error_utils.ErrorCode.INTERNAL_SERVER_ERROR
 	}
-	if friend == nil {
-		return nil, ""
-	}
 
-	// check to see if the user is a friend or not
-	// if not a friend, check to see if the user is the one who sent the invitation or not
-	// if not sent the invitation, check to see if the user is the one who received the invitation or not
-	// if not invited, check to see if the user is rejcted or not (in cooldown table, user must be a sender)
-	// if not match any cases above, user is stranger
-	var status string
-	var timeRemaining *int64 = nil
-
-	if service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, friend.Id, nil) {
-		status = model.FriendStatus.Friend
-	} else if invitationFriend, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, friend.Id, nil); err == nil {
-		if invitationFriend.SenderID == userId { // user is sender
-			status = model.FriendStatus.Sent
-		} else if invitationFriend.ReceiverID == userId { // user is receiver
-			status = model.FriendStatus.Received
+	friendResponses := make([]model.FriendResponse, 0)
+	for _, user := range users {
+		if user.Id == userId {
+			continue
 		}
-	} else if _, cooldownRemaining := service.invitationFriendService.IsInCoolDownAndGetRemainingTime(ctx, userId, friend.Id); cooldownRemaining > 0 {
-		status = model.FriendStatus.Restricted
-		timeRemaining = &cooldownRemaining
-	} else {
-		status = model.FriendStatus.Stranger
-	}
+		var status string
+		var timeRemaining *int64 = nil
+		if service.friendRepository.ExistsByUserId1AndUserId2Query(ctx, userId, user.Id, nil) {
+			status = model.FriendStatus.Friend
+		} else if invitationFriend, err := service.invitationFriendRepository.GetBySenderAndReceiverIdQuery(ctx, userId, user.Id, nil); err == nil {
+			if invitationFriend.SenderID == userId { // user is sender
+				status = model.FriendStatus.Sent
+			} else if invitationFriend.ReceiverID == userId { // user is receiver
+				status = model.FriendStatus.Received
+			}
+		} else if _, cooldownRemaining := service.invitationFriendService.IsInCoolDownAndGetRemainingTime(ctx, userId, user.Id); cooldownRemaining > 0 {
+			status = model.FriendStatus.Restricted
+			timeRemaining = &cooldownRemaining
+		} else {
+			status = model.FriendStatus.Stranger
+		}
 
-	friendResponse := &model.FriendResponse{
-		Id:            friend.Id,
-		Email:         friend.Email,
-		Username:      friend.Name,
-		ImageURL:      friend.PhotoURL,
-		Status:        status,
-		TimeRemaining: timeRemaining,
+		friendResponse := model.FriendResponse{
+			Id:            user.Id,
+			Email:         user.Email,
+			Username:      user.Name,
+			ImageURL:      user.PhotoURL,
+			Status:        status,
+			TimeRemaining: timeRemaining,
+		}
+
+		friendResponses = append(friendResponses, friendResponse)
 	}
-	return friendResponse, ""
+	return friendResponses, ""
 }
 
 func (service *UserService) UpdateNotificationToken(ctx *gin.Context, userId int64, notificationTokenRequest model.UpdateNotificationTokenRequest) string {

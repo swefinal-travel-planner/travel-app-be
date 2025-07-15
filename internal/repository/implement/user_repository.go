@@ -152,3 +152,33 @@ func (repo *UserRepository) UpdateCommand(ctx context.Context, user *entity.User
 	_, err := repo.db.NamedExecContext(ctx, query, user)
 	return err
 }
+
+func (repo *UserRepository) GetByEmailSearchTermQuery(ctx context.Context, searchTerm string, tx *sqlx.Tx) ([]*entity.User, error) {
+	var users []*entity.User
+	query := `SELECT * FROM users WHERE users.deleted_at IS NULL`
+
+	if searchTerm != "" {
+		query += " AND email LIKE '%" + searchTerm + "%'"
+	}
+
+	if tx != nil {
+		err := tx.SelectContext(ctx, &users, query)
+		if err != nil {
+			if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+				return nil, nil
+			} else {
+				return nil, err
+			}
+		}
+		return users, err
+	}
+	err := repo.db.SelectContext(ctx, &users, query)
+	if err != nil {
+		if err.Error() == error_utils.SystemErrorMessage.SqlxNoRow {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return users, err
+}

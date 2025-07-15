@@ -21,13 +21,13 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-// @Summary Search 1 friend
-// @Description Search 1 friend by email
+// @Summary Search users
+// @Description Search users by email search term
 // @Tags Users
 // @Accept json
 // @Produce  json
-// @Router /users/{userEmail} [get]
-// @Param userEmail query string true "Email of the friend"
+// @Router /users [get]
+// @Query searchTerm query string true "Search term"
 // @Param  Authorization header string true "Authorization: Bearer"
 // @Success 200 {object} httpcommon.HttpResponse[model.FriendResponse]
 // @Failure 400 {object} httpcommon.HttpResponse[any]
@@ -35,19 +35,15 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 func (handler *UserHandler) SearchUser(ctx *gin.Context) {
 	userId := middleware.GetUserIdHelper(ctx)
 
-	userEmail := ctx.Query("userEmail")
-	if userEmail == "" {
-		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(error_utils.ErrorCode.BAD_REQUEST, "userEmail")
-		ctx.JSON(statusCode, errResponse)
-		return
-	}
-	user, errCode := handler.userService.SearchUser(ctx, userId, userEmail)
+	searchTerm := ctx.Query("searchTerm")
+
+	users, errCode := handler.userService.SearchUser(ctx, userId, searchTerm)
 	if errCode != "" {
 		statusCode, errResponse := error_utils.ErrorCodeToHttpResponse(errCode, "")
 		ctx.JSON(statusCode, errResponse)
 		return
 	}
-	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[model.FriendResponse](user))
+	ctx.JSON(http.StatusOK, httpcommon.NewSuccessResponse[[]model.FriendResponse](&users))
 }
 
 // @Summary Update notification token
