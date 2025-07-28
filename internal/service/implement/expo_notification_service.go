@@ -69,15 +69,23 @@ func (n *ExpoNotificationService) GeneratePushNotification(pushToken expo.Expone
 
 	switch notification.Type {
 	case entity.NotificationType.FriendRequestReceived:
-		title = "You have a new friend invitation"
-		body = notification.TriggerEntityName + " invited you to be friends"
+		title = "New Friend Request"
+		body = notification.TriggerEntityName + " wants to be your friend"
 	case entity.NotificationType.FriendRequestAccepted:
-		title = "Your friend request has been accepted"
+		title = "Friend Request Accepted"
 		body = notification.TriggerEntityName + " accepted your friend request"
+	case entity.NotificationType.TripInvitationReceived:
+		title = "Trip Invitation"
+		body = notification.TriggerEntityName + " invited you to join their trip"
 	case entity.NotificationType.TripGenerated:
-		title = "Your trip has been generated"
+		title = "Your AI Trip is Ready"
+		body = "Your AI-generated trip has been created successfully"
 	case entity.NotificationType.TripGeneratedFailed:
-		title = "Trip generation failed"
+		title = "AI Trip Creation Failed"
+		body = "Sorry, we couldn't create your AI trip right now. Please try again later"
+	case entity.NotificationType.TripStartingSoon:
+		title = "Trip Starting Soon"
+		body = "Your trip will begin in 3 days"
 	}
 
 	return &expo.PushMessage{
