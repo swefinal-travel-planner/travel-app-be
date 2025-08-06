@@ -158,6 +158,15 @@ func (n *ExpoNotificationService) GetAllNotification(ctx *gin.Context, userID in
 	var notificationsResponse []model.NotificationResponse
 
 	for _, notification := range notifications {
+		// For user-triggered notifications, fetch current user info dynamically
+		if notification.TriggerEntityType == entity.NotificationTriggerType.User && notification.TriggerEntityID != nil {
+			user, err := n.userRepository.GetOneByIDQuery(ctx, *notification.TriggerEntityID, nil)
+			if err == nil {
+				notification.TriggerEntityAvatar = user.PhotoURL
+				notification.TriggerEntityName = user.Name
+			}
+		}
+
 		notificationsResponse = append(notificationsResponse, model.NotificationResponse{
 			ID:        notification.ID,
 			Type:      notification.Type,
